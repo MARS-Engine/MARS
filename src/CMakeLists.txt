@@ -1,0 +1,7 @@
+add_subdirectory(Graphics)
+add_subdirectory(Math)
+add_subdirectory(Debug)
+add_subdirectory(Filesystem)
+add_subdirectory(Multithread)
+add_subdirectory(Components)
+add_subdirectory(Time)
