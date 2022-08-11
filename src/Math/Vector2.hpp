@@ -28,6 +28,9 @@ struct Vector2 {
     Vector2 operator/(const float& right) const;
     bool operator>(const Vector2& right) const;
     bool operator<(const Vector2& right) const;
+
+    size_t operator()(const Vector2& v) const;
+
 };
 
 

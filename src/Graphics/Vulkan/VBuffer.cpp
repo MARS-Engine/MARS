@@ -138,7 +138,12 @@ void VBuffer::TransitionImageLayout(bool begin) {
 }
 
 
-void VBuffer::Bind(VCommandBuffer* commandBuffer) {
+void VBuffer::Bind(VCommandBuffer* commandBuffer, VBufferBindType type) {
     VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(commandBuffer->rawCommandBuffers[commandBuffer->recordIndex], 0, 1, &buffer, &offset);
+    switch (type) {
+        case VBUFFER_VERTEX_BIND:
+            return vkCmdBindVertexBuffers(commandBuffer->rawCommandBuffers[commandBuffer->recordIndex], 0, 1, &buffer, &offset);
+        case VBUFFER_INDEX_BIND:
+            return vkCmdBindIndexBuffer(commandBuffer->rawCommandBuffers[commandBuffer->recordIndex], buffer, 0, VK_INDEX_TYPE_UINT32);
+    }
 }

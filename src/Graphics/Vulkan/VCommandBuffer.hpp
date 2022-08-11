@@ -26,6 +26,7 @@ public:
     void Begin(size_t index);
     void LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain, VFramebuffer* framebuffer, size_t imageIndex);
     void Draw(size_t vCount, size_t iCount);
+    void DrawIndexed(size_t size, size_t iCount);
     void End();
     void EndSingle();
 };

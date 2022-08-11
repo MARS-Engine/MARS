@@ -76,3 +76,7 @@ bool Vector2::operator>(const Vector2& right) const {
 bool Vector2::operator<(const Vector2& right) const {
     return x < right.x && y < right.y;
 }
+
+size_t Vector2::operator()(const Vector2 &v) const {
+    return ((hash<float>()(v.x) ^ (hash<float>()(v.y) << 1)) >> 1);
+}

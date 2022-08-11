@@ -17,6 +17,7 @@ struct Vector3 {
     Vector3(float _x, float _y, float _z);
 
     static Vector3 Zero();
+    static Vector3 One();
     static Vector3 Up();
     static Vector3 Forward();
     
@@ -44,6 +45,10 @@ struct Vector3 {
     Vector3& operator-=(const Vector3& right);
 
     float& operator[](int Index);
+
+    size_t operator()(const Vector3& v) const;
+
+    ~Vector3() = default;
 };
 
 

@@ -33,3 +33,7 @@ VertexInputDescription Vertex3::GetDescription() {
     description.attributes.push_back(uvAttribute);
     return description;
 }
+
+bool Vertex3::operator==(const Vertex3& other) const {
+    return  position == other.position && uv == other.uv && normal == other.normal;
+}

@@ -26,6 +26,11 @@ void CommandBuffer::LoadDefault() const {
 void CommandBuffer::Draw(size_t vCount, size_t iCount) const {
     vCommandBuffer->Draw(vCount, iCount);
 }
+
+void CommandBuffer::DrawIndexed(size_t size, size_t iCount) const {
+    vCommandBuffer->DrawIndexed(size, iCount);
+}
+
 void CommandBuffer::End() const {
     vCommandBuffer->End();
 }

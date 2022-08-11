@@ -1,5 +1,10 @@
 #include "EngineObject.hpp"
 #include "Component.hpp"
+#include "Components/Transform.hpp"
+
+EngineObject::EngineObject() {
+    transform = new Transform(this);
+}
 
 void EngineObject::ExecuteCode(ExecutionCode code) {
     for (auto& component : components) {

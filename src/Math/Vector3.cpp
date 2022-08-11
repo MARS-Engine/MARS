@@ -16,15 +16,19 @@ Vector3::Vector3(float _x, float _y, float _z) {
 }
 
 Vector3 Vector3::Zero() {
-    return {0.0f, 0.0f, 0.0f};
+    return {0.f, 0.f, 0.f};
+}
+
+Vector3 Vector3::One() {
+    return {1.f, 1.f, 1.f};
 }
 
 Vector3 Vector3::Up() {
-    return {0.0f, 1.0f, 0.0f};
+    return {0.f, 1.f, 0.f};
 }
 
 Vector3 Vector3::Forward() {
-    return {0.0f, 0.0f, 1.0f};
+    return {0.f, 0.f, 1.f};
 }
 
 Vector2 Vector3::Xy() {
@@ -153,4 +157,8 @@ float& Vector3::operator[](int Index) {
         default:
             return x;
     }
+}
+
+size_t Vector3::operator()(const Vector3 &v) const {
+    return ((hash<float>()(v.x) ^ (hash<float>()(v.y) << 1)) >> 1) ^ (hash<float>()(v.z) << 1);
 }

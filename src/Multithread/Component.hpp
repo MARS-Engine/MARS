@@ -2,12 +2,15 @@
 #define __COMPONENT__
 
 #include "Graphics/VEngine.hpp"
+#include "Components/Transform.hpp"
 
 class EngineObject;
 
 class Component {
 public:
     EngineObject* object;
+
+    inline Transform* transform() { return object->transform; };
 
     VEngine* GetEngine() const;
 

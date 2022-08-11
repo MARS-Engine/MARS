@@ -51,10 +51,11 @@ void VPipeline::ApplyInputDescription(VertexInputDescription *description) {
 void VPipeline::Create() {
     shaderStages = vector<VkPipelineShaderStageCreateInfo>({VInitializer::PipelineStageInfo(VK_SHADER_STAGE_VERTEX_BIT, shader->vertModule), VInitializer::PipelineStageInfo(VK_SHADER_STAGE_FRAGMENT_BIT, shader->fragModule) });
 
+    //Fix inverted viewport, i think
     viewport.x = 0.0f;
-    viewport.y = 0.0f;
+    viewport.y = swapchain->size.y;
     viewport.width = swapchain->size.x;
-    viewport.height = swapchain->size.y;
+    viewport.height = -swapchain->size.y;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 

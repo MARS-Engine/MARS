@@ -19,6 +19,7 @@ public:
     void Begin() const;
     void LoadDefault() const;
     void Draw(size_t vCount, size_t iCount) const;
+    void DrawIndexed(size_t size, size_t iCount) const;
     void End() const;
 };
 

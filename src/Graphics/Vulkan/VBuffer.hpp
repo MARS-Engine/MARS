@@ -8,6 +8,12 @@ class VDevice;
 class VInstance;
 class VCommandBuffer;
 
+enum VBufferBindType {
+    VBUFFER_VERTEX_BIND,
+    VBUFFER_INDEX_BIND
+};
+
+
 class VBuffer {
 public:
     VkDescriptorSet descriptor;
@@ -19,6 +25,7 @@ public:
     size_t bufferSize;
     VDevice* device;
     VkExtent3D imageExtent;
+    VBufferBindType type;
 
     VBuffer(VDevice* device, VmaAllocator& allocator);
 
@@ -30,7 +37,7 @@ public:
     void CopyBufferImage() const;
     void Update(void* data) const;
     void TransitionImageLayout(bool begin);
-    void Bind(VCommandBuffer* commandBuffer);
+    void Bind(VCommandBuffer* commandBuffer, VBufferBindType type);
 };
 
 #endif

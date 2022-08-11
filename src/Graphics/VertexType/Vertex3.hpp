@@ -11,6 +11,8 @@ public:
     Vector2 uv;
 
     VertexInputDescription GetDescription();
+
+    bool operator==(const Vertex3& other) const;
 };
 
 #endif

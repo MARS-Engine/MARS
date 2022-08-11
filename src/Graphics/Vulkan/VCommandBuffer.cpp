@@ -67,6 +67,10 @@ void VCommandBuffer::Draw(size_t vCount, size_t iCount) {
     vkCmdDraw(rawCommandBuffers[recordIndex], vCount, iCount, 0, 0);
 }
 
+void VCommandBuffer::DrawIndexed(size_t size, size_t iCount) {
+    vkCmdDrawIndexed(rawCommandBuffers[recordIndex], size, iCount, 0, 0, 0);
+}
+
 void VCommandBuffer::End() {
     vkCmdEndRenderPass(rawCommandBuffers[recordIndex]);
     VK_CHECK(vkEndCommandBuffer(rawCommandBuffers[recordIndex]));
