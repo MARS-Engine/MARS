@@ -18,6 +18,7 @@ struct Vector3 {
 
     static Vector3 Zero();
     static Vector3 Up();
+    static Vector3 Forward();
     
     Vector2 Xy();
     Vector3 GetSafeNormal(float Tolerance = SMALL_NUMBER);

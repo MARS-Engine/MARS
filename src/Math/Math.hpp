@@ -20,7 +20,6 @@ struct Quaternion;
 
 using namespace std;
 
-vector<string> Explode(string const & s, char delim);
 unsigned short getShort(unsigned char* array, int offset);
 unsigned int getInt32(unsigned char* array, int offset);
 bool is_number(const string& s);

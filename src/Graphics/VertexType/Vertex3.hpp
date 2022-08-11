@@ -8,7 +8,7 @@ struct Vertex3 {
 public:
     Vector3 position;
     Vector3 normal;
-    Vector3 color;
+    Vector2 uv;
 
     VertexInputDescription GetDescription();
 };

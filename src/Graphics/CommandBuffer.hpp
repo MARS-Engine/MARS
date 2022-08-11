@@ -1,6 +1,7 @@
 #ifndef __COMMANDBUFFER__
 #define __COMMANDBUFFER__
 
+#include "Vulkan/VTypes.hpp"
 #include "Vulkan/VCommandBuffer.hpp"
 class VEngine;
 
@@ -10,6 +11,8 @@ public:
     VEngine* engine;
 
     CommandBuffer(VEngine* engine);
+
+    VkCommandBuffer  GetCommandBuffer();
 
     void Create();
     void Reset() const;

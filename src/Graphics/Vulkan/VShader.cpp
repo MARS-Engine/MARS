@@ -1,7 +1,45 @@
 #include "VShader.hpp"
 #include "VDevice.hpp"
+#include "VDescriptorPool.hpp"
 #include "Filesystem/FileManager.hpp"
 #include "Debug/Debug.hpp"
+#include "Misc/StringHelper.hpp"
+
+VUniformData::VUniformData(string value, uint32_t index) {
+    type = UNIFORM_BUFFER;
+    name = value;
+
+    if (value.find(' ') != string::npos) {
+        vector<string> values = Explode(value, ' ');
+
+        if (values.size() >= 2) {
+            name = values[0];
+            if (values[1] == "TEXTURE")
+                type = UNIFORM_TEXTURE;
+            else if (values[1] == "BUFFER")
+                type = UNIFORM_BUFFER;
+            else
+                Debug::Alert("Shader - invalid shader type - " + values[1] + " - Falling back to BUFFER");
+        }
+        else
+            Debug::Alert("Shader Error - Invalid shader value - " + value);
+    }
+
+    binding.binding = index;
+    binding.descriptorCount = 1;
+    binding.pImmutableSamplers = nullptr;
+
+    switch (type) {
+        case UNIFORM_BUFFER:
+            binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+            break;
+        case UNIFORM_TEXTURE:
+            binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+            break;
+    }
+}
 
 VkShaderModule VShader::LoadShaderModule(vector<uint32_t>& data) const {
     VkShaderModuleCreateInfo createInfo = {};
@@ -61,6 +99,8 @@ void VShader::LoadShader(const string& location) {
             case ATTRIBUTES:
                 break;
             case UNIFORMS:
+                if (!line.empty())
+                    uniforms.push_back(new VUniformData(line, uniforms.size()));
                 break;
         }
     }
@@ -75,4 +115,29 @@ void VShader::LoadShader(const string& location) {
 
     vertModule = LoadShaderModule(vertexData);
     fragModule = LoadShaderModule(fragmentData);
+
+    descriptorPool = new VDescriptorPool(device);
+    descriptorPool->Create(this);
+
+    layout = GetDescriptorLayout();
+}
+
+VkDescriptorSetLayout VShader::GetDescriptorLayout() {
+    VkDescriptorSetLayoutCreateInfo setinfo = {};
+    setinfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    setinfo.pNext = nullptr;
+
+    setinfo.flags = 0;
+
+    vector<VkDescriptorSetLayoutBinding> bindings;
+
+    for (auto uniform : uniforms)
+        bindings.push_back(uniform->binding);
+
+    setinfo.bindingCount = bindings.size();
+    setinfo.pBindings = bindings.data();
+
+    VkDescriptorSetLayout layout;
+    vkCreateDescriptorSetLayout(device->rawDevice, &setinfo, nullptr, &layout);
+    return layout;
 }

@@ -8,7 +8,7 @@
 #include "Vulkan/VFramebuffer.hpp"
 #include "Vulkan/VSync.hpp"
 #include "Vulkan/VBuffer.hpp"
-
+#include "Vulkan/VDescriptorPool.hpp"
 void VEngine::Create(Window* _window) {
     window = _window;
 
@@ -67,7 +67,7 @@ void VEngine::Draw() {
     submit.pSignalSemaphores = &sync->renders[renderFrame];
 
     submit.commandBufferCount = 1;
-    submit.pCommandBuffers = &commandBuffer->vCommandBuffer->rawCommandBuffers[imageIndex];
+    submit.pCommandBuffers = &commandBuffer->vCommandBuffer->rawCommandBuffers[renderFrame];
 
     VK_CHECK(vkQueueSubmit(device->graphicsQueue, 1, &submit, sync->fences[renderFrame]));
 

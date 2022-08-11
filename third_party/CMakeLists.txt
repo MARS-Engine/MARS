@@ -12,3 +12,6 @@ target_include_directories(tinyobjloader PUBLIC tinyobjloader)
 
 add_library(vma INTERFACE)
 target_include_directories(vma INTERFACE vma)
+
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE stb)

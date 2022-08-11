@@ -36,9 +36,10 @@ public:
     VkPipeline rawPipeline;
     size_t constantSize;
 
-    VPipeline(VDevice* device, VSwapchain* swapchain, VRenderPass* renderPass);
+    VPipeline(VShader* shader, VDevice* device, VSwapchain* swapchain, VRenderPass* renderPass);
 
-    void Create(VShader* shader, VertexInputDescription* description = nullptr);
+    void ApplyInputDescription(VertexInputDescription* description);
+    void Create();
     void CreateLayout(size_t size = 0);
     void Bind(VCommandBuffer* commandBuffer) const;
     void UpdateConstant(VCommandBuffer* commandBuffer, void* data) const;

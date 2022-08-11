@@ -6,6 +6,10 @@ CommandBuffer::CommandBuffer(VEngine* _engine) {
     engine = _engine;
 }
 
+VkCommandBuffer CommandBuffer::GetCommandBuffer() {
+    return vCommandBuffer->rawCommandBuffers[engine->renderFrame];
+}
+
 void CommandBuffer::Create() {
     vCommandBuffer = new VCommandBuffer(engine->commandPool);
     vCommandBuffer->Create(VEngine::FRAME_OVERLAP);
@@ -17,7 +21,7 @@ void CommandBuffer::Begin() const {
     vCommandBuffer->Begin(engine->renderFrame);
 }
 void CommandBuffer::LoadDefault() const {
-    vCommandBuffer->LoadDefault(engine->renderPass, engine->swapchain, engine->framebuffer);
+    vCommandBuffer->LoadDefault(engine->renderPass, engine->swapchain, engine->framebuffer, engine->imageIndex);
 }
 void CommandBuffer::Draw(size_t vCount, size_t iCount) const {
     vCommandBuffer->Draw(vCount, iCount);

@@ -6,10 +6,11 @@
 #include "VSwapchain.hpp"
 #include "VCommandBuffer.hpp"
 
-VPipeline::VPipeline(VDevice* _device, VSwapchain* _swapchain, VRenderPass* _renderPass) {
+VPipeline::VPipeline(VShader* _shader, VDevice* _device, VSwapchain* _swapchain, VRenderPass* _renderPass) {
     device = _device;
     renderPass = _renderPass;
     swapchain = _swapchain;
+    shader = _shader;
 
     layoutInfo = VInitializer::PipelineLayoutInfo();
     vertexInputInfo = VInitializer::PipelineVertexInputInfo();
@@ -32,20 +33,23 @@ void VPipeline::CreateLayout(size_t size) {
         layoutInfo.pPushConstantRanges = &push_constant;
         layoutInfo.pushConstantRangeCount = 1;
     }
+
+    layoutInfo.setLayoutCount = 1;
+    layoutInfo.pSetLayouts = &shader->layout;
+
     VK_CHECK(vkCreatePipelineLayout(device->rawDevice, &layoutInfo, nullptr, &pipelineLayout));
 }
 
-void VPipeline::Create(VShader* _shader, VertexInputDescription* description) {
-    shader = _shader;
+void VPipeline::ApplyInputDescription(VertexInputDescription *description) {
+    vertexInputInfo.pVertexAttributeDescriptions= description->attributes.data();
+    vertexInputInfo.vertexAttributeDescriptionCount= description->attributes.size();
+
+    vertexInputInfo.pVertexBindingDescriptions= description->bindings.data();
+    vertexInputInfo.vertexBindingDescriptionCount= description->bindings.size();
+}
+
+void VPipeline::Create() {
     shaderStages = vector<VkPipelineShaderStageCreateInfo>({VInitializer::PipelineStageInfo(VK_SHADER_STAGE_VERTEX_BIT, shader->vertModule), VInitializer::PipelineStageInfo(VK_SHADER_STAGE_FRAGMENT_BIT, shader->fragModule) });
-
-    if (description != nullptr) {
-        vertexInputInfo.pVertexAttributeDescriptions= description->attributes.data();
-        vertexInputInfo.vertexAttributeDescriptionCount= description->attributes.size();
-
-        vertexInputInfo.pVertexBindingDescriptions= description->bindings.data();
-        vertexInputInfo.vertexBindingDescriptionCount= description->bindings.size();
-    }
 
     viewport.x = 0.0f;
     viewport.y = 0.0f;

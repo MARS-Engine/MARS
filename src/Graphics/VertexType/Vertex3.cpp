@@ -22,14 +22,14 @@ VertexInputDescription Vertex3::GetDescription() {
     normalAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
     normalAttribute.offset = offsetof(Vertex3, normal);
 
-    VkVertexInputAttributeDescription colorAttribute = {};
-    colorAttribute.binding = 0;
-    colorAttribute.location = 2;
-    colorAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
-    colorAttribute.offset = offsetof(Vertex3, color);
+    VkVertexInputAttributeDescription uvAttribute = {};
+    uvAttribute.binding = 0;
+    uvAttribute.location = 2;
+    uvAttribute.format = VK_FORMAT_R32G32_SFLOAT;
+    uvAttribute.offset = offsetof(Vertex3, uv);
 
     description.attributes.push_back(positionAttribute);
     description.attributes.push_back(normalAttribute);
-    description.attributes.push_back(colorAttribute);
+    description.attributes.push_back(uvAttribute);
     return description;
 }

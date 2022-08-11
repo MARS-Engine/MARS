@@ -16,7 +16,7 @@ class VCommandBuffer {
 public:
     vector<VkCommandBuffer> rawCommandBuffers;
     VCommandPool* commandPool;
-    size_t recordIndex;
+    size_t recordIndex = 0;
     Vector4 clearColor;
 
     VCommandBuffer(VCommandPool* commandPool);
@@ -24,9 +24,10 @@ public:
     void Create(size_t size);
     void Reset(size_t index);
     void Begin(size_t index);
-    void LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain, VFramebuffer* framebuffer);
+    void LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain, VFramebuffer* framebuffer, size_t imageIndex);
     void Draw(size_t vCount, size_t iCount);
     void End();
+    void EndSingle();
 };
 
 #endif

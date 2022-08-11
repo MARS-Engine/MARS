@@ -44,7 +44,7 @@ THE SOFTWARE.
 // version 1.0.6 : Add TINYOBJLOADER_USE_DOUBLE option(#124)
 // version 1.0.5 : Ignore `Tr` when `d` exists in MTL(#43)
 // version 1.0.4 : Support multiple filenames for 'mtllib'(#112)
-// version 1.0.3 : Support parsing texture options(#85)
+// version 1.0.3 : Support parsing vTexture options(#85)
 // version 1.0.2 : Improve parsing speed by about a factor of 2 for large
 // files(#105)
 // version 1.0.1 : Fixes a shape is lost if obj ends with a 'usemtl'(#104)
@@ -85,12 +85,12 @@ namespace tinyobj {
 
 // https://en.wikipedia.org/wiki/Wavefront_.obj_file says ...
 //
-//  -blendu on | off                       # set horizontal texture blending
+//  -blendu on | off                       # set horizontal vTexture blending
 //  (default on)
-//  -blendv on | off                       # set vertical texture blending
+//  -blendv on | off                       # set vertical vTexture blending
 //  (default on)
 //  -boost real_value                      # boost mip-map sharpness
-//  -mm base_value gain_value              # modify texture map values (default
+//  -mm base_value gain_value              # modify vTexture map values (default
 //  0 1)
 //                                         #     base_value = brightness,
 //                                         gain_value = contrast
@@ -100,7 +100,7 @@ namespace tinyobj {
 //  1 1 1)
 //  -t u [v [w]]                           # Turbulence                (default
 //  0 0 0)
-//  -texres resolution                     # texture resolution to create
+//  -texres resolution                     # vTexture resolution to create
 //  -clamp on | off                        # only render texels in the clamped
 //  0-1 range (default off)
 //                                         #   When unclamped, textures are
@@ -113,7 +113,7 @@ namespace tinyobj {
 //
 //  -imfchan r | g | b | m | l | z         # specifies which channel of the file
 //  is used to
-//                                         # create a scalar or bump texture.
+//                                         # create a scalar or bump vTexture.
 //                                         r:red, g:green,
 //                                         # b:blue, m:matte, l:luminance,
 //                                         z:z-depth..
@@ -126,7 +126,7 @@ namespace tinyobj {
 //
 //   -type sphere                           # specifies a sphere for a "refl"
 //   reflection map
-//   -type cube_top    | cube_bottom |      # when using a cube map, the texture
+//   -type cube_top    | cube_bottom |      # when using a cube map, the vTexture
 //   file for each
 //         cube_front  | cube_back   |      # side of the cube is specified
 //         separately
@@ -134,7 +134,7 @@ namespace tinyobj {
 //
 // TinyObjLoader extension.
 //
-//   -colorspace SPACE                      # Color space of the texture. e.g.
+//   -colorspace SPACE                      # Color space of the vTexture. e.g.
 //   'sRGB` or 'linear'
 //
 
@@ -393,7 +393,7 @@ struct attrib_t {
   std::vector<real_t> normals;         // 'vn'
   std::vector<real_t> texcoords;       // 'vt'(uv)
 
-  // For backward compatibility, we store texture coordinate 'w' in separate
+  // For backward compatibility, we store vTexture coordinate 'w' in separate
   // array.
   std::vector<real_t> texcoord_ws;  // 'vt'(w)
   std::vector<real_t> colors;       // extension: vertex colors
@@ -633,10 +633,10 @@ void LoadMtl(std::map<std::string, int> *material_map,
              std::string *warning, std::string *err);
 
 ///
-/// Parse texture name and texture option for custom texture parameter through
+/// Parse vTexture name and vTexture option for custom vTexture parameter through
 /// material::unknown_parameter
 ///
-/// @param[out] texname Parsed texture name
+/// @param[out] texname Parsed vTexture name
 /// @param[out] texopt Parsed texopt
 /// @param[in] linebuf Input string
 ///
@@ -718,7 +718,7 @@ struct __line_t {
 struct __points_t {
   // p v1 v2 ...
   // In the specification, point primitrive does not have normal index and
-  // texture coord index, but TinyObjLoader allow it.
+  // vTexture coord index, but TinyObjLoader allow it.
   std::vector<vertex_index_t> vertex_indices;
 };
 
@@ -1279,7 +1279,7 @@ bool ParseTextureNameAndOption(std::string *texname, texture_option_t *texopt,
       token += 12;
       texopt->colorspace = parseString(&token);
     } else {
-// Assume texture filename
+// Assume vTexture filename
 #if 0
       size_t len = strcspn(token, " \t\r");  // untile next space
       texture_name = std::string(token, token + len);
@@ -1288,7 +1288,7 @@ bool ParseTextureNameAndOption(std::string *texname, texture_option_t *texopt,
       token += strspn(token, " \t");  // skip space
 #else
       // Read filename until line end to parse filename containing whitespace
-      // TODO(syoyo): Support parsing texture option flag after the filename.
+      // TODO(syoyo): Support parsing vTexture option flag after the filename.
       texture_name = std::string(token);
       token += texture_name.length();
 #endif
@@ -2161,7 +2161,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // ambient texture
+    // ambient vTexture
     if ((0 == strncmp(token, "map_Ka", 6)) && IS_SPACE(token[6])) {
       token += 7;
       ParseTextureNameAndOption(&(material.ambient_texname),
@@ -2169,13 +2169,13 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // diffuse texture
+    // diffuse vTexture
     if ((0 == strncmp(token, "map_Kd", 6)) && IS_SPACE(token[6])) {
       token += 7;
       ParseTextureNameAndOption(&(material.diffuse_texname),
                                 &(material.diffuse_texopt), token);
 
-      // Set a decent diffuse default value if a diffuse texture is specified
+      // Set a decent diffuse default value if a diffuse vTexture is specified
       // without a matching Kd value.
       if (!has_kd) {
         material.diffuse[0] = static_cast<real_t>(0.6);
@@ -2186,7 +2186,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // specular texture
+    // specular vTexture
     if ((0 == strncmp(token, "map_Ks", 6)) && IS_SPACE(token[6])) {
       token += 7;
       ParseTextureNameAndOption(&(material.specular_texname),
@@ -2194,7 +2194,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // specular highlight texture
+    // specular highlight vTexture
     if ((0 == strncmp(token, "map_Ns", 6)) && IS_SPACE(token[6])) {
       token += 7;
       ParseTextureNameAndOption(&(material.specular_highlight_texname),
@@ -2202,7 +2202,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // bump texture
+    // bump vTexture
     if ((0 == strncmp(token, "map_bump", 8)) && IS_SPACE(token[8])) {
       token += 9;
       ParseTextureNameAndOption(&(material.bump_texname),
@@ -2210,7 +2210,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // bump texture
+    // bump vTexture
     if ((0 == strncmp(token, "map_Bump", 8)) && IS_SPACE(token[8])) {
       token += 9;
       ParseTextureNameAndOption(&(material.bump_texname),
@@ -2218,7 +2218,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // bump texture
+    // bump vTexture
     if ((0 == strncmp(token, "bump", 4)) && IS_SPACE(token[4])) {
       token += 5;
       ParseTextureNameAndOption(&(material.bump_texname),
@@ -2226,7 +2226,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // alpha texture
+    // alpha vTexture
     if ((0 == strncmp(token, "map_d", 5)) && IS_SPACE(token[5])) {
       token += 6;
       material.alpha_texname = token;
@@ -2235,7 +2235,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // displacement texture
+    // displacement vTexture
     if ((0 == strncmp(token, "disp", 4)) && IS_SPACE(token[4])) {
       token += 5;
       ParseTextureNameAndOption(&(material.displacement_texname),
@@ -2251,7 +2251,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // PBR: roughness texture
+    // PBR: roughness vTexture
     if ((0 == strncmp(token, "map_Pr", 6)) && IS_SPACE(token[6])) {
       token += 7;
       ParseTextureNameAndOption(&(material.roughness_texname),
@@ -2259,7 +2259,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // PBR: metallic texture
+    // PBR: metallic vTexture
     if ((0 == strncmp(token, "map_Pm", 6)) && IS_SPACE(token[6])) {
       token += 7;
       ParseTextureNameAndOption(&(material.metallic_texname),
@@ -2267,7 +2267,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // PBR: sheen texture
+    // PBR: sheen vTexture
     if ((0 == strncmp(token, "map_Ps", 6)) && IS_SPACE(token[6])) {
       token += 7;
       ParseTextureNameAndOption(&(material.sheen_texname),
@@ -2275,7 +2275,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // PBR: emissive texture
+    // PBR: emissive vTexture
     if ((0 == strncmp(token, "map_Ke", 6)) && IS_SPACE(token[6])) {
       token += 7;
       ParseTextureNameAndOption(&(material.emissive_texname),
@@ -2283,7 +2283,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       continue;
     }
 
-    // PBR: normal map texture
+    // PBR: normal map vTexture
     if ((0 == strncmp(token, "norm", 4)) && IS_SPACE(token[4])) {
       token += 5;
       ParseTextureNameAndOption(&(material.normal_texname),

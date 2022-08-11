@@ -23,6 +23,10 @@ Vector3 Vector3::Up() {
     return {0.0f, 1.0f, 0.0f};
 }
 
+Vector3 Vector3::Forward() {
+    return {0.0f, 0.0f, 1.0f};
+}
+
 Vector2 Vector3::Xy() {
     return {x, y};
 }

@@ -6,7 +6,7 @@ add_subdirectory(src)
 target_link_libraries(MVRE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(MVRE ${Vulkan_LIBRARIES})
 target_link_libraries(MVRE ${SDL2_LIBRARIES})
-target_link_libraries(MVRE vkbootstrap vma tinyobjloader)
+target_link_libraries(MVRE vkbootstrap vma tinyobjloader stb)
 
 target_include_directories(MVRE PUBLIC ${Vulkan_INCLUDE_DIR})
 target_include_directories(MVRE PUBLIC ${FREETYPE_INCLUDE_DIRS})

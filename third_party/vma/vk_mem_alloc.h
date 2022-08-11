@@ -18051,7 +18051,7 @@ not made if it would exceed the budget or if the budget is already exceeded.
 VMA then tries to make the allocation from the next eligible Vulkan memory type.
 The all of them fail, the call then fails with `VK_ERROR_OUT_OF_DEVICE_MEMORY`.
 Example usage pattern may be to pass the #VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT flag
-when creating resources that are not essential for the application (e.g. the texture
+when creating resources that are not essential for the application (e.g. the vTexture
 of a specific object) and not to pass it when creating critically important resources
 (e.g. render targets).
 
@@ -18097,7 +18097,7 @@ Following example shows two different images bound to the same place in memory,
 allocated to fit largest of them.
 
 \code
-// A 512x512 texture to be sampled.
+// A 512x512 vTexture to be sampled.
 VkImageCreateInfo img1CreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 img1CreateInfo.imageType = VK_IMAGE_TYPE_2D;
 img1CreateInfo.extent.width = 512;
@@ -18111,7 +18111,7 @@ img1CreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 img1CreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 img1CreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
-// A full screen texture to be used as color attachment.
+// A full screen vTexture to be used as color attachment.
 VkImageCreateInfo img2CreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 img2CreateInfo.imageType = VK_IMAGE_TYPE_2D;
 img2CreateInfo.extent.width = 1920;
@@ -18170,7 +18170,7 @@ Additional considerations:
 See chapter 11.8. "Memory Aliasing" of Vulkan specification or `VK_IMAGE_CREATE_ALIAS_BIT` flag.
 - You can create more complex layout where different images and buffers are bound
 at different offsets inside one large allocation. For example, one can imagine
-a big texture used in some render passes, aliasing with a set of many small buffers
+a big vTexture used in some render passes, aliasing with a set of many small buffers
 used between in some further passes. To bind a resource at non-zero offset in an allocation,
 use vmaBindBufferMemory2() / vmaBindImageMemory2().
 - Before allocating memory for the resources you want to alias, check `memoryTypeBits`
@@ -19168,7 +19168,7 @@ else
 Here are some other, less obvious use cases and their recommended settings:
 
 - An image that is used only as transfer source and destination, but it should stay on the device,
-  as it is used to temporarily store a copy of some texture, e.g. from the current to the next frame,
+  as it is used to temporarily store a copy of some vTexture, e.g. from the current to the next frame,
   for temporal antialiasing or other temporal effects.
   - Use `VkImageCreateInfo::usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT`
   - Use VmaAllocationCreateInfo::usage = #VMA_MEMORY_USAGE_AUTO
@@ -19578,7 +19578,7 @@ Features deliberately excluded from the scope of this library:
 
 -# **Data transfer.** Uploading (streaming) and downloading data of buffers and images
    between CPU and GPU memory and related synchronization is responsibility of the user.
-   Defining some "texture" object that would automatically stream its data from a
+   Defining some "vTexture" object that would automatically stream its data from a
    staging copy in CPU memory to GPU memory would rather be a feature of another,
    higher-level library implemented on top of VMA.
    VMA doesn't record any commands to a `VkCommandBuffer`. It just allocates memory.

@@ -10,7 +10,6 @@ void VSync::Create() {
     VkFenceCreateInfo fenceCreateInfo = {};
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.pNext = nullptr;
-
     fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     fences.resize(VEngine::FRAME_OVERLAP);

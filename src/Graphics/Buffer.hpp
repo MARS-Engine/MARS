@@ -7,18 +7,19 @@ class CommandBuffer;
 class VBuffer;
 class VEngine;
 
-#include "vulkan/VTypes.hpp"
+#include "Vulkan/VTypes.hpp"
 
 class Buffer {
 public:
+    VBuffer* stagingBuffer;
     VBuffer* vBuffer;
     VEngine* engine;
 
     Buffer(VEngine* engine);
 
-    void Create(size_t size, VkBufferUsageFlagBits usage, VmaMemoryUsage memoryUsage);
-    void Update(void* data);
-    void Bind(CommandBuffer* commandBuffer);
+    void Create(size_t size, VkBufferUsageFlagBits usage) const;
+    void Update(void* data) const;
+    void Bind(CommandBuffer* commandBuffer) const;
 };
 
 #endif

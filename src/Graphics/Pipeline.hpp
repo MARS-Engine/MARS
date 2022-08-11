@@ -14,10 +14,11 @@ public:
     VPipeline* pipeline;
     VEngine* engine;
 
-    Pipeline(VEngine* engine);
+    Pipeline(VEngine* engine, Shader* shader);
 
-    void CreateLayout(size_t size) const;
-    void Create(Shader* shader, VertexInputDescription* description = nullptr) const;
+    void CreateLayout(size_t size = 0) const;
+    void ApplyInputDescription(VertexInputDescription* description) const;
+    void Create() const;
     void Bind(CommandBuffer* commandBuffer) const;
     void UpdateConstant(CommandBuffer* commandBuffer, void* data) const;
 };

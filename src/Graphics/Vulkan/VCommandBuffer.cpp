@@ -39,7 +39,7 @@ void VCommandBuffer::Begin(size_t index) {
     VK_CHECK(vkBeginCommandBuffer(rawCommandBuffers[index], &cmdBeginInfo));
 }
 
-void VCommandBuffer::LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain, VFramebuffer* framebuffer) {
+void VCommandBuffer::LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain, VFramebuffer* framebuffer, size_t imageIndex) {
     VkClearValue clearValue;
     clearValue.color = { { clearColor.x, clearColor.y, clearColor.z, clearColor.z } };
 
@@ -54,7 +54,7 @@ void VCommandBuffer::LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain,
     rpInfo.renderArea.offset.x = 0;
     rpInfo.renderArea.offset.y = 0;
     rpInfo.renderArea.extent = { (uint32_t)swapchain->size.x, (uint32_t)swapchain->size.y };
-    rpInfo.framebuffer = framebuffer->rawFramebuffers[recordIndex];
+    rpInfo.framebuffer = framebuffer->rawFramebuffers[imageIndex];
 
     rpInfo.clearValueCount = 2;
     VkClearValue clearValues[] = { clearValue, depthClear };
@@ -69,5 +69,9 @@ void VCommandBuffer::Draw(size_t vCount, size_t iCount) {
 
 void VCommandBuffer::End() {
     vkCmdEndRenderPass(rawCommandBuffers[recordIndex]);
+    VK_CHECK(vkEndCommandBuffer(rawCommandBuffers[recordIndex]));
+}
+
+void VCommandBuffer::EndSingle() {
     VK_CHECK(vkEndCommandBuffer(rawCommandBuffers[recordIndex]));
 }

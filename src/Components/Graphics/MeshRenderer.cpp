@@ -4,7 +4,11 @@
 #include "Math/Vector3.hpp"
 #include "Time/TimeHelper.hpp"
 #include "Graphics/Vulkan/VPipeline.hpp"
+#include "Graphics/Vulkan/VTexture.hpp"
+#include "Graphics/Vulkan/VShader.hpp"
 #include "Math/Quaternion.hpp"
+#include "Graphics/Vulkan/VShaderData.hpp"
+
 #include <tiny_obj_loader.h>
 
 struct MeshPushConstants {
@@ -73,8 +77,8 @@ struct Mesh {
                     new_vert.normal.y = ny;
                     new_vert.normal.z = nz;
 
-                    //we are setting the vertex color as the vertex normal. This is just for display purposes
-                    new_vert.color = new_vert.normal;
+                    new_vert.uv.x = attrib.texcoords[2 * idx.texcoord_index + 0];
+                    new_vert.uv.y = attrib.texcoords[2 * idx.texcoord_index + 1];
 
 
                     vertices.push_back(new_vert);
@@ -90,6 +94,11 @@ struct Mesh {
 
 Mesh mesh;
 
+
+struct GPUCameraData{
+    Matrix4 MVP;
+};
+
 void MeshRenderer::Load() {
     shader = new Shader(GetEngine());
     shader->LoadShader("Data/Shaders/Model.shader");
@@ -98,25 +107,41 @@ void MeshRenderer::Load() {
     mesh.load_from_obj("Data/Meshes/Monkey.obj");
 
     auto desc = mesh.vertices[0].GetDescription();
-    pipeline = new Pipeline(GetEngine());
-    pipeline->CreateLayout(sizeof(MeshPushConstants));
-    pipeline->Create(shader, &desc);
+    pipeline = new Pipeline(GetEngine(), shader);
+    pipeline->CreateLayout();
+    pipeline->ApplyInputDescription(&desc);
+    pipeline->Create();
 
     buffer = new Buffer(GetEngine());
-    buffer->Create(mesh.vertices.size() * sizeof(Vertex3), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    buffer->Create(mesh.vertices.size() * sizeof(Vertex3), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
     buffer->Update(mesh.vertices.data());
+
+    texture = new Texture(GetEngine());
+    texture->LoadTexture("Data/Texture/Astroid/asteroid_base_color.jpg");
+
+    shaderData = new ShaderData(shader, GetEngine());
+    shaderData->GetUniform("MVP")->Generate(sizeof(GPUCameraData));
+    shaderData->GetUniform("texCoord")->SetTexture(texture);
+    shaderData->Generate();
+
+    //uniform = new Uniform(GetEngine());
+    //uniform->Create(sizeof(GPUCameraData), shader);
 }
 float x = 0;
 Vector3 camPos = { 0.f, 0.f, -2.f };
-void MeshRenderer::Render() {
-    MeshPushConstants constants;
+
+void MeshRenderer::Update() {
+    GPUCameraData camData;
     x += TimeHelper::deltaTime;
-    constants.render_matrix =   Matrix4::PerspectiveFov(90.f, 1700.f / 900.f, 0.1f, 200.f) *
-                                Matrix4::Translate(Matrix4(1.f), camPos) *
-                                Matrix4::FromQuaternion(Quaternion::EulerToQuaternion(Vector3(0.0f, x, 0.0f)));
+    camData.MVP = Matrix4::PerspectiveFov(90.f, 1700.f / 900.f, 0.1f, 200.f) * Matrix4::LookAt(camPos, camPos + Vector3::Forward(), Vector3::Up()) * Matrix4::FromQuaternion(Quaternion::EulerToQuaternion(Vector3(0, x, 0)));
+    shaderData->GetUniform("MVP")->Update(&camData);
+    //uniform->Update(&camData);
+}
+
+void MeshRenderer::Render() {
 
     pipeline->Bind(GetEngine()->commandBuffer);
     buffer->Bind(GetEngine()->commandBuffer);
-    pipeline->UpdateConstant(GetEngine()->commandBuffer, &constants);
+    shaderData->Bind(GetEngine()->commandBuffer, pipeline);
     GetEngine()->commandBuffer->Draw(mesh.vertices.size(), 1);
 }

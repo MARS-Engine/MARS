@@ -4,17 +4,21 @@
 #include "CommandBuffer.hpp"
 #include "Vulkan/VPipeline.hpp"
 
-Pipeline::Pipeline(VEngine* _engine) {
+Pipeline::Pipeline(VEngine* _engine, Shader* shader) {
     engine = _engine;
-    pipeline = new VPipeline(engine->device, engine->swapchain, engine->renderPass);
+    pipeline = new VPipeline(shader->vShader, engine->device, engine->swapchain, engine->renderPass);
 }
 
 void Pipeline::CreateLayout(size_t size) const {
     pipeline->CreateLayout(size);
 }
 
-void Pipeline::Create(Shader* shader, VertexInputDescription* description) const {
-    pipeline->Create(shader->vShader, description);
+void Pipeline::ApplyInputDescription(VertexInputDescription* description) const {
+    pipeline->ApplyInputDescription(description);
+}
+
+void Pipeline::Create() const {
+    pipeline->Create();
 }
 
 void Pipeline::Bind(CommandBuffer* commandBuffer) const {

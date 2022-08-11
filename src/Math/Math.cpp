@@ -5,16 +5,6 @@
 #include "Quaternion.hpp"
 #include "math.h"
 
-vector<string> Explode(string const & s, char delim) {
-    vector<string> result;
-    istringstream iss(s);
-
-    for (string token; getline(iss, token, delim); )
-        result.push_back(move(token));
-
-    return result;
-}
-
 unsigned short getShort(unsigned char* array, int offset) {
     
     return (short)(((short)array[offset]) << 8) | array[offset + 1];
