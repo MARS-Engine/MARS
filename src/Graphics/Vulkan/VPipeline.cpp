@@ -18,7 +18,7 @@ VPipeline::VPipeline(VShader* _shader, VDevice* _device, VSwapchain* _swapchain,
     rasterizationInfo = VInitializer::PipelineRasterizationInfo(VK_POLYGON_MODE_FILL);
     multisampleInfo = VInitializer::PipelineMultisampleInfo();
     colorBlendAttachment = VInitializer::PipelineColorBlend();
-    depthStencil = VInitializer::DepthStencilInfo(true, true, VK_COMPARE_OP_LESS_OR_EQUAL);
+    depthStencil = VInitializer::DepthStencilInfo(true, true, VK_COMPARE_OP_LESS);
 }
 
 void VPipeline::CreateLayout(size_t size) {
@@ -74,12 +74,12 @@ void VPipeline::Create() {
 
     colorBlending = {};
     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-    colorBlending.pNext = nullptr;
-
-    colorBlending.logicOpEnable = VK_FALSE;
-    colorBlending.logicOp = VK_LOGIC_OP_COPY;
     colorBlending.attachmentCount = 1;
     colorBlending.pAttachments = &colorBlendAttachment;
+    colorBlending.blendConstants[0] = 0.0f;
+    colorBlending.blendConstants[1] = 0.0f;
+    colorBlending.blendConstants[2] = 0.0f;
+    colorBlending.blendConstants[3] = 0.0f;
 
     VkGraphicsPipelineCreateInfo pipelineInfo = {};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

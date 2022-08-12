@@ -4,10 +4,10 @@
 #include "Components/Graphics/Camera.hpp"
 
 Vector3 SpriteRenderer::vertices[4] = {
-    { -.5f, -1.0f,  .5f },
-    {  .5f, -1.0f,  .5f },
-    { -.5f, -1.0f, -.5f },
-    {  .5f, -1.0f, -.5f }
+    { -.5f,  .5f, -1.0f },
+    {  .5f,  .5f, -1.0f },
+    { -.5f, -.5f, -1.0f },
+    {  .5f, -.5f, -1.0f }
 };
 
 int SpriteRenderer::indices[6] = { 0, 1, 2, 1, 3, 2 };
@@ -52,10 +52,10 @@ void SpriteRenderer::Load() {
         PipelineManager::AddPipeline("SpritePipeline", pipeline);
     }
 
-    uv[0] = { 0.0, 1.0, 0.0, 0.0 };
-    uv[1] = { 1.0, 1.0, 0.0, 0.0 };
-    uv[2] = { 0.0, 0.0, 0.0, 0.0 };
-    uv[3] = { 1.0, 0.0, 0.0, 0.0 };
+    uv[0] = { 0.0, 0.0, 0.0, 0.0 };
+    uv[1] = { 1.0, 0.0, 0.0, 0.0 };
+    uv[2] = { 0.0, 1.0, 0.0, 0.0 };
+    uv[3] = { 1.0, 1.0, 0.0, 0.0 };
 
     shaderData = new ShaderData(shader, GetEngine());
     shaderData->GetUniform("MVP")->Generate(sizeof(Matrix4));
