@@ -162,3 +162,23 @@ float& Vector3::operator[](int Index) {
 size_t Vector3::operator()(const Vector3 &v) const {
     return ((hash<float>()(v.x) ^ (hash<float>()(v.y) << 1)) >> 1) ^ (hash<float>()(v.z) << 1);
 }
+
+VertexInputDescription Vector3::GetDescription() {
+    VertexInputDescription description;
+
+    VkVertexInputBindingDescription mainBinding = {};
+    mainBinding.binding = 0;
+    mainBinding.stride = sizeof(Vector3);
+    mainBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    description.bindings.push_back(mainBinding);
+
+    VkVertexInputAttributeDescription positionAttribute = {};
+    positionAttribute.binding = 0;
+    positionAttribute.location = 0;
+    positionAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
+    positionAttribute.offset = 0;
+
+    description.attributes.push_back(positionAttribute);
+    return description;
+}

@@ -1,11 +1,9 @@
 #ifndef _VECTOR3_
 #define _VECTOR3_
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
 #include "Vector2.hpp"
 #include "Math.hpp"
+#include "Graphics/Vulkan/VTypes.hpp"
 
 struct Vector3 {
     
@@ -49,6 +47,8 @@ struct Vector3 {
     size_t operator()(const Vector3& v) const;
 
     ~Vector3() = default;
+
+    static VertexInputDescription GetDescription();
 };
 
 

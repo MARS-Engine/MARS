@@ -77,7 +77,6 @@ void MeshRenderer::Load() {
     shaderData->GetUniform("texCoord")->SetTexture(texture);
     shaderData->Generate();
 }
-Vector3 camPos = { 0.f, 1.f, -2.f };
 
 void MeshRenderer::Update() {
     if (verticeBuffer == nullptr)
