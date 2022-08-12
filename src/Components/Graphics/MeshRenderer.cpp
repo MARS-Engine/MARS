@@ -8,6 +8,7 @@
 #include "Graphics/Vulkan/VTexture.hpp"
 #include "Graphics/Vulkan/VShader.hpp"
 #include "Graphics/Vulkan/VShaderData.hpp"
+#include "Manager/LightManager.hpp"
 
 void MeshRenderer::LoadMesh(const string& meshLocation) {
     if (!loaded) {
@@ -45,22 +46,9 @@ void MeshRenderer::LoadTexture(const std::string &textureLocation) {
     texture->LoadTexture(textureLocation);
 }
 
-struct PointLight {
-    Vector4 pos;
-    Vector4 color;
-};
-
 struct Push {
     Matrix4 model;
     Matrix4 normal;
-};
-
-
-struct LIGHT {
-    Matrix4 pv;
-    Vector4 ambient;
-    PointLight lights[2];
-    int lightSize;
 };
 
 void MeshRenderer::Load() {
@@ -82,7 +70,7 @@ void MeshRenderer::Load() {
 
     shaderData = new ShaderData(shader, GetEngine());
     shaderData->GetUniform("MVP")->Generate(sizeof(Matrix4));
-    shaderData->GetUniform("LIGHT")->Generate(sizeof(LIGHT));
+    shaderData->GetUniform("LIGHT")->Generate(sizeof(PointLightData));
     shaderData->GetUniform("push")->Generate(sizeof(Push));
     shaderData->GetUniform("texCoord")->SetTexture(texture);
     shaderData->Generate();
@@ -93,23 +81,17 @@ void MeshRenderer::Update() {
     if (verticeBuffer == nullptr)
         return;
     Matrix4 pv = Matrix4::PerspectiveFovLH(90.f, 1280.f, 720.f, 0.1f, 200.f) * Matrix4::LookAtLH(camPos, camPos + Vector3::Forward(), Vector3::Up());
-    Matrix4 t = transform()->GetTransform();
-    Matrix4 mat = pv * t;
+    Matrix4 trans = transform()->GetTransform();
+    Matrix4 mat = pv * trans;
     shaderData->GetUniform("MVP")->Update(&mat);
-    LIGHT light{};
-    light.pv = pv;
-    light.ambient = (1.0f, 1.0f, 1.0f, .02f);
-    light.lights[0] = { Vector4(2.0f, 1.0f, -1.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f) };
-    light.lights[1] = { Vector4(-2.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 1.0f, 1.0f) };
-    light.lightSize = 2;
 
-    Push dw {
-        t,
-        Matrix4::InverseTranspose(Matrix3(t))
+    Push push {
+            trans,
+            Matrix4::InverseTranspose(Matrix3(trans))
     };
 
-    shaderData->GetUniform("LIGHT")->Update(&light);
-    shaderData->GetUniform("push")->Update(&dw);
+    shaderData->GetUniform("LIGHT")->Update(&LightManager::pointLightData);
+    shaderData->GetUniform("push")->Update(&push);
     //uniform->Update(&camData);
 }
 
