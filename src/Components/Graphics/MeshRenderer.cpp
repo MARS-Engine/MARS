@@ -1,14 +1,12 @@
 #include "MeshRenderer.hpp"
-#include "Math/Vector4.hpp"
 #include "Math/Matrix4.hpp"
 #include "Math/Matrix3.hpp"
 #include "Math/Vector3.hpp"
 #include "Time/TimeHelper.hpp"
-#include "Graphics/Vulkan/VPipeline.hpp"
-#include "Graphics/Vulkan/VTexture.hpp"
-#include "Graphics/Vulkan/VShader.hpp"
-#include "Graphics/Vulkan/VShaderData.hpp"
 #include "Manager/LightManager.hpp"
+#include "Manager/ShaderManager.hpp"
+#include "Manager/PipelineManager.hpp"
+#include "Components/Graphics/Camera.hpp"
 
 void MeshRenderer::LoadMesh(const string& meshLocation) {
     if (!loaded) {
@@ -59,14 +57,18 @@ void MeshRenderer::Load() {
     if (!texturePath.empty())
         LoadTexture(texturePath);
 
-    shader = new Shader(GetEngine());
-    shader->LoadShader("Data/Shaders/Model.shader");
+    shader = ShaderManager::GetShader("Data/Shaders/Model.shader", GetEngine());
 
-    auto desc = Vertex3().GetDescription();
-    pipeline = new Pipeline(GetEngine(), shader);
-    pipeline->CreateLayout();
-    pipeline->ApplyInputDescription(&desc);
-    pipeline->Create();
+    pipeline = PipelineManager::GetPipeline("Default");
+
+    if (pipeline == nullptr) {
+        auto desc = Vertex3::GetDescription();
+        pipeline = new Pipeline(GetEngine(), shader);
+        pipeline->CreateLayout();
+        pipeline->ApplyInputDescription(&desc);
+        pipeline->Create();
+        PipelineManager::AddPipeline("Default", pipeline);
+    }
 
     shaderData = new ShaderData(shader, GetEngine());
     shaderData->GetUniform("MVP")->Generate(sizeof(Matrix4));
@@ -80,7 +82,8 @@ Vector3 camPos = { 0.f, 1.f, -2.f };
 void MeshRenderer::Update() {
     if (verticeBuffer == nullptr)
         return;
-    Matrix4 pv = Matrix4::PerspectiveFovLH(90.f, 1280.f, 720.f, 0.1f, 200.f) * Matrix4::LookAtLH(camPos, camPos + Vector3::Forward(), Vector3::Up());
+
+    Matrix4 pv =GetEngine()->GetCamera()->ProjectionView;
     Matrix4 trans = transform()->GetTransform();
     Matrix4 mat = pv * trans;
     shaderData->GetUniform("MVP")->Update(&mat);

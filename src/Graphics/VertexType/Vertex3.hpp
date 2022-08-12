@@ -10,7 +10,7 @@ public:
     Vector3 normal;
     Vector2 uv;
 
-    VertexInputDescription GetDescription();
+    static VertexInputDescription GetDescription();
 
     bool operator==(const Vertex3& other) const;
 };

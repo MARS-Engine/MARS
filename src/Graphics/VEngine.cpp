@@ -9,6 +9,13 @@
 #include "Vulkan/VSync.hpp"
 #include "Vulkan/VBuffer.hpp"
 #include "Vulkan/VDescriptorPool.hpp"
+
+Camera* VEngine::GetCamera() {
+    if (cameras.empty())
+        return nullptr;
+    return cameras[0];
+}
+
 void VEngine::Create(Window* _window) {
     window = _window;
 

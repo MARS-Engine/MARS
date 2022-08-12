@@ -9,6 +9,9 @@ EngineObject::EngineObject() {
 void EngineObject::ExecuteCode(ExecutionCode code) {
     for (auto& component : components) {
         switch (code) {
+            case PRE_LOAD:
+                component->PreLoad();
+                break;
             case LOAD:
                 component->Load();
                 break;

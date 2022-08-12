@@ -15,6 +15,7 @@ class EngineObject;
 class VEngine;
 
 enum ExecutionCode {
+    PRE_LOAD,
     LOAD,
     PRE_RENDER,
     UPDATE,

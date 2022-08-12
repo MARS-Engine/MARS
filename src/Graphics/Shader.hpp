@@ -12,6 +12,7 @@ class Shader {
 public:
     VEngine* engine;
     VShader* vShader;
+    string shaderPath;
 
     Shader(VEngine* engine);
     void LoadShader(const string& location);

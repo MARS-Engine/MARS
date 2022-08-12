@@ -13,6 +13,7 @@ class VCommandPool;
 class VRenderPass;
 class VFramebuffer;
 class VSync;
+class Camera;
 
 class VEngine {
 public:
@@ -32,6 +33,9 @@ public:
 
     uint32_t imageIndex;
 
+    vector<Camera*> cameras;
+
+    Camera* GetCamera();
 	void Create(Window* window);
     void PrepareDraw();
     void Draw();

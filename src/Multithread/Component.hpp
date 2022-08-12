@@ -14,6 +14,7 @@ public:
 
     VEngine* GetEngine() const;
 
+    virtual void PreLoad();
     virtual void Load();
     virtual void PreRender();
     virtual void Update();
