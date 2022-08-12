@@ -10,5 +10,5 @@ Transform::Transform(EngineObject* _object) {
 }
 
 void Transform::UpdateTransform() {
-    transform = Matrix4::Translate(position) * Matrix4::FromQuaternion(rotation) * Matrix4::Scale(scale);
+    transform = Matrix4::Scale(scale) * Matrix4::Translate(position) * Matrix4::FromQuaternion(rotation);
 }

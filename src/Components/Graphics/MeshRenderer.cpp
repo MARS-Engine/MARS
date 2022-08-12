@@ -1,6 +1,7 @@
 #include "MeshRenderer.hpp"
 #include "Math/Vector4.hpp"
 #include "Math/Matrix4.hpp"
+#include "Math/Matrix3.hpp"
 #include "Math/Vector3.hpp"
 #include "Time/TimeHelper.hpp"
 #include "Graphics/Vulkan/VPipeline.hpp"
@@ -32,10 +33,43 @@ void MeshRenderer::LoadMesh(const string& meshLocation) {
     indiceBuffer->Update(mesh->indices.data());
 }
 
+void MeshRenderer::LoadTexture(const std::string &textureLocation) {
+    if (!loaded) {
+        texturePath = textureLocation;
+        return;
+    }
+
+    if (texture == nullptr)
+        texture = new Texture(GetEngine());
+
+    texture->LoadTexture(textureLocation);
+}
+
+struct PointLight {
+    Vector4 pos;
+    Vector4 color;
+};
+
+struct Push {
+    Matrix4 model;
+    Matrix4 normal;
+};
+
+
+struct LIGHT {
+    Matrix4 pv;
+    Vector4 ambient;
+    PointLight lights[2];
+    int lightSize;
+};
+
 void MeshRenderer::Load() {
     loaded = true;
     if (!meshPath.empty())
         LoadMesh(meshPath);
+
+    if (!texturePath.empty())
+        LoadTexture(texturePath);
 
     shader = new Shader(GetEngine());
     shader->LoadShader("Data/Shaders/Model.shader");
@@ -46,24 +80,36 @@ void MeshRenderer::Load() {
     pipeline->ApplyInputDescription(&desc);
     pipeline->Create();
 
-    texture = new Texture(GetEngine());
-    texture->LoadTexture("Data/Texture/Astroid/asteroid_base_color.jpg");
-
     shaderData = new ShaderData(shader, GetEngine());
     shaderData->GetUniform("MVP")->Generate(sizeof(Matrix4));
+    shaderData->GetUniform("LIGHT")->Generate(sizeof(LIGHT));
+    shaderData->GetUniform("push")->Generate(sizeof(Push));
     shaderData->GetUniform("texCoord")->SetTexture(texture);
     shaderData->Generate();
-
-    //uniform = new Uniform(GetEngine());
-    //uniform->Create(sizeof(GPUCameraData), shader);
 }
-Vector3 camPos = { 0.f, 0.f, -2.f };
+Vector3 camPos = { 0.f, 1.f, -2.f };
 
 void MeshRenderer::Update() {
     if (verticeBuffer == nullptr)
         return;
-    Matrix4 mat = Matrix4::PerspectiveFovLH(90.f, 1280.f, 720.f, 0.1f, 200.f) * Matrix4::LookAtLH(camPos, camPos + Vector3::Forward(), Vector3::Up()) * transform()->GetTransform();
+    Matrix4 pv = Matrix4::PerspectiveFovLH(90.f, 1280.f, 720.f, 0.1f, 200.f) * Matrix4::LookAtLH(camPos, camPos + Vector3::Forward(), Vector3::Up());
+    Matrix4 t = transform()->GetTransform();
+    Matrix4 mat = pv * t;
     shaderData->GetUniform("MVP")->Update(&mat);
+    LIGHT light{};
+    light.pv = pv;
+    light.ambient = (1.0f, 1.0f, 1.0f, .02f);
+    light.lights[0] = { Vector4(2.0f, 1.0f, -1.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f) };
+    light.lights[1] = { Vector4(-2.0f, 1.0f, 1.0f), Vector4(0.0f, 0.0f, 1.0f, 1.0f) };
+    light.lightSize = 2;
+
+    Push dw {
+        t,
+        Matrix4::InverseTranspose(Matrix3(t))
+    };
+
+    shaderData->GetUniform("LIGHT")->Update(&light);
+    shaderData->GetUniform("push")->Update(&dw);
     //uniform->Update(&camData);
 }
 

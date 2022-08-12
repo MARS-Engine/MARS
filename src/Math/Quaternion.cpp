@@ -43,18 +43,14 @@ Vector3 Quaternion::ToEuler() {
 
 Quaternion Quaternion::EulerToQuaternion(Vector3 Euler) {
 
-    float cy = cos(Euler.z * 0.5);
-    float sy = sin(Euler.z * 0.5);
-    float cp = cos(Euler.y * 0.5);
-    float sp = sin(Euler.y * 0.5);
-    float cr = cos(Euler.x * 0.5);
-    float sr = sin(Euler.x * 0.5);
+    Vector3 c = Vector3(cosf(Euler.x * M_PI / 180.0f * 0.5f), cosf(Euler.y * M_PI / 180.0f * 0.5f), cosf(Euler.z * M_PI / 180.0f * 0.5f));
+    Vector3 s = Vector3(sinf(Euler.x * M_PI / 180.0f * 0.5f), sinf(Euler.y * M_PI / 180.0f * 0.5f), sinf(Euler.z * M_PI / 180.0f * 0.5f));
 
     Vector4 q;
-    q.w = cr * cp * cy + sr * sp * sy;
-    q.x = sr * cp * cy - cr * sp * sy;
-    q.y = cr * sp * cy + sr * cp * sy;
-    q.z = cr * cp * sy - sr * sp * cy;
+    q.w = c.x * c.y * c.z + s.x * s.y * s.z;
+    q.x = s.x * c.y * c.z - c.x * s.y * s.z;
+    q.y = c.x * s.y * c.z + s.x * c.y * s.z;
+    q.z = c.x * c.y * s.z - s.x * s.y * c.z;
 
     return Quaternion(q);
 }

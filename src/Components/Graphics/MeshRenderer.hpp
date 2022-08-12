@@ -25,9 +25,11 @@ public:
     Texture* texture;
     Mesh* mesh;
     string meshPath;
+    string texturePath;
     bool loaded = false;
 
     void LoadMesh(const string& meshLocation);
+    void LoadTexture(const string& texture);
     void Load() override;
     void Update() override;
     void Render() override;

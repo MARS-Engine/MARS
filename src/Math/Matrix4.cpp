@@ -90,6 +90,63 @@ Matrix4 Matrix4::Inverse(Matrix4 V) {
     return Inverse * OOD;
 }
 
+Matrix4 Matrix4::InverseTranspose(Matrix4 m) {
+    float SubFactor00 = m[2][2] * m[3][3] - m[3][2] * m[2][3];
+    float SubFactor01 = m[2][1] * m[3][3] - m[3][1] * m[2][3];
+    float SubFactor02 = m[2][1] * m[3][2] - m[3][1] * m[2][2];
+
+    float SubFactor03 = m[2][0] * m[3][3] - m[3][0] * m[2][3];
+    float SubFactor04 = m[2][0] * m[3][2] - m[3][0] * m[2][2];
+    float SubFactor05 = m[2][0] * m[3][1] - m[3][0] * m[2][1];
+
+    float SubFactor06 = m[1][2] * m[3][3] - m[3][2] * m[1][3];
+    float SubFactor07 = m[1][1] * m[3][3] - m[3][1] * m[1][3];
+    float SubFactor08 = m[1][1] * m[3][2] - m[3][1] * m[1][2];
+
+    float SubFactor09 = m[1][0] * m[3][3] - m[3][0] * m[1][3];
+    float SubFactor10 = m[1][0] * m[3][2] - m[3][0] * m[1][2];
+    float SubFactor11 = m[1][0] * m[3][1] - m[3][0] * m[1][1];
+
+    float SubFactor12 = m[1][2] * m[2][3] - m[2][2] * m[1][3];
+    float SubFactor13 = m[1][1] * m[2][3] - m[2][1] * m[1][3];
+    float SubFactor14 = m[1][1] * m[2][2] - m[2][1] * m[1][2];
+
+    float SubFactor15 = m[1][0] * m[2][3] - m[2][0] * m[1][3];
+    float SubFactor16 = m[1][0] * m[2][2] - m[2][0] * m[1][2];
+    float SubFactor17 = m[1][0] * m[2][1] - m[2][0] * m[1][1];
+
+    Matrix4 Inverse;
+    Inverse[0][0] = + (m[1][1] * SubFactor00 - m[1][2] * SubFactor01 + m[1][3] * SubFactor02);
+    Inverse[0][1] = - (m[1][0] * SubFactor00 - m[1][2] * SubFactor03 + m[1][3] * SubFactor04);
+    Inverse[0][2] = + (m[1][0] * SubFactor01 - m[1][1] * SubFactor03 + m[1][3] * SubFactor05);
+    Inverse[0][3] = - (m[1][0] * SubFactor02 - m[1][1] * SubFactor04 + m[1][2] * SubFactor05);
+
+    Inverse[1][0] = - (m[0][1] * SubFactor00 - m[0][2] * SubFactor01 + m[0][3] * SubFactor02);
+    Inverse[1][1] = + (m[0][0] * SubFactor00 - m[0][2] * SubFactor03 + m[0][3] * SubFactor04);
+    Inverse[1][2] = - (m[0][0] * SubFactor01 - m[0][1] * SubFactor03 + m[0][3] * SubFactor05);
+    Inverse[1][3] = + (m[0][0] * SubFactor02 - m[0][1] * SubFactor04 + m[0][2] * SubFactor05);
+
+    Inverse[2][0] = + (m[0][1] * SubFactor06 - m[0][2] * SubFactor07 + m[0][3] * SubFactor08);
+    Inverse[2][1] = - (m[0][0] * SubFactor06 - m[0][2] * SubFactor09 + m[0][3] * SubFactor10);
+    Inverse[2][2] = + (m[0][0] * SubFactor07 - m[0][1] * SubFactor09 + m[0][3] * SubFactor11);
+    Inverse[2][3] = - (m[0][0] * SubFactor08 - m[0][1] * SubFactor10 + m[0][2] * SubFactor11);
+
+    Inverse[3][0] = - (m[0][1] * SubFactor12 - m[0][2] * SubFactor13 + m[0][3] * SubFactor14);
+    Inverse[3][1] = + (m[0][0] * SubFactor12 - m[0][2] * SubFactor15 + m[0][3] * SubFactor16);
+    Inverse[3][2] = - (m[0][0] * SubFactor13 - m[0][1] * SubFactor15 + m[0][3] * SubFactor17);
+    Inverse[3][3] = + (m[0][0] * SubFactor14 - m[0][1] * SubFactor16 + m[0][2] * SubFactor17);
+
+    Matrix4 Determinant =
+            + m[0][0] * Inverse[0][0]
+            + m[0][1] * Inverse[0][1]
+            + m[0][2] * Inverse[0][2]
+            + m[0][3] * Inverse[0][3];
+
+    Inverse /= Determinant;
+
+    return Inverse;
+}
+
 Matrix4 Matrix4::Translate(Vector3 translation) {
 
     return Translate(Matrix4(1), translation);
@@ -316,4 +373,37 @@ Vector4 Matrix4::operator*(const Vector4& right) const {
 
 Vector3 Matrix4::operator*(const Vector3& right) const {
     return (*this * Vector4(right)).Xyz();
+}
+
+Matrix4 Matrix4::operator/=(const Matrix4& right) {
+    return  *this *= Inverse(right);
+}
+
+Matrix4 Matrix4::operator*=(const Matrix4& right) {
+    return (*this = *this * right);
+}
+
+Matrix4 Matrix4::operator=(const Matrix4& right) {
+    this->col0 = right.col0;
+    this->col1 = right.col1;
+    this->col2 = right.col2;
+    this->col3 = right.col3;
+    return *this;
+}
+
+
+Vector4& Matrix4::operator[](int Index) {
+
+    switch (Index) {
+        case 0:
+            return col0;
+        case 1:
+            return col1;
+        case 2:
+            return col2;
+        case 3:
+            return col3;
+        default:
+            return col0;
+    }
 }

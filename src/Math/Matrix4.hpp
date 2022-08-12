@@ -28,6 +28,7 @@ struct Matrix4 {
     static Matrix4 PerspectiveFovLH(float Fov, float Width, float Height, float zNear, float zFar);
     static Matrix4 PerspectiveFov(float Fov, float Aspect, float zNear, float zFar);
     static Matrix4 Inverse(Matrix4 Value);
+    static Matrix4 InverseTranspose(Matrix4 Value);
     static Matrix4 Ortho(float Left, float Right, float Bottom, float Top);
     static Matrix4 FromQuaternion(Quaternion quat);
     static Matrix4 CreateFromAxisAngle(Vector3 Axis, float Angle);
@@ -36,6 +37,10 @@ struct Matrix4 {
     Matrix4 operator*(const float& right) const;
     Vector4 operator*(const Vector4& right) const;
     Vector3 operator*(const Vector3& right) const;
+    Matrix4 operator/=(const Matrix4& right);
+    Matrix4 operator*=(const Matrix4& right);
+    Matrix4 operator=(const Matrix4& right);
+    Vector4& operator[](int index);
 };
 
 

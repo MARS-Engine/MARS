@@ -110,3 +110,19 @@ Vector4& Vector4::operator*=(const float& right) {
     w *= right;
     return *this;
 }
+
+float& Vector4::operator[](int Index) {
+
+    switch (Index) {
+        case 0:
+            return x;
+        case 1:
+            return y;
+        case 2:
+            return z;
+        case 3:
+            return w;
+        default:
+            return x;
+    }
+}

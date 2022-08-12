@@ -29,6 +29,7 @@ struct Vector4 {
     Vector4 operator*(const Vector4& right) const;
     Vector4& operator+=(const Vector4& right);
     Vector4& operator*=(const float& right);
+    float& operator[](int Index);
 };
 
 
