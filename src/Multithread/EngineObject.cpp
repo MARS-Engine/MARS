@@ -1,9 +1,19 @@
 #include "EngineObject.hpp"
 #include "Component.hpp"
 #include "Components/Transform.hpp"
+#include "Manager/RenderPassManager.hpp"
+#include "Manager/MaterialManager.hpp"
 
 EngineObject::EngineObject() {
     transform = new Transform(this);
+}
+
+void EngineObject::SetEngine(VEngine* _engine) {
+    engine = _engine;
+    commandBuffer = new CommandBuffer(engine);
+    commandBuffer->Create();
+    material = MaterialManager::GetMaterial("default");
+    //TODO: add clean code
 }
 
 void EngineObject::ExecuteCode(ExecutionCode code) {
@@ -16,13 +26,22 @@ void EngineObject::ExecuteCode(ExecutionCode code) {
                 component->Load();
                 break;
             case PRE_RENDER:
-                component->PreRender();
+                for (int i = 0; i < VEngine::FRAME_OVERLAP; i++) {
+                    commandBuffer->Begin(i);
+                    commandBuffer->LoadDefault(i); //TODO: remove in future or add a conditional
+                    component->PreRender();
+                    commandBuffer->End();
+                }
                 break;
             case UPDATE:
                 component->Update();
                 break;
             case RENDER:
                 component->Render();
+                if (!material->enableTransparency)
+                    engine->drawQueue.push_back(commandBuffer->vCommandBuffer->rawCommandBuffers[engine->renderFrame]);
+                else
+                    engine->transQueue.insert(pair<Transform*, VkCommandBuffer>(transform, commandBuffer->vCommandBuffer->rawCommandBuffers[engine->renderFrame]));
                 break;
             case POST_RENDER:
                 component->PostRender();

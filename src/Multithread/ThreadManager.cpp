@@ -64,7 +64,7 @@ void ThreadManager::Instance(EngineObject* obj, VEngine* engine, EngineObject* p
     if (previousCoreInsert >= coreObjects.size())
         previousCoreInsert = 0;
 
-    obj->engine = engine;
+    obj->SetEngine(engine);
 
     if (parent == nullptr)
         coreObjects[previousCoreInsert].push_back(obj);
@@ -73,5 +73,5 @@ void ThreadManager::Instance(EngineObject* obj, VEngine* engine, EngineObject* p
 }
 
 void ThreadManager::Instance(EngineObject* obj, EngineObject* parent) {
-    Instance(obj, parent->engine, parent);
+    Instance(obj, parent->GetEngine(), parent);
 }

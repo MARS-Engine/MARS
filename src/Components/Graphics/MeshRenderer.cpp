@@ -97,13 +97,13 @@ void MeshRenderer::Update() {
     //uniform->Update(&camData);
 }
 
-void MeshRenderer::Render() {
+void MeshRenderer::PreRender() {
     if (verticeBuffer == nullptr)
         return;
 
-    pipeline->Bind(GetEngine()->commandBuffer);
-    verticeBuffer->Bind(GetEngine()->commandBuffer);
-    indiceBuffer->Bind(GetEngine()->commandBuffer);
-    shaderData->Bind(GetEngine()->commandBuffer, pipeline);
-    GetEngine()->commandBuffer->DrawIndexed(mesh->indices.size(), 1);
+    pipeline->Bind(GetCommandBuffer());
+    verticeBuffer->Bind(GetCommandBuffer());
+    indiceBuffer->Bind(GetCommandBuffer());
+    shaderData->Bind(GetCommandBuffer(), pipeline);
+    GetCommandBuffer()->DrawIndexed(mesh->indices.size(), 1);
 }

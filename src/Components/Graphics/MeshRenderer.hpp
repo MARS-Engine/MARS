@@ -32,7 +32,7 @@ public:
     void LoadTexture(const string& texture);
     void Load() override;
     void Update() override;
-    void Render() override;
+    void PreRender() override;
 };
 
 #endif

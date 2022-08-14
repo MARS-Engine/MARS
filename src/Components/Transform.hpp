@@ -28,9 +28,9 @@ public:
     inline Quaternion GetRotation() { return rotation; };
     inline Matrix4 GetTransform() { if (Updated()) UpdateTransform(); return transform; };
 
-    inline Vector3 SetPosition(Vector3 v) { position = v; updated = true; };
-    inline Vector3 SetScale(Vector3 v) { scale = v; updated = true; };
-    inline Quaternion SetRotation(Quaternion v) { rotation = v; updated = true; };
+    inline void SetPosition(Vector3 v) { position = v; updated = true; };
+    inline void SetScale(Vector3 v) { scale = v; updated = true; };
+    inline void SetRotation(Quaternion v) { rotation = v; updated = true; };
 };
 
 #endif

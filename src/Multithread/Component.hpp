@@ -13,6 +13,7 @@ public:
     inline Transform* transform() { return object->transform; };
 
     VEngine* GetEngine() const;
+    CommandBuffer* GetCommandBuffer();
 
     virtual void PreLoad();
     virtual void Load();

@@ -1,7 +1,8 @@
 #include "Component.hpp"
 #include "EngineObject.hpp"
 
-VEngine* Component::GetEngine() const { return object->engine; }
+VEngine* Component::GetEngine() const { return object->GetEngine(); }
+CommandBuffer* Component::GetCommandBuffer() { return object->GetCommandBuffer(); }
 
 void Component::PreLoad() { }
 void Component::Load() { }

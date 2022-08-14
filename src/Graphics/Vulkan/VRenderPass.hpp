@@ -3,20 +3,31 @@
 
 #include "VTypes.hpp"
 #include "Math/Vector2.hpp"
+#include <vector>
+
+using namespace std;
 
 class VDevice;
 class VDepth;
 
 class VRenderPass {
+private:
+    VkRenderPassCreateInfo renderPassInfo;
 public:
+    vector<VkSubpassDependency> dependencies;
+    vector<VkAttachmentReference> attachments;
+    vector<VkAttachmentDescription> descriptions;
+    VkSubpassDescription subpass;
     VkRenderPass rawRenderPass;
     VDevice* device;
     VDepth* depth;
     VmaAllocator allocator;
+    string name;
 
     VRenderPass(VmaAllocator& allocator, VDevice* device);
 
-    void Create(Vector2 size, VkFormat format);
+    void Prepare(Vector2 size, VkFormat format);
+    void Create();
     void Clean() const;
 };
 

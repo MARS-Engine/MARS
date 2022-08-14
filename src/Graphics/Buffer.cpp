@@ -11,6 +11,10 @@ Buffer::Buffer(VEngine* _engine) {
 
 void Buffer::Create(size_t size, BufferType _type) {
     type = _type;
+
+    if (size == 0)
+        Debug::Error("Buffer - Attempted to create a buffer with size zero");
+
     stagingBuffer->Create(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
     vBuffer->Create(size, (type == MEM_BUFF_VERTEX ? VK_BUFFER_USAGE_VERTEX_BUFFER_BIT : VK_BUFFER_USAGE_INDEX_BUFFER_BIT) | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
 }

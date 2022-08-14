@@ -30,7 +30,7 @@ public:
     void LoadTexture(const std::string &textureLocation);
     void Load() override;
     void Update() override;
-    void Render() override;
+    void PreRender() override;
 };
 
 #endif

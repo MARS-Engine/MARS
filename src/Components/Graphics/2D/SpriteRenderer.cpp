@@ -2,6 +2,7 @@
 #include "Manager/ShaderManager.hpp"
 #include "Manager/PipelineManager.hpp"
 #include "Components/Graphics/Camera.hpp"
+#include "Manager/MaterialManager.hpp"
 
 Vector3 SpriteRenderer::vertices[4] = {
     { -.5f,  .5f, -1.0f },
@@ -29,6 +30,9 @@ void SpriteRenderer::Load() {
     if (texturePath != "") {
         LoadTexture(texturePath);
     }
+
+    object->material = MaterialManager::GetMaterial("sprite");
+    object->material->enableTransparency = true;
 
     verticeBuffer = new Buffer(GetEngine());
     verticeBuffer->Create(sizeof(Vertex3) * 4, MEM_BUFF_VERTEX);
@@ -72,10 +76,10 @@ void SpriteRenderer::Update() {
     shaderData->GetUniform("UV")->Update(&uv);
 }
 
-void SpriteRenderer::Render() {
-    pipeline->Bind(GetEngine()->commandBuffer);
-    verticeBuffer->Bind(GetEngine()->commandBuffer);
-    indiceBuffer->Bind(GetEngine()->commandBuffer);
-    shaderData->Bind(GetEngine()->commandBuffer, pipeline);
-    GetEngine()->commandBuffer->DrawIndexed(6, 1);
+void SpriteRenderer::PreRender() {
+    pipeline->Bind(GetCommandBuffer());
+    verticeBuffer->Bind(GetCommandBuffer());
+    indiceBuffer->Bind(GetCommandBuffer());
+    shaderData->Bind(GetCommandBuffer(), pipeline);
+    GetCommandBuffer()->DrawIndexed(6, 1);
 }

@@ -1,6 +1,7 @@
 #include "Mesh.hpp"
 #include "Graphics/VertexType/Hash.hpp"
 #include <tiny_obj_loader.h>
+#include <unordered_map>
 
 void Mesh::Load(const std::string& meshLocation) {
     vertices.resize(0);

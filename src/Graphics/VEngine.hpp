@@ -3,6 +3,7 @@
 
 #include "Vulkan/VTypes.hpp"
 #include "CommandBuffer.hpp"
+#include <map>
 
 class Window;
 class VDevice;
@@ -14,10 +15,11 @@ class VRenderPass;
 class VFramebuffer;
 class VSync;
 class Camera;
+class Transform;
 
 class VEngine {
 public:
-    static constexpr unsigned int FRAME_OVERLAP = 2;
+    static unsigned int FRAME_OVERLAP;
     size_t renderFrame = 0;
     Window* window;
     VDevice* device;
@@ -25,13 +27,17 @@ public:
     VSurface* surface;
     VSwapchain* swapchain;
     VCommandPool* commandPool;
-    CommandBuffer* commandBuffer;
+    CommandBuffer* clearCommand;
     VRenderPass* renderPass;
     VFramebuffer* framebuffer;
     VmaAllocator allocator;
     VSync* sync;
 
     uint32_t imageIndex;
+
+    vector<VkCommandBuffer> drawQueue;
+    map<Transform*, VkCommandBuffer> transQueue;
+    vector<VkCommandBuffer> finalQueue;
 
     vector<Camera*> cameras;
 

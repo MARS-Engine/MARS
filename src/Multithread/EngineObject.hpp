@@ -3,6 +3,8 @@
 
 #include "ThreadManager.hpp"
 #include "Graphics/VEngine.hpp"
+#include "Graphics/CommandBuffer.hpp"
+#include "Graphics/Material.hpp"
 
 class Component;
 class Transform;
@@ -11,12 +13,18 @@ class EngineObject {
 private:
     vector<Component*> components;
     vector<EngineObject*> children;
+    CommandBuffer* commandBuffer;
+    VEngine* engine;
 public:
     EngineObject* parent = nullptr;
-    VEngine* engine;
     Transform* transform;
+    Material* material;
 
     EngineObject();
+
+    void SetEngine(VEngine* engine);
+    inline VEngine* GetEngine() { return engine; }
+    inline CommandBuffer* GetCommandBuffer() { return commandBuffer; }
 
     void ExecuteCode(ExecutionCode code);
     void AddComponent(Component* component);

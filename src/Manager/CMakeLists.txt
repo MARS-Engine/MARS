@@ -1,3 +1,5 @@
 target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/LightManager.cpp)
 target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ShaderManager.cpp)
 target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/PipelineManager.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/RenderPassManager.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/MaterialManager.cpp)

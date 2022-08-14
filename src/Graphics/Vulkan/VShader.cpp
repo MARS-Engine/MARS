@@ -32,7 +32,7 @@ VUniformData::VUniformData(string value, uint32_t index) {
     switch (type) {
         case UNIFORM_BUFFER:
             binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+            binding.stageFlags = VK_SHADER_STAGE_ALL;
             break;
         case UNIFORM_TEXTURE:
             binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
