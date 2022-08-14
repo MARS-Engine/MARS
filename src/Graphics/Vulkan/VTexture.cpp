@@ -20,6 +20,8 @@ void VTexture::LoadTexture(string textureLocation) {
 
     stbi_uc* pixels = stbi_load(textureLocation.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
+    size = Vector2(texWidth, texHeight);
+
     VkDeviceSize size = texWidth * texHeight * 4;
     VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
 

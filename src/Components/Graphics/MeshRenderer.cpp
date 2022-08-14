@@ -9,10 +9,11 @@
 #include "Components/Graphics/Camera.hpp"
 
 void MeshRenderer::LoadMesh(const string& meshLocation) {
-    if (!loaded) {
+    if (GetEngine() == nullptr) {
         meshPath = meshLocation;
         return;
     }
+
     if (mesh == nullptr)
         mesh = new Mesh();
     mesh->Load(meshLocation);
@@ -33,7 +34,7 @@ void MeshRenderer::LoadMesh(const string& meshLocation) {
 }
 
 void MeshRenderer::LoadTexture(const std::string &textureLocation) {
-    if (!loaded) {
+    if (GetEngine() == nullptr) {
         texturePath = textureLocation;
         return;
     }
@@ -50,7 +51,6 @@ struct Push {
 };
 
 void MeshRenderer::Load() {
-    loaded = true;
     if (!meshPath.empty())
         LoadMesh(meshPath);
 

@@ -26,7 +26,8 @@ struct Vector3 {
 
     static Vector3 MoveTowards(Vector3 Current, Vector3 Target, float MaxDistanceDelta);
     static Vector3 RotateAround(Vector3 Position, Vector3 Target, Vector3 Up, float Angle);
-    
+    static float Distance(Vector3 Origin, Vector3 Target);
+
     bool operator==(const Vector3& other) const;
     bool operator!=(const Vector3& other) const;
 

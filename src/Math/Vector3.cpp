@@ -76,6 +76,10 @@ Vector3 Vector3::RotateAround(Vector3 Position, Vector3 Target, Vector3 Up, floa
     return Target + Dif;
 }
 
+float Vector3::Distance(Vector3 Origin, Vector3 Target) {
+    return Magnitude(Origin - Target);
+}
+
 bool Vector3::operator==(const Vector3& other) const {
 
     return x == other.x && y == other.y && z == other.z;

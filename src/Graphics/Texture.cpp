@@ -8,6 +8,10 @@ Texture::Texture(VEngine* _engine) {
     vTexture = new VTexture(engine->device, engine->allocator);
 }
 
+Vector2 Texture::GetSize() {
+    return vTexture->size;
+}
+
 void Texture::LoadTexture(string textureLocation) {
     vTexture->LoadTexture(textureLocation);
 }

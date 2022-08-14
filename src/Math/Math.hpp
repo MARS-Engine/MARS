@@ -50,7 +50,6 @@ float ReverseSqrt(float Input);
 float Lerp(Vector3 Input);
 float Mix(Vector3 Input);
 float InvSqrt(float Input);
-float Distance(Vector3 Origin, Vector3 Target);
 
 Vector3 operator*(const float& left, const Vector3& right);
 

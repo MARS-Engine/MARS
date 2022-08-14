@@ -78,6 +78,7 @@ void VEngine::PrepareDraw() {
     VK_CHECK(vkAcquireNextImageKHR(device->rawDevice, swapchain->rawSwapchain, 1000000000, sync->presents[renderFrame], nullptr, &imageIndex));
     drawQueue.push_back(clearCommand->GetCommandBuffer());
 }
+
 void VEngine::Draw() {
     finalQueue.resize(drawQueue.size() + transQueue.size());
     memcpy(finalQueue.data(), drawQueue.data(), drawQueue.size() * sizeof(VkCommandBuffer));

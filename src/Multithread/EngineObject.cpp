@@ -42,7 +42,8 @@ void EngineObject::ExecuteCode(ExecutionCode code) {
                 if (!material->enableTransparency)
                     engine->drawQueue.push_back(commandBuffer->vCommandBuffer->rawCommandBuffers[engine->renderFrame]);
                 else {
-                    float f = Distance(transform->GetPosition(), engine->GetCamera()->transform()->GetPosition());
+                    //Maybe implement fast_distance
+                    float f = Vector3::Distance(transform->GetPosition(), engine->GetCamera()->transform()->GetPosition());
                     engine->transQueue.insert(pair<float, VkCommandBuffer>(f, commandBuffer->vCommandBuffer->rawCommandBuffers[engine->renderFrame]));
                 }
                 break;

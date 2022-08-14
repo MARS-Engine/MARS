@@ -11,7 +11,14 @@
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/ShaderData.hpp"
 
+struct Sprite {
+    Vector4 uv;
+    Sprite(Vector2 size, Vector2 offset, Vector2 textureSize);
+};
+
 class SpriteRenderer : public Component {
+private:
+    Sprite* sprite;
 public:
     static Vector3 vertices[4];
     static int indices[6];
@@ -25,8 +32,8 @@ public:
     Vector4 uv[4];
 
     string texturePath;
-    bool loaded = false;
 
+    void SetSprite(Sprite* sprite);
     void LoadTexture(const std::string &textureLocation);
     void Load() override;
     void Update() override;

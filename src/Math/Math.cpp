@@ -174,10 +174,6 @@ float InvSqrt(float Input) {
     return 1.0f / sqrt(Input);
 }
 
-float Distance(Vector3 Origin, Vector3 Target) {
-    return Magnitude(Origin - Target);
-}
-
 Vector3 operator*(const float& left, const Vector3& right) {
     
     return Vector3(right.x * left, right.y * left, right.z * left);

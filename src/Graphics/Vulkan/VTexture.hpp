@@ -2,6 +2,7 @@
 #define __VTEXTURE__
 
 #include "VTypes.hpp"
+#include "Math/Vector2.hpp"
 #include <string>
 
 using namespace std;
@@ -20,6 +21,7 @@ public:
     VBuffer* buffer;
     VDevice* device;
     VmaAllocator allocator;
+    Vector2 size;
 
     VTexture(VDevice* device, VmaAllocator& allocator);
     void LoadTexture(string textureLocation);

@@ -14,7 +14,7 @@ private:
     vector<Component*> components;
     vector<EngineObject*> children;
     CommandBuffer* commandBuffer;
-    VEngine* engine;
+    VEngine* engine = nullptr;
 public:
     EngineObject* parent = nullptr;
     Transform* transform;

@@ -26,7 +26,6 @@ public:
     Mesh* mesh;
     string meshPath;
     string texturePath;
-    bool loaded = false;
 
     void LoadMesh(const string& meshLocation);
     void LoadTexture(const string& texture);

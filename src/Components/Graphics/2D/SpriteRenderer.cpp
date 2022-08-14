@@ -4,6 +4,13 @@
 #include "Components/Graphics/Camera.hpp"
 #include "Manager/MaterialManager.hpp"
 
+Sprite::Sprite(Vector2 size, Vector2 offset, Vector2 textureSize) {
+    uv.x = offset.x/textureSize.x;
+    uv.y = offset.y/textureSize.y;
+    uv.z = size.x/textureSize.x;
+    uv.w = size.y/textureSize.y;
+}
+
 Vector3 SpriteRenderer::vertices[4] = {
     { -.5f,  .5f, -1.0f },
     {  .5f,  .5f, -1.0f },
@@ -14,7 +21,7 @@ Vector3 SpriteRenderer::vertices[4] = {
 int SpriteRenderer::indices[6] = { 0, 1, 2, 1, 3, 2 };
 
 void SpriteRenderer::LoadTexture(const std::string &textureLocation) {
-    if (!loaded) {
+    if (GetEngine() == nullptr) {
         texturePath = textureLocation;
         return;
     }
@@ -26,10 +33,8 @@ void SpriteRenderer::LoadTexture(const std::string &textureLocation) {
 }
 
 void SpriteRenderer::Load() {
-    loaded = true;
-    if (texturePath != "") {
+    if (texturePath != "")
         LoadTexture(texturePath);
-    }
 
     object->material = MaterialManager::GetMaterial("sprite");
     object->material->enableTransparency = true;
@@ -56,16 +61,25 @@ void SpriteRenderer::Load() {
         PipelineManager::AddPipeline("SpritePipeline", pipeline);
     }
 
-    uv[0] = { 0.0, 0.0, 0.0, 0.0 };
-    uv[1] = { 1.0, 0.0, 0.0, 0.0 };
-    uv[2] = { 0.0, 1.0, 0.0, 0.0 };
-    uv[3] = { 1.0, 1.0, 0.0, 0.0 };
-
     shaderData = new ShaderData(shader, GetEngine());
     shaderData->GetUniform("MVP")->Generate(sizeof(Matrix4));
     shaderData->GetUniform("UV")->Generate(sizeof(Vector4) * 4);
     shaderData->GetUniform("texCoord")->SetTexture(texture);
     shaderData->Generate();
+}
+
+void SpriteRenderer::SetSprite(Sprite* sprite) {
+    uv[0].x = sprite->uv.x;
+    uv[0].y = sprite->uv.y;
+
+    uv[1].x = sprite->uv.x + sprite->uv.z;
+    uv[1].y = sprite->uv.y;
+
+    uv[2].x = sprite->uv.x;
+    uv[2].y = sprite->uv.y + sprite->uv.w;
+
+    uv[3].x = sprite->uv.x + sprite->uv.z;
+    uv[3].y = sprite->uv.y + sprite->uv.w;
 }
 
 void SpriteRenderer::Update() {
