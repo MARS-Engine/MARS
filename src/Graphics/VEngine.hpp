@@ -36,7 +36,7 @@ public:
     uint32_t imageIndex;
 
     vector<VkCommandBuffer> drawQueue;
-    map<Transform*, VkCommandBuffer> transQueue;
+    map<float, VkCommandBuffer> transQueue;
     vector<VkCommandBuffer> finalQueue;
 
     vector<Camera*> cameras;

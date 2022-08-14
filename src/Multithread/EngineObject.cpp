@@ -3,6 +3,7 @@
 #include "Components/Transform.hpp"
 #include "Manager/RenderPassManager.hpp"
 #include "Manager/MaterialManager.hpp"
+#include "Components/Graphics/Camera.hpp"
 
 EngineObject::EngineObject() {
     transform = new Transform(this);
@@ -40,8 +41,10 @@ void EngineObject::ExecuteCode(ExecutionCode code) {
                 component->Render();
                 if (!material->enableTransparency)
                     engine->drawQueue.push_back(commandBuffer->vCommandBuffer->rawCommandBuffers[engine->renderFrame]);
-                else
-                    engine->transQueue.insert(pair<Transform*, VkCommandBuffer>(transform, commandBuffer->vCommandBuffer->rawCommandBuffers[engine->renderFrame]));
+                else {
+                    float f = Distance(transform->GetPosition(), engine->GetCamera()->transform()->GetPosition());
+                    engine->transQueue.insert(pair<float, VkCommandBuffer>(f, commandBuffer->vCommandBuffer->rawCommandBuffers[engine->renderFrame]));
+                }
                 break;
             case POST_RENDER:
                 component->PostRender();

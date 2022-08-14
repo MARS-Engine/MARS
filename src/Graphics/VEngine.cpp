@@ -10,6 +10,7 @@
 #include "Vulkan/VBuffer.hpp"
 #include "Manager/RenderPassManager.hpp"
 #include "Manager/MaterialManager.hpp"
+#include "Components/Graphics/Camera.hpp"
 
 unsigned int VEngine::FRAME_OVERLAP = 2;
 
