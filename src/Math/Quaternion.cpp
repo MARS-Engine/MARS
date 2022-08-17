@@ -4,47 +4,46 @@
 #include <math.h>
 
 Quaternion::Quaternion() {
-    Quat = Vector4(0, 0, 0, 1);
+    quat = Vector4(0, 0, 0, 1);
 }
 
-Quaternion::Quaternion(Vector4 quat) {
-    Quat = quat;
+Quaternion::Quaternion(Vector4 _quat) {
+    quat = _quat;
 }
 
 Quaternion::Quaternion(Vector3 Xyz, float W) {
-    Quat = Vector4(Xyz, W);
+    quat = Vector4(Xyz, W);
 }
 
 
 float Quaternion::Length() {
-    return sqrt(Quat.w * Quat.w + Quat.Xyz().LengthSquared());
+    return sqrt(quat.w * quat.w + quat.Xyz().LengthSquared());
 }
 
 Vector3 Quaternion::ToEuler() {
+    return {Pitch(*this), Yaw(*this), Roll(*this)}; //Note sure if this works, euler should be avoided regardless
+}
 
-    Vector3 Euler;
+float Quaternion::Pitch(Quaternion _quat) {
+    float y = 2.0f * (_quat.quat.y * _quat.quat.z + _quat.quat.w * _quat.quat.x);
+    float x = _quat.quat.w * _quat.quat.w - _quat.quat.x * _quat.quat.x - _quat.quat.y * _quat.quat.y + _quat.quat.z * _quat.quat.z;
+    if (Equals(x, 0.0f, numeric_limits<float>::epsilon()) && Equals(y, 0.0f, numeric_limits<float>::epsilon()))
+        return 2.0f * atan2f(_quat.quat.x, _quat.quat.w);
+    return atan2f(y, x);
+}
 
-    float sinr_cosp = 2 * (Quat.w * Quat.x + Quat.y * Quat.z);
-    float consr_cosp = 1 - 2 * (Quat.x * Quat.x + Quat.y * Quat.y);
-    Euler.x = atan2(sinr_cosp, consr_cosp);
+float Quaternion::Yaw(Quaternion _quat) {
+    return asin(clamp(-2.0f * (_quat.quat.x * _quat.quat.z - _quat.quat.w * _quat.quat.y), -1.0f, 1.0f));
+}
 
-    float sinp = 2 * (Quat.w * Quat.y - Quat.z * Quat.x);
-    if (abs(sinp) >= 1)
-        Euler.y = copysign(M_PI / 2, sinp);
-    else
-        Euler.y = asin(sinp);
-
-    float siny_cosp = 2 * (Quat.w * Quat.z + Quat.x * Quat.y);
-    float cosy_cosp = 1 - 2 * (Quat.y * Quat.y + Quat.z * Quat.z);
-    Euler.z = atan2(siny_cosp, cosy_cosp);
-
-    return Euler;
+float Quaternion::Roll(Quaternion _quat) {
+    atan2(2.0f * (_quat.quat.x * _quat.quat.y + _quat.quat.w * _quat.quat.z), _quat.quat.w * _quat.quat.w + _quat.quat.x * _quat.quat.x - _quat.quat.y * _quat.quat.y - _quat.quat.z * _quat.quat.z);
 }
 
 Quaternion Quaternion::EulerToQuaternion(Vector3 Euler) {
 
-    Vector3 c = Vector3(cosf(Euler.x * M_PI / 180.0f * 0.5f), cosf(Euler.y * M_PI / 180.0f * 0.5f), cosf(Euler.z * M_PI / 180.0f * 0.5f));
-    Vector3 s = Vector3(sinf(Euler.x * M_PI / 180.0f * 0.5f), sinf(Euler.y * M_PI / 180.0f * 0.5f), sinf(Euler.z * M_PI / 180.0f * 0.5f));
+    Vector3 c = Vector3(cosf(Euler.x * deg2rad * 0.5f), cosf(Euler.y * deg2rad * 0.5f), cosf(Euler.z * deg2rad * 0.5f));
+    Vector3 s = Vector3(sinf(Euler.x * deg2rad * 0.5f), sinf(Euler.y * deg2rad * 0.5f), sinf(Euler.z * deg2rad * 0.5f));
 
     Vector4 q;
     q.w = c.x * c.y * c.z + s.x * s.y * s.z;
@@ -59,10 +58,10 @@ Quaternion CreateFromAxisAngle(Vector3 axis, float angle) {
     float halfAngle = angle * .5f;
     float s = sin(halfAngle);
     Quaternion q;
-    q.Quat.x = axis.x * s;
-    q.Quat.y = axis.y * s;
-    q.Quat.z = axis.z * s;
-    q.Quat.w = cos(halfAngle);
+    q.quat.x = axis.x * s;
+    q.quat.y = axis.y * s;
+    q.quat.z = axis.z * s;
+    q.quat.w = cos(halfAngle);
     return q;
 }
 
@@ -85,7 +84,7 @@ Quaternion Quaternion::LookRotation(Vector3 Source, Vector3 Destination) {
 
 Quaternion Quaternion::SlerpNotNormalized(Quaternion Left, Quaternion Right, float Slerp) {
 
-    float RawCosom = Left.Quat.x * Right.Quat.x + Left.Quat.y * Right.Quat.y + Left.Quat.z * Right.Quat.z + Left.Quat.w * Right.Quat.w;
+    float RawCosom = Left.quat.x * Right.quat.x + Left.quat.y * Right.quat.y + Left.quat.z * Right.quat.z + Left.quat.w * Right.quat.w;
     float Cosom = RawCosom >= 0.f ? RawCosom : -RawCosom;
 
     float Scale0, Scale1;
@@ -104,10 +103,10 @@ Quaternion Quaternion::SlerpNotNormalized(Quaternion Left, Quaternion Right, flo
 
     Scale1 = RawCosom >= 0.f ? Scale1 : -Scale1;
 
-    return Quaternion(Vector4(Scale0 * Left.Quat.x + Scale1 * Right.Quat.x,
-                              Scale0 * Left.Quat.y + Scale1 * Right.Quat.y,
-                              Scale0 * Left.Quat.z + Scale1 * Right.Quat.z,
-                              Scale0 * Left.Quat.w + Scale1 * Right.Quat.w));
+    return Quaternion(Vector4(Scale0 * Left.quat.x + Scale1 * Right.quat.x,
+                              Scale0 * Left.quat.y + Scale1 * Right.quat.y,
+                              Scale0 * Left.quat.z + Scale1 * Right.quat.z,
+                              Scale0 * Left.quat.w + Scale1 * Right.quat.w));
 }
 
 Quaternion Quaternion::Slerp(Quaternion Left, Quaternion Right, float Slerp) {
@@ -127,58 +126,79 @@ Quaternion Quaternion::FromAxisAngle(Vector3 Axis, float Angle) {
     return Normalize(Quaternion(Normalize(Axis) * sin(Angle), cos(Angle)));
 }
 
-Vector4 Quaternion::ToAxisAngle(Quaternion quat) {
+Vector4 Quaternion::ToAxisAngle(Quaternion _quat) {
     
-    Quaternion q = quat;
-    if (abs(quat.Quat.w) > 1.0f)
+    Quaternion q = _quat;
+    if (abs(_quat.quat.w) > 1.0f)
         q = Normalize(q);
 
-    Vector4 Result = Vector4(0.0f, 0.0f, 0.0f, 2.0f * acos(q.Quat.w));
+    Vector4 Result = Vector4(0.0f, 0.0f, 0.0f, 2.0f * acos(q.quat.w));
     
-    float den = sqrt(1.0f - (q.Quat.w * q.Quat.w));
+    float den = sqrt(1.0f - (q.quat.w * q.quat.w));
 
     if (den > 0.0001f)
-        Result.Xyz(q.Quat.Xyz() / den);
+        Result.Xyz(q.quat.Xyz() / den);
     else
         Result.Xyz(Vector3(1.0f, 0.0f, 0.0f));
 
     return Result;
 }
 
+Matrix4 Quaternion::ToMatrix4(Quaternion quat) {
+    Matrix3 mat;
+    float qxx = quat.quat.x * quat.quat.x;
+    float qyy = quat.quat.y * quat.quat.y;
+    float qzz = quat.quat.z * quat.quat.z;
+
+    float qxz = quat.quat.x * quat.quat.z;
+    float qxy = quat.quat.x * quat.quat.y;
+    float qyz = quat.quat.y * quat.quat.z;
+
+    float qwx = quat.quat.w * quat.quat.x;
+    float qwy = quat.quat.w * quat.quat.y;
+    float qwz = quat.quat.w * quat.quat.z;
+
+    mat.col0 = { 1.0f - 2.0f * (qyy + qzz), 2.0f * (qxy + qwz), 2.0f * (qxz - qwy) };
+    mat.col1 = { 2.0f * (qxy - qwz), 1.0f - 2.0f * (qxx + qzz), 2.0f * (qyz + qwx) };
+    mat.col2 = { 2.0f * (qxz + qwy), 2.0f * (qyz - qwx), 1.0f - 2.0f * (qxx + qyy) };
+
+    return Matrix4(mat);
+}
+
 Quaternion Quaternion::operator*(float right) {
 
     return Quaternion(Vector4(
-            Quat.x * right,
-            Quat.y * right,
-            Quat.z * right,
-            Quat.w * right
+            quat.x * right,
+            quat.y * right,
+            quat.z * right,
+            quat.w * right
     )); 
 }
 
 Quaternion Quaternion::operator*(Quaternion right) {
 
     return Quaternion(Vector4(
-            Quat.w * right.Quat.x + Quat.x * right.Quat.w + Quat.y * right.Quat.z - Quat.z * right.Quat.y,
-            Quat.w * right.Quat.y + Quat.y * right.Quat.w + Quat.z * right.Quat.x - Quat.x * right.Quat.z,
-            Quat.w * right.Quat.z + Quat.z * right.Quat.w + Quat.x * right.Quat.y - Quat.y * right.Quat.x,
-            Quat.w * right.Quat.w - Quat.x * right.Quat.x - Quat.y * right.Quat.y - Quat.z * right.Quat.z
+            quat.w * right.quat.x + quat.x * right.quat.w + quat.y * right.quat.z - quat.z * right.quat.y,
+            quat.w * right.quat.y + quat.y * right.quat.w + quat.z * right.quat.x - quat.x * right.quat.z,
+            quat.w * right.quat.z + quat.z * right.quat.w + quat.x * right.quat.y - quat.y * right.quat.x,
+            quat.w * right.quat.w - quat.x * right.quat.x - quat.y * right.quat.y - quat.z * right.quat.z
     ));
 }
 
 Quaternion Quaternion::operator+(Quaternion right) {
 
     return Quaternion(Vector4(
-            Quat.x + right.Quat.x,
-            Quat.y + right.Quat.y,
-            Quat.z + right.Quat.z,
-            Quat.w + right.Quat.w));
+            quat.x + right.quat.x,
+            quat.y + right.quat.y,
+            quat.z + right.quat.z,
+            quat.w + right.quat.w));
 }
 
 Vector3 Quaternion::operator*(Vector3 right) {
 
-    Vector3 Xyz = Quat.Xyz();
+    Vector3 Xyz = quat.Xyz();
     Vector3 Uv = Cross(Xyz, right);
     Vector3 Uuv = Cross(Xyz, Uv);
 
-    return right + ((Uv * Quat.w) + Uuv) * 2.0f;
+    return right + ((Uv * quat.w) + Uuv) * 2.0f;
 }

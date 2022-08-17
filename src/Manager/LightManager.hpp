@@ -10,6 +10,10 @@ struct PointLight {
     Vector4 color;
 };
 
+struct Sun {
+    Vector4 ambient;
+};
+
 struct PointLightData {
     Vector4 ambient = Vector4(1.0f, 1.0f, 1.0f, .02f);
     PointLight lights[MAX_POINT_LIGHT];
@@ -18,6 +22,7 @@ struct PointLightData {
 
 class LightManager {
 public:
+    static Sun sun;
     static PointLightData pointLightData;
     static void AddPointLight(PointLight light);
 };

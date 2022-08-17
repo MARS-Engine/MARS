@@ -13,7 +13,6 @@ void EngineObject::SetEngine(VEngine* _engine) {
     engine = _engine;
     commandBuffer = new CommandBuffer(engine);
     commandBuffer->Create();
-    material = MaterialManager::GetMaterial("default");
     //TODO: add clean code
 }
 
@@ -27,24 +26,28 @@ void EngineObject::ExecuteCode(ExecutionCode code) {
                 component->Load();
                 break;
             case PRE_RENDER:
+                if (!component->isRenderer)
+                    break;
                 for (int i = 0; i < VEngine::FRAME_OVERLAP; i++) {
-                    commandBuffer->Begin(i);
-                    commandBuffer->LoadDefault(i); //TODO: remove in future or add a conditional
+                    component->GetCommandBuffer()->Begin(i);
+                    component->GetCommandBuffer()->LoadDefault(i); //TODO: remove in future or add a conditional
                     component->PreRender();
-                    commandBuffer->End();
+                    component->GetCommandBuffer()->End();
                 }
                 break;
             case UPDATE:
                 component->Update();
                 break;
             case RENDER:
+                if (!component->isRenderer)
+                    break;
                 component->Render();
-                if (!material->enableTransparency)
-                    engine->drawQueue.push_back(commandBuffer->vCommandBuffer->rawCommandBuffers[engine->renderFrame]);
+                if (!component->material->enableTransparency)
+                    engine->drawQueue.push_back(component->GetCommandBuffer()->vCommandBuffer->rawCommandBuffers[engine->renderFrame]);
                 else {
                     //Maybe implement fast_distance
                     float f = Vector3::Distance(transform->GetPosition(), engine->GetCamera()->transform()->GetPosition());
-                    engine->transQueue.insert(pair<float, VkCommandBuffer>(f, commandBuffer->vCommandBuffer->rawCommandBuffers[engine->renderFrame]));
+                    engine->transQueue.insert(pair<float, VkCommandBuffer>(f, component->GetCommandBuffer()->vCommandBuffer->rawCommandBuffers[engine->renderFrame]));
                 }
                 break;
             case POST_RENDER:

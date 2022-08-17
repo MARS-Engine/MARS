@@ -1,8 +1,10 @@
 #include "Component.hpp"
 #include "EngineObject.hpp"
+#include "Manager/MaterialManager.hpp"
 
-VEngine* Component::GetEngine() const { return object->GetEngine(); }
-CommandBuffer* Component::GetCommandBuffer() { return object->GetCommandBuffer(); }
+Component::Component() {
+    material = MaterialManager::GetMaterial("default");
+}
 
 void Component::PreLoad() { }
 void Component::Load() { }

@@ -5,6 +5,7 @@
 #include "Graphics/VEngine.hpp"
 #include "Graphics/CommandBuffer.hpp"
 #include "Graphics/Material.hpp"
+#include "Type/ShaderTypes.hpp"
 
 class Component;
 class Transform;
@@ -18,7 +19,6 @@ private:
 public:
     EngineObject* parent = nullptr;
     Transform* transform;
-    Material* material;
 
     EngineObject();
 

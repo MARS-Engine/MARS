@@ -11,6 +11,7 @@ public:
     Vector3 col1;
     Vector3 col2;
 
+    Matrix3();
     Matrix3(Matrix4 v);
 };
 

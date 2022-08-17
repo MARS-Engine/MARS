@@ -51,13 +51,16 @@ struct Push {
 };
 
 void MeshRenderer::Load() {
+    model = { };
+
+    isRenderer = true;
     if (!meshPath.empty())
         LoadMesh(meshPath);
 
     if (!texturePath.empty())
         LoadTexture(texturePath);
 
-    shader = ShaderManager::GetShader("Data/Shaders/Model.shader", GetEngine());
+    shader = ShaderManager::GetShader("Engine/Assets/Shaders/Model.shader", GetEngine());
 
     pipeline = PipelineManager::GetPipeline("Default");
 
@@ -71,30 +74,28 @@ void MeshRenderer::Load() {
     }
 
     shaderData = new ShaderData(shader, GetEngine());
-    shaderData->GetUniform("MVP")->Generate(sizeof(Matrix4));
-    shaderData->GetUniform("LIGHT")->Generate(sizeof(PointLightData));
-    shaderData->GetUniform("push")->Generate(sizeof(Push));
+    shaderData->GetUniform("Model")->Generate(sizeof(ShaderModel));
+    shaderData->GetUniform("GlobalLight")->Generate(sizeof(LightManager::sun));
+    shaderData->GetUniform("Material")->Generate(sizeof(MaterialData));
     shaderData->GetUniform("texCoord")->SetTexture(texture);
     shaderData->Generate();
+
+    LightManager::sun.ambient = Vector4(0.25, 0.25, 0.25, 1);
+    material->data.diffuse = Vector4(1);
 }
 
 void MeshRenderer::Update() {
     if (verticeBuffer == nullptr)
         return;
 
-    Matrix4 pv =GetEngine()->GetCamera()->ProjectionView;
+    Matrix4 pv = GetEngine()->GetCamera()->ProjectionView;
     Matrix4 trans = transform()->GetTransform();
-    Matrix4 mat = pv * trans;
-    shaderData->GetUniform("MVP")->Update(&mat);
+    model.model = trans;
+    model.mvp = pv * trans;
 
-    Push push {
-            trans,
-            Matrix4::InverseTranspose(Matrix3(trans))
-    };
-
-    shaderData->GetUniform("LIGHT")->Update(&LightManager::pointLightData);
-    shaderData->GetUniform("push")->Update(&push);
-    //uniform->Update(&camData);
+    shaderData->GetUniform("Model")->Update(&model);
+    shaderData->GetUniform("Material")->Update(&material->data);
+    shaderData->GetUniform("GlobalLight")->Update(&LightManager::sun);
 }
 
 void MeshRenderer::PreRender() {

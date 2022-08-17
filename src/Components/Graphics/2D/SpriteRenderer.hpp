@@ -12,8 +12,12 @@
 #include "Graphics/ShaderData.hpp"
 
 struct Sprite {
+private:
+    Vector2 textureSize;
+public:
     Vector4 uv;
     Sprite(Vector2 size, Vector2 offset, Vector2 textureSize);
+    void SetOffset(Vector2 offset);
 };
 
 class SpriteRenderer : public Component {

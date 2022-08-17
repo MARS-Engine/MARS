@@ -26,6 +26,7 @@ public:
     Mesh* mesh;
     string meshPath;
     string texturePath;
+    ShaderModel model;
 
     void LoadMesh(const string& meshLocation);
     void LoadTexture(const string& texture);

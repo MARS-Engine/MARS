@@ -2,18 +2,31 @@
 #define __COMPONENT__
 
 #include "Graphics/VEngine.hpp"
+#include "Graphics/CommandBuffer.hpp"
 #include "Components/Transform.hpp"
 
 class EngineObject;
 
 class Component {
 public:
-    EngineObject* object;
+    bool isRenderer = false;
+    EngineObject* object = nullptr;
+    CommandBuffer* commandBuffer = nullptr;
+    Material* material = nullptr;
 
     inline Transform* transform() { return object->transform; };
+    inline VEngine* GetEngine() const { return object->GetEngine(); }
 
-    VEngine* GetEngine() const;
-    CommandBuffer* GetCommandBuffer();
+    inline CommandBuffer* GetCommandBuffer() {
+        if (commandBuffer == nullptr) {
+            commandBuffer = new CommandBuffer(GetEngine());
+            commandBuffer->Create();
+        }
+
+        return commandBuffer;
+    }
+
+    Component();
 
     virtual void PreLoad();
     virtual void Load();

@@ -76,7 +76,7 @@ Vector4 Normalize(const Vector4 Input, float Tolerance) {
 
 Quaternion Normalize(Quaternion Input) {
     float Scale = 1.0f / Input.Length();
-    return Quaternion(Input.Quat.Xyz() * Scale, Input.Quat.w * Scale);
+    return Quaternion(Input.quat.Xyz() * Scale, Input.quat.w * Scale);
 }
 
 
@@ -172,6 +172,10 @@ float Lerp(Vector3 Input) {
 
 float InvSqrt(float Input) {
     return 1.0f / sqrt(Input);
+}
+
+bool Equals(float a, float b, float tolerance) {
+    return (a + tolerance >= b) && (a - tolerance <= b);
 }
 
 Vector3 operator*(const float& left, const Vector3& right) {

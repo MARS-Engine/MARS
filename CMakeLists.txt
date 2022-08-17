@@ -12,3 +12,5 @@ target_include_directories(MVRE PUBLIC ${Vulkan_INCLUDE_DIR})
 target_include_directories(MVRE PUBLIC ${FREETYPE_INCLUDE_DIRS})
 target_include_directories(MVRE PUBLIC ${SDL2_INCLUDE_DIRS})
 target_compile_options(MVRE PUBLIC ${FREETYPE_CGLAGS_OTHER})
+
+add_custom_command(TARGET MVRE PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Assets/ ${CMAKE_BINARY_DIR}/bin/Engine/Assets)
