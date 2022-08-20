@@ -11,7 +11,7 @@ void Core::Task(int index) {
 
     while (ThreadManager::working) {
         unique_lock<decltype(ThreadManager::m)> l(ThreadManager::m);
-        ThreadManager::cv.wait(l, [&]{ return !ThreadManager::completeCore[index]; });
+        ThreadManager::cv.wait(l, [&]{ return !ThreadManager::completeCore[index] || !ThreadManager::working; });
         for (auto child : ThreadManager::coreObjects[index])
             child->ExecuteCode(ThreadManager::code);
 

@@ -42,6 +42,7 @@ public:
     static void Execute(ExecutionCode newCode);
     static void Instance(EngineObject* obj, VEngine* engine = nullptr, EngineObject* parent = nullptr);
     static void Instance(EngineObject* obj, EngineObject* parent);
+    static void Stop();
 };
 
 

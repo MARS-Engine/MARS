@@ -59,19 +59,25 @@ void ThreadManager::Execute(ExecutionCode newCode) {
 }
 
 void ThreadManager::Instance(EngineObject* obj, VEngine* engine, EngineObject* parent) {
-    previousCoreInsert++;
-
-    if (previousCoreInsert >= coreObjects.size())
-        previousCoreInsert = 0;
-
     obj->SetEngine(engine);
 
-    if (parent == nullptr)
+    if (parent == nullptr) {
+        previousCoreInsert++;
+
+        if (previousCoreInsert >= coreObjects.size())
+            previousCoreInsert = 0;
+
         coreObjects[previousCoreInsert].push_back(obj);
+    }
     else
         parent->AddChild(obj);
 }
 
 void ThreadManager::Instance(EngineObject* obj, EngineObject* parent) {
     Instance(obj, parent->GetEngine(), parent);
+}
+
+void ThreadManager::Stop() {
+    working = false;
+    cv.notify_all();
 }

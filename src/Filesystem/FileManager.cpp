@@ -2,7 +2,7 @@
 #include <fstream>
 
 string FileManager::ShaderLocation() {
-    return "Data/Shaders/";
+    return "Engine/Assets/Shaders/";
 }
 
 bool FileManager::FileExists(const string& fileLocation) {

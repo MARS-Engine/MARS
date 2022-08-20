@@ -29,7 +29,8 @@ struct Matrix4 {
     static Matrix4 PerspectiveFov(float Fov, float Aspect, float zNear, float zFar);
     static Matrix4 Inverse(Matrix4 Value);
     static Matrix4 InverseTranspose(Matrix4 Value);
-    static Matrix4 Ortho(float Left, float Right, float Bottom, float Top);
+    static Matrix4 Ortho(float Left, float Right, float Bottom, float Top, float zNear, float zFar);
+    static Matrix4 OrthoLH(float Left, float Right, float Bottom, float Top, float zNear, float zFar);
     static Matrix4 FromQuaternion(Quaternion quat);
     static Matrix4 CreateFromAxisAngle(Vector3 Axis, float Angle);
 
