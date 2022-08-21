@@ -11,6 +11,8 @@ struct PointLight {
 };
 
 struct Sun {
+    Vector4 direction;
+    Vector4 color;
     Vector4 ambient;
 };
 

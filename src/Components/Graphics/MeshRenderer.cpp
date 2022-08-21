@@ -45,11 +45,6 @@ void MeshRenderer::LoadTexture(const std::string &textureLocation) {
     texture->LoadTexture(textureLocation);
 }
 
-struct Push {
-    Matrix4 model;
-    Matrix4 normal;
-};
-
 void MeshRenderer::Load() {
     model = { };
 
@@ -80,6 +75,8 @@ void MeshRenderer::Load() {
     shaderData->GetUniform("texCoord")->SetTexture(texture);
     shaderData->Generate();
 
+    LightManager::sun.direction = Vector4(-0.57735, -0.57735, -0.57735, 1);
+    LightManager::sun.color = Vector4(0.8, 0.8, 0.8, 1);
     LightManager::sun.ambient = Vector4(0.25, 0.25, 0.25, 1);
     material->data.diffuse = Vector4(1);
 }

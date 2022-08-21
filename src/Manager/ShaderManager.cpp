@@ -13,3 +13,7 @@ Shader *ShaderManager::GetShader(const std::string& path, VEngine *engine) {
     shaders.push_back(shader);
     return shader;
 }
+
+void ShaderManager::Clean() {
+    shaders.clear();
+}

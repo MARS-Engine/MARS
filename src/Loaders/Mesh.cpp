@@ -22,7 +22,7 @@ void Mesh::Load(const std::string& meshLocation) {
     if (!err.empty())
         Debug::Alert("Mesh Error - " + err);
 
-    for (auto shape : shapes) {
+    for (const auto& shape : shapes) {
         unordered_map<Vertex3, uint32_t> uniqueVertices{};
 
         for (auto indice : shape.mesh.indices) {

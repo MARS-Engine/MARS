@@ -14,6 +14,7 @@ public:
     static vector<Shader*> shaders;
 
     static Shader* GetShader(const string& path, VEngine* engine);
+    static void Clean();
 };
 
 #endif
