@@ -16,10 +16,11 @@ public:
     VTexture* vTexture;
     VEngine* engine;
     Vector2 GetSize();
+    string location;
 
     Texture(VEngine* engine);
     void LoadTexture(string textureLocation);
-    void Bind(CommandBuffer* commandBuffer, Pipeline* pipeline);
+    void Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) const;
 
 };
 

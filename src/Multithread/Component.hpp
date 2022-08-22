@@ -9,6 +9,7 @@ class EngineObject;
 
 class Component {
 public:
+    bool loaded = false;
     bool isRenderer = false;
     EngineObject* object = nullptr;
     CommandBuffer* commandBuffer = nullptr;

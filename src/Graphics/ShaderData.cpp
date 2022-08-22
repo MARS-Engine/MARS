@@ -11,14 +11,14 @@ Uniform::Uniform(VUniform* uni, VEngine* _engine) {
     uniform = uni;
 }
 
-void Uniform::Generate(size_t bufferSize) {
+void Uniform::Generate(size_t bufferSize) const {
     uniform->Generate(bufferSize, VEngine::FRAME_OVERLAP);
 }
 
-void Uniform::Update(void* data) {
+void Uniform::Update(void* data) const {
     uniform->Update(data, engine->renderFrame);
 }
-void Uniform::SetTexture(Texture* texture) {
+void Uniform::SetTexture(Texture* texture) const {
     uniform->SetTexture(texture->vTexture);
 }
 
@@ -31,7 +31,7 @@ ShaderData::ShaderData(Shader* _shader, VEngine* _engine) {
         uniforms.push_back(new Uniform(uni, engine));
 }
 
-Uniform* ShaderData::GetUniform(string name) {
+Uniform* ShaderData::GetUniform(const string& name) {
     for (auto uni : uniforms)
         if (uni->uniform->data->name == name)
             return uni;
@@ -39,10 +39,14 @@ Uniform* ShaderData::GetUniform(string name) {
     return nullptr;
 }
 
-void ShaderData::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) {
+void ShaderData::ChangeTexture(const string& name, Texture* texture) const {
+    shaderData->ChangeTexture(name, texture->vTexture);
+}
+
+void ShaderData::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) const {
     shaderData->Bind(commandBuffer->vCommandBuffer, pipeline->pipeline);
 }
 
-void ShaderData::Generate() {
+void ShaderData::Generate() const {
     shaderData->Generate(VEngine::FRAME_OVERLAP);
 }

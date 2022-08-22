@@ -45,38 +45,7 @@ VUniform* VShaderData::GetUniform(string name) {
     return nullptr;
 }
 
-void VShaderData::Generate(size_t size) {
-    vector<VkDescriptorSetLayoutBinding> LayoutBindings = vector<VkDescriptorSetLayoutBinding>(uniforms.size());
-
-    for (size_t Index = 0; Index < LayoutBindings.size(); Index++)
-        LayoutBindings[Index] = uniforms[Index]->data->binding;
-
-    VkDescriptorSetLayoutCreateInfo layoutInfo{};
-    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = static_cast<uint32_t>(LayoutBindings.size());
-    layoutInfo.pBindings = LayoutBindings.data();
-
-    if (vkCreateDescriptorSetLayout(shader->device->rawDevice, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
-        Debug::Error("failed to create descriptor set layout!");
-
-    descriptorPool = new VDescriptorPool(shader->device);
-    descriptorPool->Create(shader);
-
-    std::vector<VkDescriptorSetLayout> layouts(size, descriptorSetLayout);
-
-    VkDescriptorSetAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = descriptorPool->rawDescriptorPool;
-    allocInfo.descriptorSetCount = static_cast<uint32_t>(size);
-    allocInfo.pSetLayouts = layouts.data();
-
-    descriptorSets.resize(size);
-
-    VkResult Result = vkAllocateDescriptorSets(shader->device->rawDevice, &allocInfo, descriptorSets.data());
-
-    if (Result != VK_SUCCESS)
-        Debug::Error("failed to allocate descriptor sets!");
-
+void VShaderData::UpdateDescriptors() {
     for (size_t Index = 0; Index < size; Index++) {
         vector<VkWriteDescriptorSet> descriptorWrites;
 
@@ -119,6 +88,54 @@ void VShaderData::Generate(size_t size) {
         }
         vkUpdateDescriptorSets(shader->device->rawDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
+}
+
+void VShaderData::Generate(size_t _size) {
+    size = _size;
+
+    vector<VkDescriptorSetLayoutBinding> LayoutBindings = vector<VkDescriptorSetLayoutBinding>(uniforms.size());
+
+    for (size_t Index = 0; Index < LayoutBindings.size(); Index++)
+        LayoutBindings[Index] = uniforms[Index]->data->binding;
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = static_cast<uint32_t>(LayoutBindings.size());
+    layoutInfo.pBindings = LayoutBindings.data();
+
+    if (vkCreateDescriptorSetLayout(shader->device->rawDevice, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+        Debug::Error("failed to create descriptor set layout!");
+
+    descriptorPool = new VDescriptorPool(shader->device);
+    descriptorPool->Create(shader);
+
+    std::vector<VkDescriptorSetLayout> layouts(size, descriptorSetLayout);
+
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptorPool->rawDescriptorPool;
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(size);
+    allocInfo.pSetLayouts = layouts.data();
+
+    descriptorSets.resize(size);
+
+    VkResult Result = vkAllocateDescriptorSets(shader->device->rawDevice, &allocInfo, descriptorSets.data());
+
+    if (Result != VK_SUCCESS)
+        Debug::Error("failed to allocate descriptor sets!");
+
+    UpdateDescriptors();
+}
+
+void VShaderData::ChangeTexture(string name, VTexture* texture) {
+    for (auto& uni : uniforms) {
+        if (uni->data->name == name) {
+            uni->texture = texture;
+            return UpdateDescriptors();
+        }
+    }
+
+    Debug::Alert("Shader Data - Failed to find uniform with name " + name);
 }
 
 void VShaderData::Bind(VCommandBuffer* commandBuffer, VPipeline* pipeline) {

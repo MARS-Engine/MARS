@@ -22,7 +22,7 @@ public:
     VDevice* device;
     VmaAllocator allocator;
     Vector2 size;
-
+    
     VTexture(VDevice* device, VmaAllocator& allocator);
     void LoadTexture(string textureLocation);
     void Bind(VCommandBuffer* commandBuffer, VPipeline* pipeline);

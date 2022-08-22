@@ -8,19 +8,6 @@
 #include "Time/TimeHelper.hpp"
 #include <math.h>
 
-Sprite::Sprite(Vector2 size, Vector2 offset, Vector2 _textureSize) {
-    textureSize = _textureSize;
-    uv.x = offset.x/textureSize.x;
-    uv.y = offset.y/textureSize.y;
-    uv.z = size.x/textureSize.x;
-    uv.w = size.y/textureSize.y;
-}
-
-void Sprite::SetOffset(Vector2 offset) {
-    uv.x = offset.x/textureSize.x;
-    uv.y = offset.y/textureSize.y;
-}
-
 Vector3 SpriteRenderer::vertices[4] = {
         { -.5f,  .5f, -1.0f },
         {  .5f,  .5f, -1.0f },
@@ -29,18 +16,6 @@ Vector3 SpriteRenderer::vertices[4] = {
 };
 
 int SpriteRenderer::indices[6] = { 0, 1, 2, 1, 3, 2 };
-
-void SpriteRenderer::LoadTexture(const std::string &textureLocation) {
-    if (GetEngine() == nullptr) {
-        texturePath = textureLocation;
-        return;
-    }
-
-    if (texture == nullptr)
-        texture = new Texture(GetEngine());
-
-    texture->LoadTexture(textureLocation);
-}
 
 struct SceneData {
     Matrix4 mvp;
@@ -51,12 +26,11 @@ struct SceneData {
 };
 
 void SpriteRenderer::Load() {
+    Component::Load();
+
     isRenderer = true;
 
-    if (texturePath != "")
-        LoadTexture(texturePath);
-
-    material = MaterialManager::GetMaterial("sprite");
+    material = MaterialManager::GetMaterial("Sprite");
     material->enableTransparency = true;
 
     verticeBuffer = new Buffer(GetEngine());
@@ -82,29 +56,34 @@ void SpriteRenderer::Load() {
     }
 
     shaderData = new ShaderData(shader, GetEngine());
-    shaderData->GetUniform("UV")->Generate(sizeof(Vector4) * 4);
+    shaderData->GetUniform("UV")->Generate(sizeof(Quad));
     shaderData->GetUniform("Model")->Generate(sizeof(Matrix4));
-    shaderData->GetUniform("texCoord")->SetTexture(texture);
+    shaderData->GetUniform("texCoord")->SetTexture(sprite->texture);
     shaderData->Generate();
+
+    last_texture = sprite->texture;
+
+    SetSprite(sprite);
 }
 
-void SpriteRenderer::SetSprite(Sprite* sprite) {
-    uv[0].x = sprite->uv.x;
-    uv[0].y = sprite->uv.y;
+void SpriteRenderer::SetSprite(Sprite* _sprite) {
+    sprite = _sprite;
+    if (!loaded)
+        return;
 
-    uv[1].x = sprite->uv.x + sprite->uv.z;
-    uv[1].y = sprite->uv.y;
+    uv = sprite->GetUV();
 
-    uv[2].x = sprite->uv.x;
-    uv[2].y = sprite->uv.y + sprite->uv.w;
+    if (last_texture != sprite->texture) {
+        shaderData->ChangeTexture("texCoord", sprite->texture);
+        last_texture = sprite->texture;
+    }
 
-    uv[3].x = sprite->uv.x + sprite->uv.z;
-    uv[3].y = sprite->uv.y + sprite->uv.w;
+    shaderData->GetUniform("UV")->Update(&uv);
+    object->ExecuteCode(PRE_RENDER);
 }
 
 void SpriteRenderer::Update() {
     Matrix4 mvp = GetEngine()->GetCamera()->ProjectionView * transform()->GetTransform();
-    shaderData->GetUniform("UV")->Update(&uv);
     shaderData->GetUniform("Model")->Update(&mvp);
 }
 

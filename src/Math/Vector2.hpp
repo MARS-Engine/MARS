@@ -6,8 +6,10 @@
 using namespace std;
 
 struct Vector2 {
-    
     float x, y;
+    //temporary (most likely final) vulkan buffer alignment fix
+    union  { float _pad0; };
+    union  { float _pad1; };
 
     Vector2();
     Vector2(float x, float y);

@@ -20,9 +20,9 @@ struct Uniform {
     VEngine* engine;
 
     Uniform(VUniform* uni, VEngine* engine);
-    void Generate(size_t bufferSize);
-    void Update(void* data);
-    void SetTexture(Texture* texture);
+    void Generate(size_t bufferSize) const;
+    void Update(void* data) const;
+    void SetTexture(Texture* texture) const;
 };
 
 class ShaderData {
@@ -33,9 +33,10 @@ public:
     vector<Uniform*> uniforms;
 
     ShaderData(Shader* shader, VEngine* engine);
-    Uniform* GetUniform(string name);
-    void Bind(CommandBuffer* commandBuffer, Pipeline* pipeline);
-    void Generate();
+    Uniform* GetUniform(const string& name);
+    void ChangeTexture(const string& name, Texture* texture) const;
+    void Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) const;
+    void Generate() const;
 };
 
 #endif

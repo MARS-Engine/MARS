@@ -10,35 +10,24 @@
 #include "Graphics/Shader.hpp"
 #include "Graphics/Pipeline.hpp"
 #include "Graphics/ShaderData.hpp"
-
-struct Sprite {
-private:
-    Vector2 textureSize;
-public:
-    Vector4 uv;
-    Sprite(Vector2 size, Vector2 offset, Vector2 textureSize);
-    void SetOffset(Vector2 offset);
-};
+#include "Type/Sprite.hpp"
 
 class SpriteRenderer : public Component {
 private:
-    Sprite* sprite;
+    Texture* last_texture = nullptr;
+    Sprite* sprite = nullptr;
 public:
     static Vector3 vertices[4];
     static int indices[6];
 
-    Buffer* verticeBuffer;
-    Buffer* indiceBuffer;
-    Texture* texture;
-    Shader* shader;
-    Pipeline* pipeline;
-    ShaderData* shaderData;
-    Vector4 uv[4];
-
-    string texturePath;
+    Buffer* verticeBuffer = nullptr;
+    Buffer* indiceBuffer = nullptr;
+    Shader* shader = nullptr;
+    Pipeline* pipeline = nullptr;
+    ShaderData* shaderData = nullptr;
+    Quad uv;
 
     void SetSprite(Sprite* sprite);
-    void LoadTexture(const std::string &textureLocation);
     void Load() override;
     void Update() override;
     void PreRender() override;

@@ -7,7 +7,7 @@ Component::Component() {
 }
 
 void Component::PreLoad() { }
-void Component::Load() { }
+void Component::Load() { loaded = true; }
 void Component::PreRender() { }
 void Component::Update() { }
 void Component::Render() { }

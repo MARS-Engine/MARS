@@ -13,8 +13,9 @@ Vector2 Texture::GetSize() {
 }
 
 void Texture::LoadTexture(string textureLocation) {
+    location = textureLocation;
     vTexture->LoadTexture(textureLocation);
 }
-void Texture::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) {
+void Texture::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) const {
     vTexture->Bind(commandBuffer->vCommandBuffer, pipeline->pipeline);
 }

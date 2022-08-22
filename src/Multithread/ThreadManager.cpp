@@ -33,6 +33,9 @@ void ThreadManager::Init() {
 }
 
 void ThreadManager::Execute(ExecutionCode newCode) {
+    if (newCode == LOAD)
+        return Debug::Alert("ThreadManager - Execution code ignored, LOAD is executed only on instance");
+
     system_clock::time_point Pre, Now;
     Pre = high_resolution_clock::now();
     code = newCode;
@@ -71,6 +74,8 @@ void ThreadManager::Instance(EngineObject* obj, VEngine* engine, EngineObject* p
     }
     else
         parent->AddChild(obj);
+
+    obj->ExecuteCode(LOAD);
 }
 
 void ThreadManager::Instance(EngineObject* obj, EngineObject* parent) {

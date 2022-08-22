@@ -3,6 +3,7 @@
 
 #include "VTypes.hpp"
 #include <vector>
+#include <map>
 #include <string>
 
 using namespace std;
@@ -30,6 +31,10 @@ struct VUniform {
 };
 
 class VShaderData {
+private:
+    size_t size;
+
+    void UpdateDescriptors();
 public:
     vector<VUniform*> uniforms;
     VShader* shader;
@@ -40,6 +45,7 @@ public:
 
     VShaderData(VShader* shader, VmaAllocator& _allocator);
     VUniform* GetUniform(string name);
+    void ChangeTexture(string name, VTexture* texture);
     void Bind(VCommandBuffer* commandBuffer, VPipeline* pipeline);
     void Generate(size_t size);
 };
