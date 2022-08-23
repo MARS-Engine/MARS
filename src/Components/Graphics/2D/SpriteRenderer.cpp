@@ -76,10 +76,10 @@ void SpriteRenderer::SetSprite(Sprite* _sprite) {
     if (last_texture != sprite->texture) {
         shaderData->ChangeTexture("texCoord", sprite->texture);
         last_texture = sprite->texture;
+        object->ExecuteCode(PRE_RENDER);
     }
 
     shaderData->GetUniform("UV")->Update(&uv);
-    object->ExecuteCode(PRE_RENDER);
 }
 
 void SpriteRenderer::Update() {
