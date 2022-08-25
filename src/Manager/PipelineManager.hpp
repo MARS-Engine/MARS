@@ -3,10 +3,9 @@
 
 #include <map>
 #include <string>
+#include "Graphics/Pipeline.hpp"
 
 using namespace std;
-
-class Pipeline;
 
 class PipelineManager {
 public:

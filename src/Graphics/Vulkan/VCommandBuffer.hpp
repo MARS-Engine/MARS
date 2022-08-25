@@ -18,6 +18,7 @@ public:
     VCommandPool* commandPool;
     size_t recordIndex = 0;
     Vector4 clearColor;
+    VkFramebuffer* frame = nullptr;
 
     VCommandBuffer(VCommandPool* commandPool);
 

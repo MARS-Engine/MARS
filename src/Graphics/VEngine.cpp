@@ -11,6 +11,7 @@
 #include "Manager/RenderPassManager.hpp"
 #include "Manager/MaterialManager.hpp"
 #include "Components/Graphics/Camera.hpp"
+#include "Deferred/DeferredHandler.hpp"
 
 unsigned int VEngine::FRAME_OVERLAP = 2;
 
@@ -20,9 +21,7 @@ Camera* VEngine::GetCamera() {
     return cameras[0];
 }
 
-void VEngine::Create(Window* _window) {
-    window = _window;
-
+void VEngine::CreateBase() {
     instance = new VInstance();
     instance->Create();
 
@@ -42,23 +41,25 @@ void VEngine::Create(Window* _window) {
     commandPool = new VCommandPool(device);
     commandPool->Create();
 
-    renderPass = new VRenderPass(allocator, device);
-    renderPass->Prepare(swapchain->size, swapchain->format);
-    renderPass->Create();
-
-    framebuffer = new VFramebuffer(swapchain, renderPass);
-    framebuffer->Create();
-
     sync = new VSync(device);
     sync->Create();
 
     auto defaultRender = RenderPassManager::GetRenderPass("default", this);
     defaultRender->Prepare(swapchain->size, swapchain->format);
-    defaultRender->descriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-    defaultRender->descriptions[0].initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    defaultRender->descriptions[1].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-    defaultRender->descriptions[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     defaultRender->Create();
+
+    renderPass = new VRenderPass(allocator, device);
+    renderPass->Prepare(swapchain->size, swapchain->format);
+    renderPass->Create();
+
+    framebuffer = new VFramebuffer();
+    framebuffer->Create(swapchain, renderPass);
+}
+
+void VEngine::Create(Window* _window) {
+    window = _window;
+
+    CreateBase();
 
     clearCommand = new CommandBuffer(this);
     clearCommand->renderPass = renderPass;
@@ -73,13 +74,44 @@ void VEngine::Create(Window* _window) {
     MaterialManager::GetMaterial("default");
 }
 
+void VEngine::CreateDeferred(Window* _window) {
+    window = _window;
+
+    CreateBase();
+
+    deferred = new DeferredHandler(this);
+    deferred->Load();
+
+
+    auto deferreClear = RenderPassManager::GetRenderPass("DeferredClear", this);
+    deferreClear->Prepare(deferred->textures, false);
+    deferreClear->Create();
+
+    clearCommand = new CommandBuffer(this);
+    clearCommand->renderPass = deferreClear;
+    clearCommand->Create();
+    clearCommand->vCommandBuffer->frame = &deferred->framebuffer;
+
+    for (int i = 0; i < VEngine::FRAME_OVERLAP; i++) {
+        clearCommand->Begin(i);
+        clearCommand->LoadDefault(i);
+        clearCommand->End();
+    }
+}
+
 void VEngine::PrepareDraw() {
+    deferred->Update();
     sync->Wait(renderFrame);
     VK_CHECK(vkAcquireNextImageKHR(device->rawDevice, swapchain->rawSwapchain, 1000000000, sync->presents[renderFrame], nullptr, &imageIndex));
-    drawQueue.push_back(clearCommand->GetCommandBuffer());
+    if (clearCommand)
+        drawQueue.push_back(clearCommand->GetCommandBuffer());
+
 }
 
 void VEngine::Draw() {
+    if (deferred)
+        drawQueue.push_back(deferred->commandBuffer->GetCommandBuffer());
+
     finalQueue.resize(drawQueue.size() + transQueue.size());
     memcpy(finalQueue.data(), drawQueue.data(), drawQueue.size() * sizeof(VkCommandBuffer));
     vector<VkCommandBuffer> finalTrans;

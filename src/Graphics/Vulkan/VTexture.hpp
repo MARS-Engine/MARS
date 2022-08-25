@@ -22,9 +22,11 @@ public:
     VDevice* device;
     VmaAllocator allocator;
     Vector2 size;
+    VkFormat format;
     
     VTexture(VDevice* device, VmaAllocator& allocator);
     void LoadTexture(string textureLocation);
+    void Create(Vector2 size, VkFormat format, VkImageUsageFlagBits usage);
     void Bind(VCommandBuffer* commandBuffer, VPipeline* pipeline);
 };
 

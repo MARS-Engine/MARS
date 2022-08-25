@@ -3,6 +3,7 @@
 
 #include "VTypes.hpp"
 #include "Math/Vector2.hpp"
+#include "../Texture.hpp"
 #include <vector>
 
 using namespace std;
@@ -27,6 +28,7 @@ public:
     VRenderPass(VmaAllocator& allocator, VDevice* device);
 
     void Prepare(Vector2 size, VkFormat format);
+    void Prepare(vector<Texture*> textures, bool load = true);
     void Create();
     void Clean() const;
 };

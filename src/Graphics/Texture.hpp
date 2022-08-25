@@ -6,6 +6,7 @@ class VEngine;
 class CommandBuffer;
 class Pipeline;
 
+#include "Vulkan/VTypes.hpp"
 #include "Math/Vector2.hpp"
 #include <string>
 
@@ -20,6 +21,7 @@ public:
 
     Texture(VEngine* engine);
     void LoadTexture(string textureLocation);
+    void Create(Vector2 size, VkFormat format, VkImageUsageFlagBits usage);
     void Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) const;
 
 };

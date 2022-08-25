@@ -16,6 +16,11 @@ void Texture::LoadTexture(string textureLocation) {
     location = textureLocation;
     vTexture->LoadTexture(textureLocation);
 }
+
+void Texture::Create(Vector2 size, VkFormat format, VkImageUsageFlagBits usage) {
+    vTexture->Create(size, format, usage);
+}
+
 void Texture::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) const {
     vTexture->Bind(commandBuffer->vCommandBuffer, pipeline->pipeline);
 }

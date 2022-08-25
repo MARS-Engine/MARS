@@ -5,8 +5,10 @@
 #include "Time/TimeHelper.hpp"
 #include "Manager/LightManager.hpp"
 #include "Manager/ShaderManager.hpp"
+#include "Manager/RenderPassManager.hpp"
 #include "Manager/PipelineManager.hpp"
 #include "Components/Graphics/Camera.hpp"
+#include "Graphics/Deferred/DeferredHandler.hpp"
 
 void MeshRenderer::LoadMesh(const string& meshLocation) {
     if (GetEngine() == nullptr) {
@@ -57,15 +59,15 @@ void MeshRenderer::Load() {
 
     shader = ShaderManager::GetShader("Engine/Assets/Shaders/Model.shader", GetEngine());
 
-    pipeline = PipelineManager::GetPipeline("Default");
+    pipeline = PipelineManager::GetPipeline("Model");
 
     if (pipeline == nullptr) {
         auto desc = Vertex3::GetDescription();
-        pipeline = new Pipeline(GetEngine(), shader);
+        pipeline = new Pipeline(GetEngine(), shader, RenderPassManager::GetRenderPass("Deferred", GetEngine()));
         pipeline->CreateLayout();
         pipeline->ApplyInputDescription(&desc);
         pipeline->Create();
-        PipelineManager::AddPipeline("Default", pipeline);
+        PipelineManager::AddPipeline("Model", pipeline);
     }
 
     shaderData = new ShaderData(shader, GetEngine());
@@ -76,6 +78,8 @@ void MeshRenderer::Load() {
     shaderData->Generate();
 
     material->data.diffuse = Vector4(1);
+    GetCommandBuffer()->renderPass = RenderPassManager::GetRenderPass("Deferred", GetEngine());
+    GetCommandBuffer()->vCommandBuffer->frame = &GetEngine()->deferred->framebuffer;
 }
 
 void MeshRenderer::Update() {

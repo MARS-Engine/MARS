@@ -9,6 +9,11 @@ Pipeline::Pipeline(VEngine* _engine, Shader* shader) {
     pipeline = new VPipeline(shader->vShader, engine->device, engine->swapchain, engine->renderPass);
 }
 
+Pipeline::Pipeline(VEngine* _engine, Shader* shader, VRenderPass* renderPass) {
+    engine = _engine;
+    pipeline = new VPipeline(shader->vShader, engine->device, engine->swapchain, renderPass);
+}
+
 void Pipeline::CreateLayout(size_t size) const {
     pipeline->CreateLayout(size);
 }

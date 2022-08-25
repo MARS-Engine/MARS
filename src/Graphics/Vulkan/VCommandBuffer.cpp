@@ -7,7 +7,7 @@
 
 VCommandBuffer::VCommandBuffer(VCommandPool* _commandPool) {
     commandPool = _commandPool;
-    clearColor = Vector4(0, 0, 0, 1);
+    clearColor = Vector4(0, 0, 0, 0);
 }
 
 void VCommandBuffer::Create(size_t size) {
@@ -52,10 +52,22 @@ void VCommandBuffer::LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain,
     rpInfo.renderArea.offset.x = 0;
     rpInfo.renderArea.offset.y = 0;
     rpInfo.renderArea.extent = { (uint32_t)swapchain->size.x, (uint32_t)swapchain->size.y };
-    rpInfo.framebuffer = framebuffer->rawFramebuffers[imageIndex];
 
-    rpInfo.clearValueCount = 2;
-    VkClearValue clearValues[] = { clearValue, depthClear };
+    if (frame == nullptr)
+        rpInfo.framebuffer = framebuffer->rawFramebuffers[imageIndex];
+    else
+        rpInfo.framebuffer = *frame;
+
+    rpInfo.clearValueCount = renderPass->attachments.size();
+    vector<VkClearValue> clearValues;
+    clearValues.resize(renderPass->attachments.size());
+
+    for (auto i = 0; i < clearValues.size(); i++)
+        if (renderPass->attachments[i].layout != VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+            clearValues[i] = clearValue;
+        else
+            clearValues[i] = depthClear;
+
     rpInfo.pClearValues = &clearValues[0];
 
     vkCmdBeginRenderPass(rawCommandBuffers[recordIndex], &rpInfo, VK_SUBPASS_CONTENTS_INLINE);

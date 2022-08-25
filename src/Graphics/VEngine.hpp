@@ -16,8 +16,11 @@ class VFramebuffer;
 class VSync;
 class Camera;
 class Transform;
+class DeferredHandler;
 
 class VEngine {
+private:
+    void CreateBase();
 public:
     static unsigned int FRAME_OVERLAP;
     size_t renderFrame = 0;
@@ -32,6 +35,7 @@ public:
     VFramebuffer* framebuffer;
     VmaAllocator allocator;
     VSync* sync;
+    DeferredHandler* deferred;
 
     uint32_t imageIndex;
 
@@ -42,7 +46,8 @@ public:
     vector<Camera*> cameras;
 
     Camera* GetCamera();
-	void Create(Window* window);
+    void Create(Window* window);
+    void CreateDeferred(Window* window);
     void PrepareDraw();
     void Draw();
     void Clean() const;
