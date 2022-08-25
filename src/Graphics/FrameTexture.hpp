@@ -1,5 +1,5 @@
-#ifndef __FRAMETEXTURE__
-#define __FRAMETEXTURE__
+#ifndef __FRAME__TEXTURE__
+#define __FRAME__TEXTURE__
 
 #include "Texture.hpp"
 #include <vector>

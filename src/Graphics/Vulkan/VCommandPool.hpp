@@ -1,5 +1,5 @@
-#ifndef __VCOMMANDPOOL__
-#define __VCOMMANDPOOL__
+#ifndef __VCOMMAND__POOL__
+#define __VCOMMAND__POOL__
 
 #include "VTypes.hpp"
 

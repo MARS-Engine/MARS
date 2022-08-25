@@ -6,6 +6,7 @@
 #include "Manager/LightManager.hpp"
 #include "Math/Matrix3.hpp"
 #include "Time/TimeHelper.hpp"
+#include "Manager/RenderPassManager.hpp"
 #include <math.h>
 
 Vector3 SpriteRenderer::vertices[4] = {
@@ -48,7 +49,7 @@ void SpriteRenderer::Load() {
 
     if (pipeline == nullptr) {
         auto desc = Vector3::GetDescription();
-        pipeline = new Pipeline(GetEngine(), shader);
+        pipeline = new Pipeline(GetEngine(), shader, RenderPassManager::GetRenderPass("Renderer", GetEngine()));
         pipeline->CreateLayout();
         pipeline->ApplyInputDescription(&desc);
         pipeline->Create();
@@ -64,6 +65,8 @@ void SpriteRenderer::Load() {
     last_texture = sprite->texture;
 
     SetSprite(sprite);
+
+    GetCommandBuffer()->renderPass = RenderPassManager::GetRenderPass("Renderer", GetEngine());
 }
 
 void SpriteRenderer::SetSprite(Sprite* _sprite) {

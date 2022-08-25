@@ -16,7 +16,8 @@ class VFramebuffer;
 class VSync;
 class Camera;
 class Transform;
-class DeferredHandler;
+class DeferredRenderer;
+class RendererBase;
 
 class VEngine {
 private:
@@ -30,18 +31,16 @@ public:
     VSurface* surface;
     VSwapchain* swapchain;
     VCommandPool* commandPool;
-    CommandBuffer* clearCommand;
     VRenderPass* renderPass;
     VFramebuffer* framebuffer;
     VmaAllocator allocator;
     VSync* sync;
-    DeferredHandler* deferred;
+    RendererBase* renderer;
 
     uint32_t imageIndex;
 
     vector<VkCommandBuffer> drawQueue;
-    map<float, VkCommandBuffer> transQueue;
-    vector<VkCommandBuffer> finalQueue;
+    map<float, VkCommandBuffer, std::greater<>> transQueue;
 
     vector<Camera*> cameras;
 

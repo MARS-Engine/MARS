@@ -1,5 +1,5 @@
-#ifndef __SPRITERENDERER__
-#define __SPRITERENDERER__
+#ifndef __SPRITE__RENDERER__
+#define __SPRITE__RENDERER__
 
 #include <string>
 

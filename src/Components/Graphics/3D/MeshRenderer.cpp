@@ -8,7 +8,7 @@
 #include "Manager/RenderPassManager.hpp"
 #include "Manager/PipelineManager.hpp"
 #include "Components/Graphics/Camera.hpp"
-#include "Graphics/Deferred/DeferredHandler.hpp"
+#include "Graphics/Renderer/DeferredRenderer.hpp"
 
 void MeshRenderer::LoadMesh(const string& meshLocation) {
     if (GetEngine() == nullptr) {
@@ -63,7 +63,7 @@ void MeshRenderer::Load() {
 
     if (pipeline == nullptr) {
         auto desc = Vertex3::GetDescription();
-        pipeline = new Pipeline(GetEngine(), shader, RenderPassManager::GetRenderPass("Deferred", GetEngine()));
+        pipeline = new Pipeline(GetEngine(), shader, RenderPassManager::GetRenderPass("Renderer", GetEngine()));
         pipeline->CreateLayout();
         pipeline->ApplyInputDescription(&desc);
         pipeline->Create();
@@ -72,14 +72,13 @@ void MeshRenderer::Load() {
 
     shaderData = new ShaderData(shader, GetEngine());
     shaderData->GetUniform("Model")->Generate(sizeof(ShaderModel));
-    shaderData->GetUniform("GlobalLight")->Generate(sizeof(LightManager::sun));
     shaderData->GetUniform("Material")->Generate(sizeof(MaterialData));
     shaderData->GetUniform("texCoord")->SetTexture(texture);
     shaderData->Generate();
 
     material->data.diffuse = Vector4(1);
-    GetCommandBuffer()->renderPass = RenderPassManager::GetRenderPass("Deferred", GetEngine());
-    GetCommandBuffer()->vCommandBuffer->frame = &GetEngine()->deferred->framebuffer;
+    GetCommandBuffer()->renderPass = RenderPassManager::GetRenderPass("Renderer", GetEngine());
+    GetCommandBuffer()->vCommandBuffer->frame = GetEngine()->renderer->GetFramebuffer(0);
 }
 
 void MeshRenderer::Update() {
@@ -93,7 +92,6 @@ void MeshRenderer::Update() {
 
     shaderData->GetUniform("Model")->Update(&model);
     shaderData->GetUniform("Material")->Update(&material->data);
-    shaderData->GetUniform("GlobalLight")->Update(&LightManager::sun);
 }
 
 void MeshRenderer::PreRender() {

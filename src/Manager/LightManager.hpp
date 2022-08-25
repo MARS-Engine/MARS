@@ -1,7 +1,8 @@
-#ifndef __LIGHTMANAGER__
-#define __LIGHTMANAGER__
+#ifndef __LIGHT__MANAGER__
+#define __LIGHT__MANAGER__
 
 #include "Math/Vector4.hpp"
+#include "Graphics/ShaderData.hpp"
 
 static const size_t MAX_POINT_LIGHT = 2;
 
@@ -27,6 +28,8 @@ public:
     static Sun sun;
     static PointLightData pointLightData;
     static void AddPointLight(PointLight light);
+    static void GenerateShaderUniform(ShaderData* data);
+    static void UpdateShaderUniform(ShaderData* data);
 };
 
 #endif

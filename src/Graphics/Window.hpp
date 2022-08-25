@@ -10,6 +10,7 @@ private:
 public:
     struct SDL_Window* rawWindow = nullptr;
     VkExtent2D windowSize;
+    Vector2 size;
 
     inline bool IsOpen() { return isOpen; }
 

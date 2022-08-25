@@ -1,5 +1,5 @@
-#ifndef __PIPELINEMANAGER__
-#define __PIPELINEMANAGER__
+#ifndef __PIPELINE__MANAGER__
+#define __PIPELINE__MANAGER__
 
 #include <map>
 #include <string>

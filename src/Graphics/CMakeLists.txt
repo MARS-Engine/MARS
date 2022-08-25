@@ -1,6 +1,6 @@
 add_subdirectory(Vulkan)
 add_subdirectory(VertexType)
-add_subdirectory(Deferred)
+add_subdirectory(Renderer)
 target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/VEngine.cpp)
 target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Window.cpp)
 target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Pipeline.cpp)

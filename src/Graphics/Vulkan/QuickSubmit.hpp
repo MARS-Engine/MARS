@@ -1,5 +1,5 @@
-#ifndef __QUICKSUBMIT__
-#define __QUICKSUBMIT__
+#ifndef __QUICK__SUBMIT__
+#define __QUICK__SUBMIT__
 
 #include "VTypes.hpp"
 

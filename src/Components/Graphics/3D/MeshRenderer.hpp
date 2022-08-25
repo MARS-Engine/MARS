@@ -1,5 +1,5 @@
-#ifndef __MESHRENDERER__
-#define __MESHRENDERER__
+#ifndef __MESH__RENDERER__
+#define __MESH__RENDERER__
 
 #include <vector>
 

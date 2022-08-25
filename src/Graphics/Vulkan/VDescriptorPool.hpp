@@ -1,5 +1,5 @@
-#ifndef __VDESCRIPTORPOOL__
-#define __VDESCRIPTORPOOL__
+#ifndef __VDESCRIPTOR__POOL__
+#define __VDESCRIPTOR__POOL__
 
 #include "VTypes.hpp"
 

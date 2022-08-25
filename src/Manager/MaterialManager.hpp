@@ -1,5 +1,5 @@
-#ifndef __MATERIALMANAGER__
-#define __MATERIALMANAGER__
+#ifndef __MATERIAL__MANAGER__
+#define __MATERIAL__MANAGER__
 
 #include "Graphics/Material.hpp"
 #include <vector>

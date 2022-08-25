@@ -27,7 +27,7 @@ public:
 
     VRenderPass(VmaAllocator& allocator, VDevice* device);
 
-    void Prepare(Vector2 size, VkFormat format);
+    void Prepare(Vector2 size, VkFormat format, bool load = true);
     void Prepare(vector<Texture*> textures, bool load = true);
     void Create();
     void Clean() const;

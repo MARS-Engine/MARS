@@ -3,7 +3,7 @@ Deferred/Deferred.vert.spv
 #fragmentShader
 Deferred/Deferred.frag.spv
 #uniforms
-samplerPosition TEXTURE
-samplerNormal TEXTURE
-samplerAlbedo TEXTURE
-GLOBAL_LIGHT
+deferredPosition TEXTURE
+deferredNormal TEXTURE
+deferredAlbedo TEXTURE
+__GLOBAL_LIGHT

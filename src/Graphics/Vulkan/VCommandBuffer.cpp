@@ -53,10 +53,10 @@ void VCommandBuffer::LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain,
     rpInfo.renderArea.offset.y = 0;
     rpInfo.renderArea.extent = { (uint32_t)swapchain->size.x, (uint32_t)swapchain->size.y };
 
-    if (frame == nullptr)
+    if (frame == VkFramebuffer{})
         rpInfo.framebuffer = framebuffer->rawFramebuffers[imageIndex];
     else
-        rpInfo.framebuffer = *frame;
+        rpInfo.framebuffer = frame;
 
     rpInfo.clearValueCount = renderPass->attachments.size();
     vector<VkClearValue> clearValues;

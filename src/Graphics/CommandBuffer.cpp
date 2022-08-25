@@ -5,7 +5,7 @@
 
 CommandBuffer::CommandBuffer(VEngine* _engine) {
     engine = _engine;
-    renderPass = RenderPassManager::GetRenderPass("default", engine);
+    renderPass = RenderPassManager::GetRenderPass("Renderer", engine);
 }
 
 VkCommandBuffer CommandBuffer::GetCommandBuffer() {

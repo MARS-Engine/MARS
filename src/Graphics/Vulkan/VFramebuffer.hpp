@@ -1,5 +1,5 @@
-#ifndef __VFRAMEBUFFER__
-#define __VFRAMEBUFFER__
+#ifndef __VFRAME__BUFFER__
+#define __VFRAME__BUFFER__
 
 #include "VTypes.hpp"
 #include "Math/Vector2.hpp"

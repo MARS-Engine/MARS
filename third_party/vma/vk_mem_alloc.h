@@ -12675,7 +12675,7 @@ m_Blocks.pop_back();
 IncrementallySortBlocks();
 }
 
-// Destruction of a free block. Deferred until this point, outside of mutex
+// Destruction of a free block. Renderer until this point, outside of mutex
 // lock, for performance reason.
 if (pBlockToDelete != VMA_NULL)
 {

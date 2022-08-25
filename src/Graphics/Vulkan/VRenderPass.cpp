@@ -9,7 +9,7 @@ VRenderPass::VRenderPass(VmaAllocator& _allocator, VDevice* _device) {
     allocator = _allocator;
 }
 
-void VRenderPass::Prepare(Vector2 size, VkFormat format) {
+void VRenderPass::Prepare(Vector2 size, VkFormat format, bool load) {
     depth = new VDepth(allocator, device, size);
     depth->Create();
 
@@ -17,20 +17,20 @@ void VRenderPass::Prepare(Vector2 size, VkFormat format) {
 
     descriptions[0].format = format;
     descriptions[0].samples = VK_SAMPLE_COUNT_1_BIT;
-    descriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    descriptions[0].loadOp = load ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
     descriptions[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     descriptions[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     descriptions[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    descriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    descriptions[0].initialLayout = load ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_UNDEFINED;
     descriptions[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
     descriptions[1].format = depth->format;
     descriptions[1].samples = VK_SAMPLE_COUNT_1_BIT;
-    descriptions[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    descriptions[1].loadOp = load ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
     descriptions[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     descriptions[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     descriptions[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    descriptions[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    descriptions[1].initialLayout = load ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED;
     descriptions[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     attachments.resize(2, {});

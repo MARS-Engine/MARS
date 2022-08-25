@@ -1,5 +1,5 @@
-#ifndef __ENGINEOBJECT__
-#define __ENGINEOBJECT__
+#ifndef __ENGINE__OBJECT__
+#define __ENGINE__OBJECT__
 
 #include "ThreadManager.hpp"
 #include "Graphics/VEngine.hpp"

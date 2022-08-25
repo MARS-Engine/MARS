@@ -1,5 +1,5 @@
-#ifndef __COMMANDBUFFER__
-#define __COMMANDBUFFER__
+#ifndef __COMMAND__BUFFER__
+#define __COMMAND__BUFFER__
 
 #include "Vulkan/VTypes.hpp"
 #include "Vulkan/VCommandBuffer.hpp"

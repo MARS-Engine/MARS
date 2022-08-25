@@ -6,11 +6,11 @@ layout(location = 0) in VS_OUT {
     vec2 uv;
 } fs_in;
 
-layout (binding = 2) uniform MATERIAL {
+layout (binding = 1) uniform MATERIAL {
     vec4 diffuse;
 } mat;
 
-layout (binding = 3) uniform sampler2D tex;
+layout (binding = 2) uniform sampler2D tex;
 
 layout (location = 0) out vec4 outPosition;
 layout (location = 1) out vec4 outNormal;

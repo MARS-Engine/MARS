@@ -27,7 +27,6 @@ VPipeline::VPipeline(VShader* _shader, VDevice* _device, VSwapchain* _swapchain,
 
     depthStencil = VInitializer::DepthStencilInfo(true, true, VK_COMPARE_OP_LESS);
 
-    //Fix inverted viewport, i think
     viewport.x = 0.0f;
     viewport.y = 0.0f;
     viewport.width = swapchain->size.x;

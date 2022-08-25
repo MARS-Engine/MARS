@@ -11,7 +11,8 @@
 #include "Manager/RenderPassManager.hpp"
 #include "Manager/MaterialManager.hpp"
 #include "Components/Graphics/Camera.hpp"
-#include "Deferred/DeferredHandler.hpp"
+#include "Renderer/DeferredRenderer.hpp"
+#include "Renderer/SimpleRenderer.hpp"
 
 unsigned int VEngine::FRAME_OVERLAP = 2;
 
@@ -44,12 +45,8 @@ void VEngine::CreateBase() {
     sync = new VSync(device);
     sync->Create();
 
-    auto defaultRender = RenderPassManager::GetRenderPass("default", this);
-    defaultRender->Prepare(swapchain->size, swapchain->format);
-    defaultRender->Create();
-
-    renderPass = new VRenderPass(allocator, device);
-    renderPass->Prepare(swapchain->size, swapchain->format);
+    renderPass = RenderPassManager::GetRenderPass("default", this);
+    renderPass->Prepare(swapchain->size, swapchain->format, false);
     renderPass->Create();
 
     framebuffer = new VFramebuffer();
@@ -61,17 +58,8 @@ void VEngine::Create(Window* _window) {
 
     CreateBase();
 
-    clearCommand = new CommandBuffer(this);
-    clearCommand->renderPass = renderPass;
-    clearCommand->Create();
-
-    for (int i = 0; i < VEngine::FRAME_OVERLAP; i++) {
-        clearCommand->Begin(i);
-        clearCommand->LoadDefault(i);
-        clearCommand->End();
-    }
-
-    MaterialManager::GetMaterial("default");
+    renderer = new SimpleRenderer(this);
+    renderer->Load();
 }
 
 void VEngine::CreateDeferred(Window* _window) {
@@ -79,47 +67,31 @@ void VEngine::CreateDeferred(Window* _window) {
 
     CreateBase();
 
-    deferred = new DeferredHandler(this);
-    deferred->Load();
-
-
-    auto deferreClear = RenderPassManager::GetRenderPass("DeferredClear", this);
-    deferreClear->Prepare(deferred->textures, false);
-    deferreClear->Create();
-
-    clearCommand = new CommandBuffer(this);
-    clearCommand->renderPass = deferreClear;
-    clearCommand->Create();
-    clearCommand->vCommandBuffer->frame = &deferred->framebuffer;
-
-    for (int i = 0; i < VEngine::FRAME_OVERLAP; i++) {
-        clearCommand->Begin(i);
-        clearCommand->LoadDefault(i);
-        clearCommand->End();
-    }
+    renderer = new DeferredRenderer(this);
+    renderer->CreateTexture("deferredPosition", POSITION);
+    renderer->CreateTexture("deferredNormal", POSITION);
+    renderer->CreateTexture("deferredAlbedo", COLOR);
+    renderer->Load();
 }
 
 void VEngine::PrepareDraw() {
-    deferred->Update();
+    renderer->Update();
     sync->Wait(renderFrame);
     VK_CHECK(vkAcquireNextImageKHR(device->rawDevice, swapchain->rawSwapchain, 1000000000, sync->presents[renderFrame], nullptr, &imageIndex));
-    if (clearCommand)
-        drawQueue.push_back(clearCommand->GetCommandBuffer());
+    renderer->Clear();
 
 }
 
 void VEngine::Draw() {
-    if (deferred)
-        drawQueue.push_back(deferred->commandBuffer->GetCommandBuffer());
+    auto nonTransSize = drawQueue.size();
+    drawQueue.resize(nonTransSize + transQueue.size());
 
-    finalQueue.resize(drawQueue.size() + transQueue.size());
-    memcpy(finalQueue.data(), drawQueue.data(), drawQueue.size() * sizeof(VkCommandBuffer));
-    vector<VkCommandBuffer> finalTrans;
+    auto i = 0;
+    for (auto t : transQueue)
+        drawQueue[nonTransSize + i++] = t.second;
 
-    for (auto d : transQueue)
-        finalTrans.push_back(d.second);
-
-    memcpy(&finalQueue[drawQueue.size()], finalTrans.data(), finalTrans.size() * sizeof(VkCommandBuffer));
+    if (renderer)
+        renderer->Render();
 
     VkSubmitInfo submit = {};
     submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -135,8 +107,8 @@ void VEngine::Draw() {
     submit.signalSemaphoreCount = 1;
     submit.pSignalSemaphores = &sync->renders[renderFrame];
 
-    submit.commandBufferCount = finalQueue.size();
-    submit.pCommandBuffers = finalQueue.data();
+    submit.commandBufferCount = drawQueue.size();
+    submit.pCommandBuffers = drawQueue.data();
 
     VK_CHECK(vkQueueSubmit(device->graphicsQueue, 1, &submit, sync->fences[renderFrame]));
 
@@ -155,7 +127,6 @@ void VEngine::Draw() {
     VK_CHECK(vkQueuePresentKHR(device->graphicsQueue, &presentInfo));
 
     renderFrame = (renderFrame + 1) % FRAME_OVERLAP;
-    finalQueue.resize(0);
     transQueue.clear();
     drawQueue.resize(0);
 }
