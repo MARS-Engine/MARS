@@ -18,6 +18,7 @@ layout (binding = 1) uniform UV {
 
 void main() {
     gl_Position = model.mvp * vec4(pos, 1.0);
+    vs_out.pos = pos;
     vs_out.uv = uniUv.uv[gl_VertexIndex];
     vs_out.normal = vec3(0.0, 0.0, -1.0);
 }

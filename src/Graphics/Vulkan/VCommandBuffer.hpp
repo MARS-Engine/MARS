@@ -18,14 +18,13 @@ public:
     VCommandPool* commandPool;
     size_t recordIndex = 0;
     Vector4 clearColor;
-    VkFramebuffer frame = {};
 
     VCommandBuffer(VCommandPool* commandPool);
 
     void Create(size_t size);
     void Reset(size_t index);
     void Begin(size_t index);
-    void LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain, VFramebuffer* framebuffer, size_t imageIndex);
+    void LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain, VkFramebuffer framebuffer, size_t imageIndex);
     void Draw(size_t vCount, size_t iCount);
     void DrawIndexed(size_t size, size_t iCount);
     void End();

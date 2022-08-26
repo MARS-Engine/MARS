@@ -78,7 +78,6 @@ void MeshRenderer::Load() {
 
     material->data.diffuse = Vector4(1);
     GetCommandBuffer()->renderPass = RenderPassManager::GetRenderPass("Renderer", GetEngine());
-    GetCommandBuffer()->vCommandBuffer->frame = GetEngine()->renderer->GetFramebuffer(0);
 }
 
 void MeshRenderer::Update() {

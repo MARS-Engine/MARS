@@ -7,9 +7,9 @@ class SimpleRenderer : public RendererBase{
 public:
     using RendererBase::RendererBase;
 
+    VkFramebuffer GetFramebuffer(size_t index) override;
     void Load() override;
     void Clear() override;
-    void Render() override;
 };
 
 #endif

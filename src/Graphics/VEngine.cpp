@@ -53,25 +53,29 @@ void VEngine::CreateBase() {
     framebuffer->Create(swapchain, renderPass);
 }
 
-void VEngine::Create(Window* _window) {
+void VEngine::Create(RENDER_TYPE _type, Window* _window) {
     window = _window;
+    type = _type;
 
     CreateBase();
 
-    renderer = new SimpleRenderer(this);
-    renderer->Load();
+    switch (type) {
+        case SIMPLE:
+            renderer = new SimpleRenderer(this);
+            renderer->Load();
+            break;
+        case DEFERRED:
+            renderer = new DeferredRenderer(this);
+            renderer->CreateTexture("deferredPosition", POSITION);
+            renderer->CreateTexture("deferredNormal", POSITION);
+            renderer->CreateTexture("deferredAlbedo", COLOR);
+            renderer->Load();
+            break;
+    }
 }
 
-void VEngine::CreateDeferred(Window* _window) {
-    window = _window;
-
-    CreateBase();
-
-    renderer = new DeferredRenderer(this);
-    renderer->CreateTexture("deferredPosition", POSITION);
-    renderer->CreateTexture("deferredNormal", POSITION);
-    renderer->CreateTexture("deferredAlbedo", COLOR);
-    renderer->Load();
+VkFramebuffer VEngine::GetFramebuffer(int i) {
+    return renderer->GetFramebuffer(i);
 }
 
 void VEngine::PrepareDraw() {

@@ -8,6 +8,7 @@
 #include "Time/TimeHelper.hpp"
 #include "Manager/RenderPassManager.hpp"
 #include <math.h>
+#include "Graphics/Renderer/DeferredRenderer.hpp"
 
 Vector3 SpriteRenderer::vertices[4] = {
         { -.5f,  .5f, -1.0f },

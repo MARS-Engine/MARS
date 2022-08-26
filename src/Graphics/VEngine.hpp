@@ -19,6 +19,12 @@ class Transform;
 class DeferredRenderer;
 class RendererBase;
 
+enum RENDER_TYPE {
+    //Please avoid SIMPLE rendering, this should only be used if you want to write your own shaders. Because of the lighting system only deferred like renderers will be supported
+    SIMPLE,
+    DEFERRED
+};
+
 class VEngine {
 private:
     void CreateBase();
@@ -44,9 +50,11 @@ public:
 
     vector<Camera*> cameras;
 
+    RENDER_TYPE type;
+
     Camera* GetCamera();
-    void Create(Window* window);
-    void CreateDeferred(Window* window);
+    void Create(RENDER_TYPE type, Window* window);
+    VkFramebuffer GetFramebuffer(int i);
     void PrepareDraw();
     void Draw();
     void Clean() const;

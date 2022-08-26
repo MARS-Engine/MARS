@@ -2,6 +2,7 @@
 #include "VEngine.hpp"
 #include "./Vulkan/VSwapchain.hpp"
 #include "Manager/RenderPassManager.hpp"
+#include "Vulkan/VFramebuffer.hpp"
 
 CommandBuffer::CommandBuffer(VEngine* _engine) {
     engine = _engine;
@@ -30,11 +31,15 @@ void CommandBuffer::Begin(size_t index) const {
 }
 
 void CommandBuffer::LoadDefault() const {
-    vCommandBuffer->LoadDefault(renderPass, engine->swapchain, engine->framebuffer, engine->imageIndex);
+    vCommandBuffer->LoadDefault(renderPass, engine->swapchain, engine->GetFramebuffer(vCommandBuffer->recordIndex), engine->imageIndex);
 }
 
 void CommandBuffer::LoadDefault(size_t index) const {
-    vCommandBuffer->LoadDefault(renderPass, engine->swapchain, engine->framebuffer, index);
+    vCommandBuffer->LoadDefault(renderPass, engine->swapchain, engine->GetFramebuffer(vCommandBuffer->recordIndex), index);
+}
+
+void CommandBuffer::LoadDefault(size_t index, VFramebuffer* framebuffer) const {
+    vCommandBuffer->LoadDefault(renderPass, engine->swapchain, framebuffer->rawFramebuffers[index], index);
 }
 
 void CommandBuffer::Draw(size_t vCount, size_t iCount) const {

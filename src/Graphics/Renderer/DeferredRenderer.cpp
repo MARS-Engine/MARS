@@ -53,7 +53,7 @@ void DeferredRenderer::Load() {
         pipeline = new Pipeline(engine, shader, RenderPassManager::GetRenderPass("default", engine));
         pipeline->CreateLayout();
         pipeline->pipeline->viewport.height = -pipeline->pipeline->viewport.height;
-        pipeline->pipeline->viewport.y = -pipeline->pipeline->viewport.height;
+        pipeline->pipeline->viewport.y = 0;
         pipeline->Create();
         PipelineManager::AddPipeline("Renderer", pipeline);
     }
@@ -70,7 +70,7 @@ void DeferredRenderer::Load() {
 
     for (int i = 0; i < VEngine::FRAME_OVERLAP; i++) {
         renderBuffer->Begin(i);
-        renderBuffer->LoadDefault(i);
+        renderBuffer->LoadDefault(i, engine->framebuffer);
         pipeline->Bind(renderBuffer);
         data->Bind(renderBuffer, pipeline);
         renderBuffer->Draw(3, 1);
@@ -97,7 +97,6 @@ void DeferredRenderer::Load() {
     clearBuffer = new CommandBuffer(engine);
     clearBuffer->renderPass = GetRenderPass();
     clearBuffer->Create();
-    clearBuffer->vCommandBuffer->frame = GetFramebuffer(0);
 
     for (int i = 0; i < VEngine::FRAME_OVERLAP; i++) {
         clearBuffer->Begin(i);

@@ -37,7 +37,7 @@ void VCommandBuffer::Begin(size_t index) {
     VK_CHECK(vkBeginCommandBuffer(rawCommandBuffers[index], &cmdBeginInfo));
 }
 
-void VCommandBuffer::LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain, VFramebuffer* framebuffer, size_t imageIndex) {
+void VCommandBuffer::LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain, VkFramebuffer framebuffer, size_t imageIndex) {
     VkClearValue clearValue;
     clearValue.color = { { clearColor.x, clearColor.y, clearColor.z, clearColor.z } };
 
@@ -52,11 +52,7 @@ void VCommandBuffer::LoadDefault(VRenderPass* renderPass, VSwapchain* swapchain,
     rpInfo.renderArea.offset.x = 0;
     rpInfo.renderArea.offset.y = 0;
     rpInfo.renderArea.extent = { (uint32_t)swapchain->size.x, (uint32_t)swapchain->size.y };
-
-    if (frame == VkFramebuffer{})
-        rpInfo.framebuffer = framebuffer->rawFramebuffers[imageIndex];
-    else
-        rpInfo.framebuffer = frame;
+    rpInfo.framebuffer = framebuffer;
 
     rpInfo.clearValueCount = renderPass->attachments.size();
     vector<VkClearValue> clearValues;

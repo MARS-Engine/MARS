@@ -28,9 +28,9 @@ VPipeline::VPipeline(VShader* _shader, VDevice* _device, VSwapchain* _swapchain,
     depthStencil = VInitializer::DepthStencilInfo(true, true, VK_COMPARE_OP_LESS);
 
     viewport.x = 0.0f;
-    viewport.y = 0.0f;
+    viewport.y = swapchain->size.y;
     viewport.width = swapchain->size.x;
-    viewport.height = swapchain->size.y;
+    viewport.height = -swapchain->size.y;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
