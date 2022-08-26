@@ -15,9 +15,7 @@ using namespace std;
 
 class VPipeline {
 private:
-    VkViewport viewport;
-    VkRect2D scissor;
-    VkPipelineColorBlendAttachmentState colorBlendAttachment;
+    vector<VkPipelineColorBlendAttachmentState> colorBlendAttachment;
     vector<VkPipelineShaderStageCreateInfo> shaderStages;
     VkPipelineVertexInputStateCreateInfo vertexInputInfo;
     VkPipelineInputAssemblyStateCreateInfo inputAssembly;
@@ -28,10 +26,13 @@ private:
     VkPipelineColorBlendStateCreateInfo colorBlending;
     VkPipelineDepthStencilStateCreateInfo depthStencil;
 public:
-    VShader* shader;
-    VDevice* device;
-    VSwapchain* swapchain;
-    VRenderPass* renderPass;
+    VkViewport viewport;
+    VkRect2D scissor;
+
+    VShader* shader = nullptr;
+    VDevice* device = nullptr;
+    VSwapchain* swapchain = nullptr;
+    VRenderPass* renderPass = nullptr;
     VkPipelineLayout pipelineLayout;
     VkPipeline rawPipeline;
     size_t constantSize;

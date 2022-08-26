@@ -23,7 +23,7 @@ void VTexture::LoadTexture(string textureLocation) {
     size = Vector2(texWidth, texHeight);
 
     VkDeviceSize size = texWidth * texHeight * 4;
-    VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
+    format = VK_FORMAT_R8G8B8A8_SRGB;
 
     if (!pixels)
         Debug::Error("Failed to load vTexture file - " + textureLocation);
@@ -38,7 +38,7 @@ void VTexture::LoadTexture(string textureLocation) {
     imageExtent.height = static_cast<uint32_t>(texHeight);
     imageExtent.depth = 1;
 
-    buffer->CreateImage(Vector2(texWidth, texHeight), image_format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, imageExtent);
+    buffer->CreateImage(Vector2(texWidth, texHeight), format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, imageExtent);
 
     buffer->TransitionImageLayout(true);
     buffer->CopyBufferImage();
@@ -70,7 +70,63 @@ void VTexture::LoadTexture(string textureLocation) {
     info.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
+
     vkCreateSampler(device->rawDevice, &info, nullptr, &textureSampler);
+}
+
+void VTexture::Create(Vector2 _size, VkFormat _format, VkImageUsageFlagBits usage) {
+    size = _size;
+    format = _format;
+
+    VkImageAspectFlags aspectMask = 0;
+
+    if (usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+        aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+    if (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+        aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        if (format >= VK_FORMAT_D16_UNORM_S8_UINT)
+            aspectMask |=VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
+
+    VkExtent3D imageExtent;
+    imageExtent.width = static_cast<uint32_t>(size.x);
+    imageExtent.height = static_cast<uint32_t>(size.y);
+    imageExtent.depth = 1;
+
+    buffer = new VBuffer(device, allocator);
+    buffer->CreateImage(size, format, usage | VK_IMAGE_USAGE_SAMPLED_BIT, imageExtent);
+
+    VkImageViewCreateInfo viewInfo{};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange = {};
+    viewInfo.subresourceRange.aspectMask = aspectMask;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+    viewInfo.image = buffer->image;
+
+    vkCreateImageView(device->rawDevice, &viewInfo, nullptr, &imageView);
+
+    VkSamplerCreateInfo samplerInfo = {};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_NEAREST;
+    samplerInfo.minFilter = VK_FILTER_NEAREST;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeV = samplerInfo.addressModeU;
+    samplerInfo.addressModeW = samplerInfo.addressModeU;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.maxAnisotropy = 1.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 1.0f;
+    samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+
+
+    vkCreateSampler(device->rawDevice, &samplerInfo, nullptr, &textureSampler);
 }
 
 void VTexture::Bind(VCommandBuffer* commandBuffer, VPipeline* pipeline) {

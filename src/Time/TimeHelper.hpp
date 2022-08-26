@@ -1,5 +1,5 @@
-#ifndef __TIMEHELPER__
-#define __TIMEHELPER__
+#ifndef __TIME__HELPER__
+#define __TIME__HELPER__
 
 #include <chrono>
 

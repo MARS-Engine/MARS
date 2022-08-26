@@ -1,5 +1,5 @@
-#ifndef __VSHADERDATA__
-#define __VSHADERDATA__
+#ifndef __VSHADER__DATA__
+#define __VSHADER__DATA__
 
 #include "VTypes.hpp"
 #include <vector>

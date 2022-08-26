@@ -1,5 +1,5 @@
-#ifndef __COMMANDBUFFER__
-#define __COMMANDBUFFER__
+#ifndef __COMMAND__BUFFER__
+#define __COMMAND__BUFFER__
 
 #include "Vulkan/VTypes.hpp"
 #include "Vulkan/VCommandBuffer.hpp"
@@ -21,6 +21,7 @@ public:
     void Begin(size_t index) const;
     void LoadDefault() const;
     void LoadDefault(size_t index) const;
+    void LoadDefault(size_t index, VFramebuffer* framebuffer) const;
     void Draw(size_t vCount, size_t iCount) const;
     void DrawIndexed(size_t size, size_t iCount) const;
     void End() const;

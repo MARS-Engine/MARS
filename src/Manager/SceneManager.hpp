@@ -1,5 +1,5 @@
-#ifndef __SCENEMANAGER__
-#define __SCENEMANAGER__
+#ifndef __SCENE__MANAGER__
+#define __SCENE__MANAGER__
 
 #include <vector>
 #include <string>

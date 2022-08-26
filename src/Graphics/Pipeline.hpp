@@ -5,6 +5,7 @@ class CommandBuffer;
 class VPipeline;
 class VEngine;
 class Shader;
+class VRenderPass;
 class VertexInputDescription;
 
 #include <string>
@@ -15,6 +16,7 @@ public:
     VEngine* engine;
 
     Pipeline(VEngine* engine, Shader* shader);
+    Pipeline(VEngine* engine, Shader* shader, VRenderPass* renderPass);
 
     void CreateLayout(size_t size = 0) const;
     void ApplyInputDescription(VertexInputDescription* description) const;

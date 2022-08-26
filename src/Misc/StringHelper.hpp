@@ -1,5 +1,5 @@
-#ifndef __STRINGHELPER__
-#define __STRINGHELPER__
+#ifndef __STRING__HELPER__
+#define __STRING__HELPER__
 
 #include <vector>
 #include <string>

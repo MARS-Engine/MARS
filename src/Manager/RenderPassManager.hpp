@@ -1,5 +1,5 @@
-#ifndef __RENDERPASSMANAGER__
-#define __RENDERPASSMANAGER__
+#ifndef __RENDER__PASS__MANAGER__
+#define __RENDER__PASS__MANAGER__
 
 #include <vector>
 #include "Graphics/Vulkan/VRenderPass.hpp"

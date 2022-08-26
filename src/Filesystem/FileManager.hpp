@@ -1,5 +1,5 @@
-#ifndef __FILEMANAGER__
-#define __FILEMANAGER__
+#ifndef __FILE__MANAGER__
+#define __FILE__MANAGER__
 
 #include <vector>
 #include <string>

@@ -1,5 +1,5 @@
-#ifndef __SHADERMANAGER__
-#define __SHADERMANAGER__
+#ifndef __SHADER__MANAGER__
+#define __SHADER__MANAGER__
 
 #include <vector>
 #include <string>

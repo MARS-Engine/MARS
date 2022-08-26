@@ -1,5 +1,5 @@
-#ifndef __SHADERTYPES__
-#define __SHADERTYPES__
+#ifndef __SHADER__TYPES__
+#define __SHADER__TYPES__
 
 #include "Math/Matrix4.hpp"
 

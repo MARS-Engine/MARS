@@ -35,7 +35,7 @@ Uniform* ShaderData::GetUniform(const string& name) {
     for (auto uni : uniforms)
         if (uni->uniform->data->name == name)
             return uni;
-    Debug::Error("Uniform - Faield to find uniform with name - " + name);
+    Debug::Error("Uniform - Failed to find uniform with name - " + name);
     return nullptr;
 }
 

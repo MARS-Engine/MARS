@@ -1,0 +1,6 @@
+* text=auto
+*.cpp text
+*.hpp text
+*.shader text
+*.vert text
+*.frag text

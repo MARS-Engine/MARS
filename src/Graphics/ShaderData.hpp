@@ -1,5 +1,5 @@
-#ifndef __SHADERDATA__
-#define __SHADERDATA__
+#ifndef __SHADER__DATA__
+#define __SHADER__DATA__
 
 #include <string>
 #include <vector>

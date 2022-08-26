@@ -5,8 +5,10 @@
 #include "Time/TimeHelper.hpp"
 #include "Manager/LightManager.hpp"
 #include "Manager/ShaderManager.hpp"
+#include "Manager/RenderPassManager.hpp"
 #include "Manager/PipelineManager.hpp"
 #include "Components/Graphics/Camera.hpp"
+#include "Graphics/Renderer/DeferredRenderer.hpp"
 
 void MeshRenderer::LoadMesh(const string& meshLocation) {
     if (GetEngine() == nullptr) {
@@ -57,25 +59,25 @@ void MeshRenderer::Load() {
 
     shader = ShaderManager::GetShader("Engine/Assets/Shaders/Model.shader", GetEngine());
 
-    pipeline = PipelineManager::GetPipeline("Default");
+    pipeline = PipelineManager::GetPipeline("Model");
 
     if (pipeline == nullptr) {
         auto desc = Vertex3::GetDescription();
-        pipeline = new Pipeline(GetEngine(), shader);
+        pipeline = new Pipeline(GetEngine(), shader, RenderPassManager::GetRenderPass("Renderer", GetEngine()));
         pipeline->CreateLayout();
         pipeline->ApplyInputDescription(&desc);
         pipeline->Create();
-        PipelineManager::AddPipeline("Default", pipeline);
+        PipelineManager::AddPipeline("Model", pipeline);
     }
 
     shaderData = new ShaderData(shader, GetEngine());
     shaderData->GetUniform("Model")->Generate(sizeof(ShaderModel));
-    shaderData->GetUniform("GlobalLight")->Generate(sizeof(LightManager::sun));
     shaderData->GetUniform("Material")->Generate(sizeof(MaterialData));
     shaderData->GetUniform("texCoord")->SetTexture(texture);
     shaderData->Generate();
 
     material->data.diffuse = Vector4(1);
+    GetCommandBuffer()->renderPass = RenderPassManager::GetRenderPass("Renderer", GetEngine());
 }
 
 void MeshRenderer::Update() {
@@ -89,7 +91,6 @@ void MeshRenderer::Update() {
 
     shaderData->GetUniform("Model")->Update(&model);
     shaderData->GetUniform("Material")->Update(&material->data);
-    shaderData->GetUniform("GlobalLight")->Update(&LightManager::sun);
 }
 
 void MeshRenderer::PreRender() {

@@ -4,6 +4,5 @@ Model/Model.vert.spv
 Model/Model.frag.spv
 #uniforms
 Model
-GlobalLight
 Material
 texCoord TEXTURE

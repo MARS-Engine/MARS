@@ -1,5 +1,5 @@
-#ifndef __TEXTUREMANAGER__
-#define __TEXTUREMANAGER__
+#ifndef __TEXTURE__MANAGER__
+#define __TEXTURE__MANAGER__
 
 #include "Graphics/Texture.hpp"
 

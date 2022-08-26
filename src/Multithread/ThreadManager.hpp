@@ -1,5 +1,5 @@
-#ifndef __THREADMANAGER__
-#define __THREADMANAGER__
+#ifndef __THREAD__MANAGER__
+#define __THREAD__MANAGER__
 
 #include <atomic>
 #include <vector>

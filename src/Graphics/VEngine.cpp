@@ -11,6 +11,8 @@
 #include "Manager/RenderPassManager.hpp"
 #include "Manager/MaterialManager.hpp"
 #include "Components/Graphics/Camera.hpp"
+#include "Renderer/DeferredRenderer.hpp"
+#include "Renderer/SimpleRenderer.hpp"
 
 unsigned int VEngine::FRAME_OVERLAP = 2;
 
@@ -20,9 +22,7 @@ Camera* VEngine::GetCamera() {
     return cameras[0];
 }
 
-void VEngine::Create(Window* _window) {
-    window = _window;
-
+void VEngine::CreateBase() {
     instance = new VInstance();
     instance->Create();
 
@@ -42,52 +42,60 @@ void VEngine::Create(Window* _window) {
     commandPool = new VCommandPool(device);
     commandPool->Create();
 
-    renderPass = new VRenderPass(allocator, device);
-    renderPass->Prepare(swapchain->size, swapchain->format);
-    renderPass->Create();
-
-    framebuffer = new VFramebuffer(swapchain, renderPass);
-    framebuffer->Create();
-
     sync = new VSync(device);
     sync->Create();
 
-    auto defaultRender = RenderPassManager::GetRenderPass("default", this);
-    defaultRender->Prepare(swapchain->size, swapchain->format);
-    defaultRender->descriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-    defaultRender->descriptions[0].initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    defaultRender->descriptions[1].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-    defaultRender->descriptions[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    defaultRender->Create();
+    renderPass = RenderPassManager::GetRenderPass("default", this);
+    renderPass->Prepare(swapchain->size, swapchain->format, false);
+    renderPass->Create();
 
-    clearCommand = new CommandBuffer(this);
-    clearCommand->renderPass = renderPass;
-    clearCommand->Create();
+    framebuffer = new VFramebuffer();
+    framebuffer->Create(swapchain, renderPass);
+}
 
-    for (int i = 0; i < VEngine::FRAME_OVERLAP; i++) {
-        clearCommand->Begin(i);
-        clearCommand->LoadDefault(i);
-        clearCommand->End();
+void VEngine::Create(RENDER_TYPE _type, Window* _window) {
+    window = _window;
+    type = _type;
+
+    CreateBase();
+
+    switch (type) {
+        case SIMPLE:
+            renderer = new SimpleRenderer(this);
+            renderer->Load();
+            break;
+        case DEFERRED:
+            renderer = new DeferredRenderer(this);
+            renderer->CreateTexture("deferredPosition", POSITION);
+            renderer->CreateTexture("deferredNormal", POSITION);
+            renderer->CreateTexture("deferredAlbedo", COLOR);
+            renderer->Load();
+            break;
     }
+}
 
-    MaterialManager::GetMaterial("default");
+VkFramebuffer VEngine::GetFramebuffer(int i) {
+    return renderer->GetFramebuffer(i);
 }
 
 void VEngine::PrepareDraw() {
+    renderer->Update();
     sync->Wait(renderFrame);
     VK_CHECK(vkAcquireNextImageKHR(device->rawDevice, swapchain->rawSwapchain, 1000000000, sync->presents[renderFrame], nullptr, &imageIndex));
-    drawQueue.push_back(clearCommand->GetCommandBuffer());
+    renderer->Clear();
+
 }
 
 void VEngine::Draw() {
-    finalQueue.resize(drawQueue.size() + transQueue.size());
-    memcpy(finalQueue.data(), drawQueue.data(), drawQueue.size() * sizeof(VkCommandBuffer));
-    vector<VkCommandBuffer> finalTrans;
+    auto nonTransSize = drawQueue.size();
+    drawQueue.resize(nonTransSize + transQueue.size());
 
-    for (auto d : transQueue)
-        finalTrans.push_back(d.second);
+    auto i = 0;
+    for (auto t : transQueue)
+        drawQueue[nonTransSize + i++] = t.second;
 
-    memcpy(&finalQueue[drawQueue.size()], finalTrans.data(), finalTrans.size() * sizeof(VkCommandBuffer));
+    if (renderer)
+        renderer->Render();
 
     VkSubmitInfo submit = {};
     submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -103,8 +111,8 @@ void VEngine::Draw() {
     submit.signalSemaphoreCount = 1;
     submit.pSignalSemaphores = &sync->renders[renderFrame];
 
-    submit.commandBufferCount = finalQueue.size();
-    submit.pCommandBuffers = finalQueue.data();
+    submit.commandBufferCount = drawQueue.size();
+    submit.pCommandBuffers = drawQueue.data();
 
     VK_CHECK(vkQueueSubmit(device->graphicsQueue, 1, &submit, sync->fences[renderFrame]));
 
@@ -123,7 +131,6 @@ void VEngine::Draw() {
     VK_CHECK(vkQueuePresentKHR(device->graphicsQueue, &presentInfo));
 
     renderFrame = (renderFrame + 1) % FRAME_OVERLAP;
-    finalQueue.resize(0);
     transQueue.clear();
     drawQueue.resize(0);
 }

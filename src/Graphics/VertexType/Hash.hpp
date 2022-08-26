@@ -1,5 +1,5 @@
-#ifndef __VERTEXHASH__
-#define __VERTEXHASH__
+#ifndef __VERTEX__HASH__
+#define __VERTEX__HASH__
 
 #include "Math/Hash.hpp"
 #include "Vertex3.hpp"

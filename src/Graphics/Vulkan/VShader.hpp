@@ -19,7 +19,7 @@ enum ReadingMode {
 
 enum UniformType {
     UNIFORM_BUFFER,
-    UNIFORM_TEXTURE
+    UNIFORM_TEXTURE,
 };
 
 struct VUniformData {

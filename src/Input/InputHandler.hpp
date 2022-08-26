@@ -1,5 +1,5 @@
-#ifndef __INPUTHANDLER__
-#define __INPUTHANDLER__
+#ifndef __INPUT__HANDLER__
+#define __INPUT__HANDLER__
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
