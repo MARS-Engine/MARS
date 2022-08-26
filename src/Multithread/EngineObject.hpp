@@ -14,17 +14,26 @@ class EngineObject {
 private:
     vector<Component*> components;
     vector<EngineObject*> children;
-    CommandBuffer* commandBuffer;
+    CommandBuffer* commandBuffer = nullptr;
     VEngine* engine = nullptr;
 public:
     EngineObject* parent = nullptr;
-    Transform* transform;
+    Transform* transform  = nullptr;
+    Material* material = nullptr;
 
     EngineObject();
 
     void SetEngine(VEngine* engine);
     inline VEngine* GetEngine() { return engine; }
-    inline CommandBuffer* GetCommandBuffer() { return commandBuffer; }
+
+    inline CommandBuffer* GetCommandBuffer() {
+        if (commandBuffer == nullptr) {
+            commandBuffer = new CommandBuffer(GetEngine());
+            commandBuffer->Create();
+        }
+
+        return commandBuffer;
+    }
 
     void ExecuteCode(ExecutionCode code);
     void AddComponent(Component* component);

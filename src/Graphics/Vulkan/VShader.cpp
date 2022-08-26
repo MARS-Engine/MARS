@@ -108,9 +108,9 @@ void VShader::LoadShader(const string& location) {
     vector<uint32_t> vertexData;
     vector<uint32_t> fragmentData;
 
-    if (!FileManager::ReadBinaryFile(FileManager::ShaderLocation() + vertexShader, vertexData))
+    if (!FileManager::ReadBinaryFile(FileManager::FindFile(FileManager::ShaderLocations(), vertexShader), vertexData))
         return Debug::Error("Vulkan Shader - Failed to read vertex shader - " + vertexShader);
-    if (!FileManager::ReadBinaryFile(FileManager::ShaderLocation() + fragmentShader, fragmentData))
+    if (!FileManager::ReadBinaryFile(FileManager::FindFile(FileManager::ShaderLocations(), fragmentShader), fragmentData))
         return Debug::Error("Vulkan Shader - Failed to read fragment shader - " + fragmentShader);
 
     vertModule = LoadShaderModule(vertexData);

@@ -26,7 +26,7 @@ struct Matrix4 {
     static Matrix4 LookAtLH(Vector3 Eye, Vector3 Center, Vector3 Up);
     static Matrix4 LookAt(Vector3 Eye, Vector3 Center, Vector3 Up);
     static Matrix4 PerspectiveFovLH(float Fov, float Width, float Height, float zNear, float zFar);
-    static Matrix4 PerspectiveFov(float Fov, float Aspect, float zNear, float zFar);
+    static Matrix4 PerspectiveLH(float Fov, float Aspect, float zNear, float zFar);
     static Matrix4 Inverse(Matrix4 Value);
     static Matrix4 InverseTranspose(Matrix4 Value);
     static Matrix4 Ortho(float Left, float Right, float Bottom, float Top, float zNear, float zFar);

@@ -250,7 +250,7 @@ Matrix4 Matrix4::PerspectiveFovLH(float Fov, float Width, float Height, float zN
     return Result;
 }
 
-Matrix4 Matrix4::PerspectiveFov(float Fov, float Aspect, float zNear, float zFar) {
+Matrix4 Matrix4::PerspectiveLH(float Fov, float Aspect, float zNear, float zFar) {
 
     if (abs(Aspect - numeric_limits<float>::epsilon()) < 0.0f) {
         Debug::Alert("PespectiveFov Faild Because Width Is Negative");
@@ -260,11 +260,11 @@ Matrix4 Matrix4::PerspectiveFov(float Fov, float Aspect, float zNear, float zFar
     float tanHalfFovy = tan(Fov / 2.0f);
 
     Matrix4 Result(0);
-    Result.col0.x = 1.0f / (Aspect * tanHalfFovy);
-    Result.col1.y = 1.0f / (tanHalfFovy);
-    Result.col2.z = - (zFar + zNear) / (zFar - zNear);
-    Result.col2.w = - 1.0f;
-    Result.col3.z = - (2.0f * zFar * zNear) / (zFar - zNear);
+    Result[0][0] = 1.0f / (Aspect * tanHalfFovy);
+    Result[1][1] = 1.0f / (tanHalfFovy);
+    Result[2][2] = zFar / (zFar - zNear);
+    Result[2][3] = 1.0f;
+    Result[3][2] = - (zFar * zNear) / (zFar - zNear);
     return Result;
 }
 

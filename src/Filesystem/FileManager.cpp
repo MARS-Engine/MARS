@@ -1,8 +1,16 @@
 #include "FileManager.hpp"
 #include <fstream>
 
-string FileManager::ShaderLocation() {
-    return "Engine/Assets/Shaders/";
+vector<string> FileManager::ShaderLocations() {
+    return { "Engine/Assets/Shaders/", "Data/Shaders/" };
+}
+
+string FileManager::FindFile(vector<string> locations, string fileLocation) {
+    for (auto& l: locations)
+        if (FileExists(l + fileLocation))
+            return l + fileLocation;
+
+    return  "";
 }
 
 bool FileManager::FileExists(const string& fileLocation) {

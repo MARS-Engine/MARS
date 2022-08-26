@@ -25,7 +25,7 @@ VPipeline::VPipeline(VShader* _shader, VDevice* _device, VSwapchain* _swapchain,
         colorBlendAttachment.push_back(color);
     }
 
-    depthStencil = VInitializer::DepthStencilInfo(true, true, VK_COMPARE_OP_LESS);
+    depthStencil = VInitializer::DepthStencilInfo(true, true, VK_COMPARE_OP_LESS_OR_EQUAL);
 
     viewport.x = 0.0f;
     viewport.y = swapchain->size.y;

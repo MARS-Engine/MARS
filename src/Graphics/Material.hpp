@@ -3,6 +3,8 @@
 
 #include <string>
 #include "Math/Vector4.hpp"
+#include "Shader.hpp"
+#include "Texture.hpp"
 
 using namespace std;
 
@@ -16,6 +18,8 @@ public:
     string name;
     bool enableTransparency;
     MaterialData data;
+    Shader* shader;
+    vector<Texture*> textures;
 
     explicit Material(const string& name);
 };

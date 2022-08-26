@@ -76,7 +76,6 @@ void MeshRenderer::Load() {
     shaderData->GetUniform("texCoord")->SetTexture(texture);
     shaderData->Generate();
 
-    material->data.diffuse = Vector4(1);
     GetCommandBuffer()->renderPass = RenderPassManager::GetRenderPass("Renderer", GetEngine());
 }
 
@@ -90,7 +89,7 @@ void MeshRenderer::Update() {
     model.mvp = pv * trans;
 
     shaderData->GetUniform("Model")->Update(&model);
-    shaderData->GetUniform("Material")->Update(&material->data);
+    shaderData->GetUniform("Material")->Update(&GetMaterial()->data);
 }
 
 void MeshRenderer::PreRender() {

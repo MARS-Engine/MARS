@@ -12,6 +12,11 @@
 #include "Graphics/ShaderData.hpp"
 #include "Type/Sprite.hpp"
 
+struct SpriteRendererData {
+    uint flipX;
+    uint flipY;
+};
+
 class SpriteRenderer : public Component {
 private:
     Texture* last_texture = nullptr;
@@ -22,10 +27,10 @@ public:
 
     Buffer* verticeBuffer = nullptr;
     Buffer* indiceBuffer = nullptr;
-    Shader* shader = nullptr;
     Pipeline* pipeline = nullptr;
     ShaderData* shaderData = nullptr;
     Quad uv;
+    SpriteRendererData rendererData{};
 
     void SetSprite(Sprite* sprite);
     void Load() override;

@@ -25,6 +25,11 @@ enum RENDER_TYPE {
     DEFERRED
 };
 
+struct TransparentQueueItem {
+    float distance;
+    VkCommandBuffer buffer;
+};
+
 class VEngine {
 private:
     void CreateBase();
@@ -46,7 +51,7 @@ public:
     uint32_t imageIndex;
 
     vector<VkCommandBuffer> drawQueue;
-    map<float, VkCommandBuffer, std::greater<>> transQueue;
+    vector<TransparentQueueItem> transQueue;
 
     vector<Camera*> cameras;
 

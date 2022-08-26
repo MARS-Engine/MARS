@@ -29,6 +29,8 @@ public:
     Quaternion operator*(float right);
     Quaternion operator*(Quaternion right);
     Quaternion operator+(Quaternion right);
+    bool operator==(const Quaternion& right) const;
+    bool operator!=(const Quaternion& right) const;
     Vector3 operator*(Vector3 right);
 };
 

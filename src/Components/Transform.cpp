@@ -10,7 +10,8 @@ Transform::Transform(EngineObject* _object) {
 }
 
 void Transform::UpdateTransform() {
-    Matrix4 parent = object == nullptr || object->parent == nullptr ? Matrix4() : object->parent->transform->GetTransform();
-    transform = parent * Matrix4::Scale(scale) * Matrix4::Translate(position) * Matrix4::FromQuaternion(rotation);
+    transform = Matrix4::Translate(position) * Matrix4::FromQuaternion(rotation) * Matrix4::Scale(scale);
+    if (object != nullptr && object->parent != nullptr)
+        transform = object->parent->transform->GetTransform() * transform;
     updated = false;
 }

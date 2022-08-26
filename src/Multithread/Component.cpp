@@ -2,9 +2,7 @@
 #include "EngineObject.hpp"
 #include "Manager/MaterialManager.hpp"
 
-Component::Component() {
-    material = MaterialManager::GetMaterial("default");
-}
+Component::Component() { }
 
 void Component::PreLoad() { }
 void Component::Load() { loaded = true; }

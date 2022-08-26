@@ -202,3 +202,14 @@ Vector3 Quaternion::operator*(Vector3 right) {
 
     return right + ((Uv * quat.w) + Uuv) * 2.0f;
 }
+
+bool Quaternion::operator==(const Quaternion& other) const {
+
+    return quat.x == other.quat.x && quat.y == other.quat.y && quat.z == other.quat.z && quat.w == other.quat.w;
+}
+
+
+bool Quaternion::operator!=(const Quaternion& other) const {
+
+    return !(quat.x == other.quat.x && quat.y == other.quat.y && quat.z == other.quat.z && quat.w == other.quat.w);
+}

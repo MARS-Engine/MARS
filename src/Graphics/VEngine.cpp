@@ -90,9 +90,11 @@ void VEngine::Draw() {
     auto nonTransSize = drawQueue.size();
     drawQueue.resize(nonTransSize + transQueue.size());
 
+    sort(transQueue.begin(), transQueue.end(), [](auto l, auto r) { return l.distance > r.distance; });
+
     auto i = 0;
     for (auto t : transQueue)
-        drawQueue[nonTransSize + i++] = t.second;
+        drawQueue[nonTransSize + i++] = t.buffer;
 
     if (renderer)
         renderer->Render();
@@ -131,7 +133,7 @@ void VEngine::Draw() {
     VK_CHECK(vkQueuePresentKHR(device->graphicsQueue, &presentInfo));
 
     renderFrame = (renderFrame + 1) % FRAME_OVERLAP;
-    transQueue.clear();
+    transQueue.resize(0);
     drawQueue.resize(0);
 }
 

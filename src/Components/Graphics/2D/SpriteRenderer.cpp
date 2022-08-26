@@ -11,20 +11,17 @@
 #include "Graphics/Renderer/DeferredRenderer.hpp"
 
 Vector3 SpriteRenderer::vertices[4] = {
-        { -.5f,  .5f, -1.0f },
-        {  .5f,  .5f, -1.0f },
-        { -.5f, -.5f, -1.0f },
-        {  .5f, -.5f, -1.0f }
+        { -.5f,  .5f, .0f },
+        {  .5f,  .5f, .0f },
+        { -.5f, -.5f, .0f },
+        {  .5f, -.5f, .0f }
 };
 
 int SpriteRenderer::indices[6] = { 0, 1, 2, 1, 3, 2 };
 
-struct SceneData {
+struct Model {
     Matrix4 mvp;
     Matrix4 model;
-    Matrix4 mv;
-    Matrix4 normal;
-    Vector4 camPos;
 };
 
 void SpriteRenderer::Load() {
@@ -32,8 +29,11 @@ void SpriteRenderer::Load() {
 
     isRenderer = true;
 
-    material = MaterialManager::GetMaterial("Sprite");
-    material->enableTransparency = true;
+    if (GetMaterial()->name == "default") {
+        SetMaterial(MaterialManager::GetMaterial("Sprite"));
+        GetMaterial()->enableTransparency = true;
+        GetMaterial()->shader = ShaderManager::GetShader("Engine/Assets/Shaders/Sprite.shader", GetEngine());
+    }
 
     verticeBuffer = new Buffer(GetEngine());
     verticeBuffer->Create(sizeof(Vertex3) * 4, MEM_BUFF_VERTEX);
@@ -44,23 +44,22 @@ void SpriteRenderer::Load() {
     verticeBuffer->Update(&vertices);
     indiceBuffer->Update(&indices);
 
-    shader = ShaderManager::GetShader("Engine/Assets/Shaders/Sprite.shader", GetEngine());
-
-    pipeline = PipelineManager::GetPipeline("SpritePipeline");
+    pipeline = PipelineManager::GetPipeline("SpritePipeline" + GetMaterial()->shader->shaderPath);
 
     if (pipeline == nullptr) {
         auto desc = Vector3::GetDescription();
-        pipeline = new Pipeline(GetEngine(), shader, RenderPassManager::GetRenderPass("Renderer", GetEngine()));
+        pipeline = new Pipeline(GetEngine(), GetMaterial()->shader, RenderPassManager::GetRenderPass("Renderer", GetEngine()));
         pipeline->CreateLayout();
         pipeline->ApplyInputDescription(&desc);
         pipeline->Create();
-        PipelineManager::AddPipeline("SpritePipeline", pipeline);
+        PipelineManager::AddPipeline("SpritePipeline" + GetMaterial()->shader->shaderPath, pipeline);
     }
 
-    shaderData = new ShaderData(shader, GetEngine());
+    shaderData = new ShaderData(GetMaterial()->shader, GetEngine());
     shaderData->GetUniform("UV")->Generate(sizeof(Quad));
-    shaderData->GetUniform("Model")->Generate(sizeof(Matrix4));
+    shaderData->GetUniform("Model")->Generate(sizeof(Model));
     shaderData->GetUniform("texCoord")->SetTexture(sprite->texture);
+    shaderData->GetUniform("__SPRITE_RENDERER")->Generate(sizeof(SpriteRendererData));
     shaderData->Generate();
 
     last_texture = sprite->texture;
@@ -87,8 +86,12 @@ void SpriteRenderer::SetSprite(Sprite* _sprite) {
 }
 
 void SpriteRenderer::Update() {
-    Matrix4 mvp = GetEngine()->GetCamera()->ProjectionView * transform()->GetTransform();
-    shaderData->GetUniform("Model")->Update(&mvp);
+    Model model;
+    model.model = transform()->GetTransform();
+    model.mvp = GetEngine()->GetCamera()->ProjectionView * model.model;
+
+    shaderData->GetUniform("Model")->Update(&model);
+    shaderData->GetUniform("__SPRITE_RENDERER")->Update(&rendererData);
 }
 
 void SpriteRenderer::PreRender() {

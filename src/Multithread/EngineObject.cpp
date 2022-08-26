@@ -6,57 +6,59 @@
 #include "Components/Graphics/Camera.hpp"
 
 EngineObject::EngineObject() {
+    material = MaterialManager::GetMaterial("default");
     transform = new Transform(this);
 }
 
 void EngineObject::SetEngine(VEngine* _engine) {
     engine = _engine;
-    commandBuffer = new CommandBuffer(engine);
-    commandBuffer->Create();
-    //TODO: add clean code
 }
 
 void EngineObject::ExecuteCode(ExecutionCode code) {
-    for (auto& component : components) {
-        switch (code) {
-            case PRE_LOAD:
-                component->PreLoad();
+
+    switch (code) {
+        case PRE_RENDER:
+            if (find_if(components.begin(), components.end(), [](auto c) { return c->isRenderer; }) == components.end())
                 break;
-            case LOAD:
-                component->Load();
-                break;
-            case PRE_RENDER:
-                if (!component->isRenderer)
-                    break;
-                for (int i = 0; i < VEngine::FRAME_OVERLAP; i++) {
-                    component->GetCommandBuffer()->Begin(i);
-                    component->GetCommandBuffer()->LoadDefault(i); //TODO: remove in future or add a conditional
+
+            for (int i = 0; i < VEngine::FRAME_OVERLAP; i++) {
+                GetCommandBuffer()->Begin(i);
+                GetCommandBuffer()->LoadDefault(i); //TODO: remove in future or add a conditional
+                for (auto& component : components)
                     component->PreRender();
-                    component->GetCommandBuffer()->End();
+                GetCommandBuffer()->End();
+            }
+            break;
+        case RENDER:
+            if (commandBuffer == nullptr)
+                break;
+
+            if (material->enableTransparency)
+                engine->transQueue.push_back({Vector3::Distance(transform->GetPosition(), engine->GetCamera()->transform()->GetPosition()), GetCommandBuffer()->vCommandBuffer->rawCommandBuffers[engine->renderFrame]});
+            else
+                engine->drawQueue.push_back(GetCommandBuffer()->vCommandBuffer->rawCommandBuffers[engine->renderFrame]);
+            break;
+        default:
+            for (auto& component : components) {
+                switch (code) {
+                    case PRE_LOAD:
+                        component->PreLoad();
+                        break;
+                    case LOAD:
+                        component->Load();
+                        break;
+                    case UPDATE:
+                        component->Update();
+                        break;
+                    case POST_RENDER:
+                        component->PostRender();
+                        break;
+                    case CLEAN:
+                        component->Clean();
+                        break;
                 }
-                break;
-            case UPDATE:
-                component->Update();
-                break;
-            case RENDER:
-                if (!component->isRenderer)
-                    break;
-                component->Render();
-                if (!component->material->enableTransparency)
-                    engine->drawQueue.push_back(component->GetCommandBuffer()->vCommandBuffer->rawCommandBuffers[engine->renderFrame]);
-                else {
-                    //Maybe implement fast_distance
-                    float f = Vector3::Distance(transform->GetPosition(), engine->GetCamera()->transform()->GetPosition());
-                    engine->transQueue.insert(pair<float, VkCommandBuffer>(f, component->GetCommandBuffer()->vCommandBuffer->rawCommandBuffers[engine->renderFrame]));
-                }
-                break;
-            case POST_RENDER:
-                component->PostRender();
-                break;
-            case CLEAN:
-                component->Clean();
-                break;
-        }
+            }
+            break;
     }
 
     for (auto& child : children)
