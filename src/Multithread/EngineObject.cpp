@@ -12,6 +12,8 @@ EngineObject::EngineObject() {
 
 void EngineObject::SetEngine(VEngine* _engine) {
     engine = _engine;
+    for (auto c : children)
+        c->SetEngine(engine);
 }
 
 void EngineObject::ExecuteCode(ExecutionCode code) {
@@ -34,7 +36,8 @@ void EngineObject::ExecuteCode(ExecutionCode code) {
                 break;
 
             if (material->enableTransparency)
-                engine->transQueue.push_back({Vector3::Distance(transform->GetPosition(), engine->GetCamera()->transform()->GetPosition()), GetCommandBuffer()->vCommandBuffer->rawCommandBuffers[engine->renderFrame]});
+                engine->transQueue.push_back({Vector3::Distance(transform->GetPosition(),
+                                                                engine->GetCamera()->GetTransform()->GetPosition()), GetCommandBuffer()->vCommandBuffer->rawCommandBuffers[engine->renderFrame]});
             else
                 engine->drawQueue.push_back(GetCommandBuffer()->vCommandBuffer->rawCommandBuffers[engine->renderFrame]);
             break;
@@ -65,10 +68,6 @@ void EngineObject::ExecuteCode(ExecutionCode code) {
         child->ExecuteCode(code);
 }
 
-void EngineObject::AddComponent(Component* component) {
-    components.push_back(component);
-    component->object = this;
-}
 void EngineObject::AddChild(EngineObject* child) {
     children.push_back(child);
     child->parent = this;

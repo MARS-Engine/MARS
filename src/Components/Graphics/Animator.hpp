@@ -37,7 +37,7 @@ public:
     vector<AnimationFrame> frames;
 };
 
-class Animator : public  Component{
+class Animator : public  Component<Animator> {
 private:
     float _lastUpdate = 0.0f;
     size_t frameIndex = 0;

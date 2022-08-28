@@ -15,7 +15,7 @@
 using namespace std;
 
 
-class MeshRenderer : public Component {
+class MeshRenderer : public Component<MeshRenderer> {
 public:
     Pipeline* pipeline;
     Shader* shader;

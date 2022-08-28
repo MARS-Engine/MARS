@@ -89,7 +89,7 @@ void SpriteRenderer::SetSprite(Sprite* _sprite) {
 
 void SpriteRenderer::Update() {
     Model model;
-    model.model = transform()->GetTransform();
+    model.model = GetTransform()->GetTransform();
     model.mvp = GetEngine()->GetCamera()->ProjectionView * model.model;
 
     shaderData->GetUniform("Model")->Update(&model);

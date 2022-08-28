@@ -2,12 +2,11 @@
 #include "EngineObject.hpp"
 #include "Manager/MaterialManager.hpp"
 
-Component::Component() { }
-
-void Component::PreLoad() { }
-void Component::Load() { loaded = true; }
-void Component::PreRender() { }
-void Component::Update() { }
-void Component::Render() { }
-void Component::PostRender() { }
-void Component::Clean() { }
+size_t ComponentInterface::Size() const { }
+void ComponentInterface::PreLoad() { }
+void ComponentInterface::Load() { loaded = true; }
+void ComponentInterface::PreRender() { }
+void ComponentInterface::Update() { }
+void ComponentInterface::Render() { }
+void ComponentInterface::PostRender() { }
+void ComponentInterface::Clean() { }

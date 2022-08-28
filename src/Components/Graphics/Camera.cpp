@@ -3,7 +3,8 @@
 
 void Camera::UpdateCam() {
     Perspective = Matrix4::PerspectiveLH(90.f, 1280.f / 720.f, 0.1f, 200.f);
-    View = Matrix4::LookAtLH(transform()->GetWorldPosition(), transform()->GetWorldPosition() + transform()->GetRotation() * Vector3::Forward(), Vector3::Up());
+    View = Matrix4::LookAtLH(GetTransform()->GetWorldPosition(), GetTransform()->GetWorldPosition() +
+            GetTransform()->GetRotation() * Vector3::Forward(), Vector3::Up());
     Ortho = Matrix4::OrthoLH(orthoSize.x, orthoSize.y, orthoSize.z, orthoSize.w, 0.f, 1000.f);
     ProjectionView = (mode == PERSPECTIVE ? Perspective : Ortho) * View;
 }
@@ -30,6 +31,6 @@ void Camera::PreLoad() {
 }
 
 void Camera::Update() {
-    if (transform()->Updated())
+    if (GetTransform()->Updated())
         UpdateCam();
 }

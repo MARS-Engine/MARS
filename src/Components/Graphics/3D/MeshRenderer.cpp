@@ -84,7 +84,7 @@ void MeshRenderer::Update() {
         return;
 
     Matrix4 pv = GetEngine()->GetCamera()->ProjectionView;
-    Matrix4 trans = transform()->GetTransform();
+    Matrix4 trans = GetTransform()->GetTransform();
     model.model = trans;
     model.mvp = pv * trans;
 

@@ -81,7 +81,7 @@ void Animator::Play(const std::string &name) {
 }
 
 void Animator::Load() {
-    renderer = object->GetComponent<SpriteRenderer>();
+    renderer = GetComponent<SpriteRenderer>();
 }
 
 void Animator::Update() {

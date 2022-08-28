@@ -8,7 +8,7 @@ enum CAMERA_MODE {
     ORTHO
 };
 
-class Camera : public Component {
+class Camera : public Component<Camera> {
 private:
     CAMERA_MODE mode;
     Vector4 orthoSize;

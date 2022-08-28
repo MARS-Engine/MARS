@@ -1,6 +1,8 @@
 #include "SceneManager.hpp"
 #include "Debug/Debug.hpp"
 
+void Scene::Load() { }
+
 Scene::Scene(const string& _name, VEngine* _engine) {
     name = _name;
     engine = _engine;

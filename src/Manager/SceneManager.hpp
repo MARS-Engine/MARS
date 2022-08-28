@@ -13,7 +13,7 @@ public:
 
     Scene(const string& name, VEngine* engine);
 
-    virtual void Load() { }
+    virtual void Load();
 };
 
 class SceneManager {

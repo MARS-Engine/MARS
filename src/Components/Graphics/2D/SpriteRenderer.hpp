@@ -17,7 +17,7 @@ struct SpriteRendererData {
     unsigned int flipY;
 };
 
-class SpriteRenderer : public Component {
+class SpriteRenderer : public Component<SpriteRenderer> {
 private:
     Texture* last_texture = nullptr;
     Sprite* sprite = nullptr;

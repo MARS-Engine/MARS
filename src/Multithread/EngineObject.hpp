@@ -7,16 +7,19 @@
 #include "Graphics/Material.hpp"
 #include "Type/ShaderTypes.hpp"
 
-class Component;
+
 class Transform;
+template<class T> class Component;
+class ComponentInterface;
 
 class EngineObject {
 private:
-    vector<Component*> components;
-    vector<EngineObject*> children;
     CommandBuffer* commandBuffer = nullptr;
     VEngine* engine = nullptr;
 public:
+    vector<ComponentInterface*> components;
+    vector<EngineObject*> children;
+
     EngineObject* parent = nullptr;
     Transform* transform  = nullptr;
     Material* material = nullptr;
@@ -36,8 +39,22 @@ public:
     }
 
     void ExecuteCode(ExecutionCode code);
-    void AddComponent(Component* component);
     void AddChild(EngineObject* child);
+
+    template<class T> T* AddComponent(T* component) {
+        static_assert(is_base_of<Component<T>, T>::value, "Attempted to add a component that doesn't have Component as base");
+        components.push_back(component);
+        component->object = this;
+        return component;
+    }
+
+    template<class T> T* AddComponent() {
+        static_assert(is_base_of<Component<T>, T>::value, "Attempted to add a component that doesn't have Component as base");
+        T* t = new T();
+        components.push_back(t);
+        t->object = this;
+        return t;
+    }
 
     template<class T> T* GetComponent() {
         for (auto comp : components) {
