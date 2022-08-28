@@ -19,13 +19,13 @@ void* PrefabManager::PrefabData2Data(PrefabData* data) {
 }
 
 
-Prefab* PrefabManager::CreateInstance(EngineObject* object) {
+Prefab* PrefabManager::CreatePrefab(EngineObject* object) {
     auto prefab = new Prefab();
 
     prefab->data = Data2PrefabData(object, sizeof(EngineObject));
 
     for (auto c : object->children)
-        prefab->children.push_back(CreateInstance(c));
+        prefab->children.push_back(CreatePrefab(c));
 
     for (auto c : object->components)
         prefab->components.push_back(Data2PrefabData(c, c->Size()));

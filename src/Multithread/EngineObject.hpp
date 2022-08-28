@@ -16,6 +16,9 @@ class EngineObject {
 private:
     CommandBuffer* commandBuffer = nullptr;
     VEngine* engine = nullptr;
+    bool loaded = false;
+
+    bool RecursiveCheck(EngineObject* pbject);
 public:
     vector<ComponentInterface*> components;
     vector<EngineObject*> children;

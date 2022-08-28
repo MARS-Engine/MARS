@@ -8,6 +8,13 @@
 EngineObject::EngineObject() {
     material = MaterialManager::GetMaterial("default");
     transform = new Transform(this);
+    children = vector<EngineObject*>();
+}
+
+bool EngineObject::RecursiveCheck(EngineObject* object) {
+    if (object->parent == object)
+        return false;
+    return object->parent == nullptr || object->parent->RecursiveCheck(object);
 }
 
 void EngineObject::SetEngine(VEngine* _engine) {
@@ -49,6 +56,7 @@ void EngineObject::ExecuteCode(ExecutionCode code) {
                         break;
                     case LOAD:
                         component->Load();
+                        loaded = true;
                         break;
                     case UPDATE:
                         component->Update();
@@ -69,7 +77,13 @@ void EngineObject::ExecuteCode(ExecutionCode code) {
 }
 
 void EngineObject::AddChild(EngineObject* child) {
+    if (child == this || !RecursiveCheck(child))
+        return Debug::Alert("Attempted to create a child that is itself, a parent or parent of parent");
+
     children.push_back(child);
     child->parent = this;
     child->engine = engine;
+
+    if (loaded)
+        child->ExecuteCode(LOAD);
 }

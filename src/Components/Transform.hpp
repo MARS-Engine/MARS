@@ -20,7 +20,7 @@ public:
 
     Transform(EngineObject* object);
 
-    inline bool Updated() const { return updated || !(object == nullptr || object->parent == nullptr) && object->parent->transform->Updated(); }
+    inline bool Updated() const { return updated || object != nullptr && object->parent != nullptr && object->parent->transform->Updated(); }
 
     inline Vector3 GetWorldPosition() { return (object != nullptr && object->parent != nullptr ? object->parent->transform->GetWorldPosition() : Vector3()) + position; };
     inline Vector3 GetPosition() { return position; };

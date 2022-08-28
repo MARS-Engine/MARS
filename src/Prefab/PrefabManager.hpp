@@ -25,7 +25,7 @@ private:
 public:
     static vector<Prefab*> prefabs;
 
-    static Prefab* CreateInstance(EngineObject* object);
+    static Prefab* CreatePrefab(EngineObject* object);
     static EngineObject* InstancePrefab(Prefab* prefab);
 };
 
