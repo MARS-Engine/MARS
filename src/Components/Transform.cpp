@@ -12,10 +12,8 @@ Transform::Transform(EngineObject* _object) {
 void Transform::UpdateTransform() {
     transform = Matrix4::Translate(position) * Matrix4::FromQuaternion(rotation) * Matrix4::Scale(scale);
     updated = false;
+    hasUpdated = true;
 
     if (object != nullptr && object->parent != nullptr)
         transform = object->parent->transform->GetTransform() * transform;
-
-    for (auto c : object->children)
-        c->transform->UpdateTransform();
 }

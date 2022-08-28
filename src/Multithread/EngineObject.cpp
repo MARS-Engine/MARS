@@ -11,6 +11,20 @@ EngineObject::EngineObject() {
     children = vector<EngineObject*>();
 }
 
+EngineObject::~EngineObject() {
+    destroyed = true;
+
+    for (auto& c :components)
+        delete c;
+    components.resize(0);
+
+    for (auto& c :children)
+        delete c;
+    children.resize(0);
+
+    delete transform;
+}
+
 bool EngineObject::RecursiveCheck(EngineObject* object) {
     if (object->parent == object)
         return false;
@@ -24,7 +38,6 @@ void EngineObject::SetEngine(VEngine* _engine) {
 }
 
 void EngineObject::ExecuteCode(ExecutionCode code) {
-
     switch (code) {
         case PRE_RENDER:
             if (find_if(components.begin(), components.end(), [](auto c) { return c->isRenderer; }) == components.end())
@@ -50,6 +63,9 @@ void EngineObject::ExecuteCode(ExecutionCode code) {
             break;
         default:
             for (auto& component : components) {
+                if (destroyed)
+                    return;
+
                 switch (code) {
                     case PRE_LOAD:
                         component->PreLoad();
@@ -72,8 +88,14 @@ void EngineObject::ExecuteCode(ExecutionCode code) {
             break;
     }
 
-    for (auto& child : children)
+    for (auto& child : children) {
         child->ExecuteCode(code);
+        if (destroyed)
+            return;
+    }
+
+    if (code == UPDATE)
+        transform->SetHasUpdated(false);
 }
 
 void EngineObject::AddChild(EngineObject* child) {

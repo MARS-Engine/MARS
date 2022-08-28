@@ -31,5 +31,6 @@ void Camera::PreLoad() {
 }
 
 void Camera::Update() {
-    UpdateCam();
+    if (GetTransform()->Updated() || GetTransform()->HasUpdated())
+        UpdateCam();
 }

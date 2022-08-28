@@ -65,6 +65,7 @@ void ThreadManager::Instance(EngineObject* obj, VEngine* engine, EngineObject* p
             previousCoreInsert = 0;
 
         coreObjects[previousCoreInsert].push_back(obj);
+        obj->coreId = previousCoreInsert;
     }
     else
         parent->AddChild(obj);
@@ -74,6 +75,19 @@ void ThreadManager::Instance(EngineObject* obj, VEngine* engine, EngineObject* p
 
 void ThreadManager::Instance(EngineObject* obj, EngineObject* parent) {
     Instance(obj, parent->GetEngine(), parent);
+}
+
+void ThreadManager::Destroy(EngineObject* obj) {
+    if (obj->parent) {
+        obj->parent->children.erase(remove_if(obj->parent->children.begin(), obj->parent->children.end(), [&](auto c) { return c == obj; }));
+        return;
+    }
+
+    if (obj->coreId == -1)
+        return;
+
+    coreObjects[obj->coreId].erase(remove_if(coreObjects[obj->coreId].begin(), coreObjects[obj->coreId].end(), [&](auto c) { return  c == obj; }));
+    delete obj;
 }
 
 void ThreadManager::Stop() {

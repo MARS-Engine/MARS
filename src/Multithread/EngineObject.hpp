@@ -17,9 +17,12 @@ private:
     CommandBuffer* commandBuffer = nullptr;
     VEngine* engine = nullptr;
     bool loaded = false;
+    bool destroyed = false;
 
     bool RecursiveCheck(EngineObject* pbject);
 public:
+    int coreId = -1;
+
     vector<ComponentInterface*> components;
     vector<EngineObject*> children;
 
@@ -28,6 +31,7 @@ public:
     Material* material = nullptr;
 
     EngineObject();
+    ~EngineObject();
 
     void SetEngine(VEngine* engine);
     inline VEngine* GetEngine() { return engine; }
