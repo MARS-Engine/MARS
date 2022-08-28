@@ -38,12 +38,12 @@ void VBuffer::Create(size_t size, int usage, VmaMemoryUsage memoryUsage) {
     VK_CHECK(vmaCreateBuffer(allocator, &bufferInfo, &vmaallocInfo, &buffer, &allocation, nullptr));
 }
 
-void VBuffer::CreateImage(Vector2 size, VkFormat format, VkImageUsageFlags usage, VkExtent3D extent) {
+void VBuffer::CreateImage(VkFormat format, VkImageUsageFlags usage, VkExtent3D extent) {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = static_cast<uint32_t>(size.x);
-    imageInfo.extent.height = static_cast<uint32_t>(size.y);
+    imageInfo.extent.width = extent.width;
+    imageInfo.extent.height = extent.height;
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;

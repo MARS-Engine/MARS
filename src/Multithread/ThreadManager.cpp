@@ -12,9 +12,7 @@ map<unsigned int, vector<EngineObject*>> ThreadManager::coreObjects;
 condition_variable ThreadManager::cv;
 mutex ThreadManager::m;
 int ThreadManager::previousCoreInsert = 0;
-nanoseconds ThreadManager::UpdateTime;
-nanoseconds ThreadManager::RenderTime;
-nanoseconds ThreadManager::PosRenderTime;
+vector<nanoseconds> ThreadManager::ExecutionTime;
 
 void ThreadManager::Init() {
     unsigned int processor_count = std::thread::hardware_concurrency();
@@ -30,6 +28,8 @@ void ThreadManager::Init() {
         cores[i] = new Core();
         cores[i]->Init(i);
     }
+
+    ExecutionTime.resize(CLEAN, {});
 }
 
 void ThreadManager::Execute(ExecutionCode newCode) {
@@ -48,17 +48,11 @@ void ThreadManager::Execute(ExecutionCode newCode) {
     cv.wait(lk, [&] { return  all_of(completeCore.begin(), completeCore.end(), [](bool v) { return v; }); });
     Now = high_resolution_clock::now();
 
-    switch (newCode) {
-        case UPDATE:
-            UpdateTime = duration_cast<nanoseconds>(Now - Pre);
-            break;
-        case RENDER:
-            RenderTime = duration_cast<nanoseconds>(Now - Pre);
-            break;
-        case POST_RENDER:
-            PosRenderTime = duration_cast<nanoseconds>(Now - Pre);
-            break;
-    }
+    ExecutionTime[newCode] = duration_cast<nanoseconds>(Now - Pre);
+}
+
+nanoseconds ThreadManager::GetExecutionTime(ExecutionCode _code) {
+    return ExecutionTime[_code];
 }
 
 void ThreadManager::Instance(EngineObject* obj, VEngine* engine, EngineObject* parent) {

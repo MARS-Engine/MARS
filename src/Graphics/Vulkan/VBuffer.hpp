@@ -32,7 +32,7 @@ public:
     static VmaAllocator GenerateAllocator(VDevice* device, VInstance* instance);
 
     void Create(size_t size, int usage, VmaMemoryUsage memoryUsage);
-    void CreateImage(Vector2 size, VkFormat format, VkImageUsageFlags usage, VkExtent3D extent);
+    void CreateImage(VkFormat format, VkImageUsageFlags usage, VkExtent3D extent);
     void CopyBuffer(VBuffer* src) const;
     void CopyBufferImage() const;
     void Update(void* data) const;

@@ -15,16 +15,18 @@ class EngineObject;
 class VEngine;
 
 enum ExecutionCode {
-    PRE_LOAD,
-    LOAD,
-    PRE_RENDER,
-    UPDATE,
-    RENDER,
-    POST_RENDER,
-    CLEAN
+    PRE_LOAD = 0,
+    LOAD = 1,
+    PRE_RENDER = 2,
+    UPDATE = 3,
+    RENDER = 4,
+    POST_RENDER = 5,
+    CLEAN = 6
 };
 
 class ThreadManager {
+private:
+    static vector<nanoseconds> ExecutionTime;
 public:
     static ExecutionCode code;
     static vector<Core*> cores;
@@ -34,14 +36,12 @@ public:
     static condition_variable cv;
     static mutex m;
     static int previousCoreInsert;
-    static nanoseconds UpdateTime;
-    static nanoseconds RenderTime;
-    static nanoseconds PosRenderTime;
 
     static void Init();
     static void Execute(ExecutionCode newCode);
     static void Instance(EngineObject* obj, VEngine* engine = nullptr, EngineObject* parent = nullptr);
     static void Instance(EngineObject* obj, EngineObject* parent);
+    static nanoseconds GetExecutionTime(ExecutionCode code);
     static void Stop();
 };
 

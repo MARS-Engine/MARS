@@ -8,13 +8,14 @@
 #include "../Vulkan/VTypes.hpp"
 
 #include "RendererBase.hpp"
+#include "../Vulkan/VFramebuffer.hpp"
 
 class DeferredRenderer : public  RendererBase {
 public:
     ShaderData* data;
     vector<Texture*> texturesData;
     vector<DeferredTexture> textures;
-    VkFramebuffer framebuffer;
+    VFramebuffer* framebuffer;
 
     using RendererBase::RendererBase;
 

@@ -11,7 +11,7 @@ class RenderPassManager {
 public:
     static vector<VRenderPass*> renderPasses;
 
-    static VRenderPass* GetRenderPass(const string& name, VEngine* engine);
+    static VRenderPass* GetRenderPass(const string& name, VEngine* engine, RenderPassData type = {});
 };
 
 #endif

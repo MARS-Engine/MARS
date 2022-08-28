@@ -9,6 +9,7 @@
 #include "Manager/RenderPassManager.hpp"
 #include <math.h>
 #include "Graphics/Renderer/DeferredRenderer.hpp"
+#include "Graphics/Window.hpp"
 
 Vector3 SpriteRenderer::vertices[4] = {
         { -.5f,  .5f, .0f },
@@ -50,6 +51,7 @@ void SpriteRenderer::Load() {
         auto desc = Vector3::GetDescription();
         pipeline = new Pipeline(GetEngine(), GetMaterial()->shader, RenderPassManager::GetRenderPass("Renderer", GetEngine()));
         pipeline->CreateLayout();
+        pipeline->ApplyViewport({ .size = GetEngine()->window->size });
         pipeline->ApplyInputDescription(&desc);
         pipeline->Create();
         PipelineManager::AddPipeline("SpritePipeline" + GetMaterial()->shader->shaderPath, pipeline);

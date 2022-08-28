@@ -25,14 +25,15 @@ void DeferredRenderer::CreateTexture(const string& name, DEFERRED_TEXTURE_TYPE t
 }
 
 VRenderPass *DeferredRenderer::GetRenderPass() {
-    auto renderPass = RenderPassManager::GetRenderPass("DeferredRenderer", engine);
-    renderPass->Prepare(texturesData, false);
+    auto renderPass = RenderPassManager::GetRenderPass("DeferredRenderer", engine, { .shouldLoad = false });
+    renderPass->Prepare(texturesData);
+    renderPass->AddDepth(engine->window->size);
     renderPass->Create();
     return renderPass;
 }
 
 VkFramebuffer DeferredRenderer::GetFramebuffer(size_t index) {
-    return framebuffer;
+    return framebuffer->rawFramebuffers[0];
 }
 
 void DeferredRenderer::Clear() {
@@ -43,6 +44,7 @@ void DeferredRenderer::Load() {
     auto deferredRender = RenderPassManager::GetRenderPass("Renderer", engine);
     transform(textures.begin(), textures.end(), back_inserter(texturesData), [](auto& t) { return t.texture; });
     deferredRender->Prepare(texturesData);
+    deferredRender->AddDepth(textures[0].texture->GetSize());
     deferredRender->Create();
 
     auto shader = ShaderManager::GetShader("Engine/Assets/Shaders/Deferred.shader", engine);
@@ -52,16 +54,18 @@ void DeferredRenderer::Load() {
     if (pipeline == nullptr) {
         pipeline = new Pipeline(engine, shader, RenderPassManager::GetRenderPass("default", engine));
         pipeline->CreateLayout();
-        pipeline->pipeline->viewport.height = -pipeline->pipeline->viewport.height;
-        pipeline->pipeline->viewport.y = 0;
+        pipeline->ApplyViewport({ .size = engine->window->size, .flipY = false });
         pipeline->Create();
         PipelineManager::AddPipeline("Renderer", pipeline);
     }
 
     data = new ShaderData(shader, engine);
+
     for (auto& t : textures)
         data->GetUniform(t.name)->SetTexture(t.texture);
+
     LightManager::GenerateShaderUniform(data);
+
     data->Generate();
 
     renderBuffer = new CommandBuffer(engine);
@@ -77,22 +81,10 @@ void DeferredRenderer::Load() {
         renderBuffer->End();
     }
 
-    vector<VkImageView> attachments;
-    for (auto& t : texturesData)
-        attachments.push_back(t->vTexture->imageView);
-    attachments.push_back(RenderPassManager::GetRenderPass("default", engine)->depth->imageView);
-
-    VkFramebufferCreateInfo fbufCreateInfo = {};
-    fbufCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    fbufCreateInfo.pNext = NULL;
-    fbufCreateInfo.renderPass = deferredRender->rawRenderPass;
-    fbufCreateInfo.pAttachments = attachments.data();
-    fbufCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-    fbufCreateInfo.width = engine->window->windowSize.width;
-    fbufCreateInfo.height = engine->window->windowSize.height;
-    fbufCreateInfo.layers = 1;
-
-    VK_CHECK(vkCreateFramebuffer(engine->device->rawDevice, &fbufCreateInfo, nullptr, &framebuffer));
+    framebuffer = new VFramebuffer();
+    framebuffer->SetAttachments(texturesData);
+    framebuffer->AddAttachment(renderBuffer->renderPass->depth->imageView);
+    framebuffer->Create(deferredRender, texturesData[0]->GetSize());
 
     clearBuffer = new CommandBuffer(engine);
     clearBuffer->renderPass = GetRenderPass();

@@ -5,6 +5,13 @@
 #include "Debug/Debug.hpp"
 #include "Misc/StringHelper.hpp"
 
+map<string, ShaderToken> VShader::tokens = {
+        { "vertexShader", VERTEX },
+        { "fragmentShader", FRAGMENT },
+        { "attributes", ATTRIBUTES },
+        { "uniforms", UNIFORMS }
+};
+
 VUniformData::VUniformData(string value, uint32_t index) {
     type = UNIFORM_BUFFER;
     name = value;
@@ -64,24 +71,17 @@ void VShader::LoadShader(const string& location) {
     if (!FileManager::ReadFile(location, shaderData))
         Debug::Error("Vulkan Shader - Failed to read shader - " + location);
 
-    ReadingMode mode = VERTEX;
+    ShaderToken mode = VERTEX;
     bool modeChange = false;
-    string vertexShader;
-    string fragmentShader;
 
     for (auto& line : shaderData) {
         if (line[0] == '#') {
             modeChange = true;
-            if(line == "#vertexShader")
-                mode = VERTEX;
-            else if(line == "#fragmentShader")
-                mode = FRAGMENT;
-            else if(line == "#attributes")
-                mode = ATTRIBUTES;
-            else if(line == "#uniforms")
-                mode = UNIFORMS;
+            string token = line.substr(1, line.size() - 1);
+            if (tokens.find(token) != tokens.end())
+                mode = tokens[token];
             else
-                modeChange = false;
+                Debug::Alert("VShader - Invalid token - " + line + " - in file " += location);
         }
 
         if (modeChange) {
@@ -91,10 +91,10 @@ void VShader::LoadShader(const string& location) {
 
         switch (mode) {
             case VERTEX:
-                vertexShader += line;
+                modules.push_back({ .modulePath = line, .flags = VK_SHADER_STAGE_VERTEX_BIT });
                 break;
             case FRAGMENT:
-                fragmentShader += line;
+                modules.push_back({ .modulePath = line, .flags = VK_SHADER_STAGE_FRAGMENT_BIT });
                 break;
             case ATTRIBUTES:
                 break;
@@ -104,25 +104,19 @@ void VShader::LoadShader(const string& location) {
                 break;
         }
     }
-
-    vector<uint32_t> vertexData;
-    vector<uint32_t> fragmentData;
-
-    if (!FileManager::ReadBinaryFile(FileManager::FindFile(FileManager::ShaderLocations(), vertexShader), vertexData))
-        return Debug::Error("Vulkan Shader - Failed to read vertex shader - " + vertexShader);
-    if (!FileManager::ReadBinaryFile(FileManager::FindFile(FileManager::ShaderLocations(), fragmentShader), fragmentData))
-        return Debug::Error("Vulkan Shader - Failed to read fragment shader - " + fragmentShader);
-
-    vertModule = LoadShaderModule(vertexData);
-    fragModule = LoadShaderModule(fragmentData);
+    for (auto& m: modules) {
+        if (!FileManager::ReadBinaryFile(FileManager::FindFile(FileManager::ShaderLocations(), m.modulePath), m.moduleData))
+            return Debug::Error("Vulkan Shader - Failed to read vertex shader - " + m.modulePath);
+        m.module = LoadShaderModule(m.moduleData);
+    }
 
     descriptorPool = new VDescriptorPool(device);
     descriptorPool->Create(this);
 
-    layout = GetDescriptorLayout();
+    UpdateDescriptorLayout();
 }
 
-VkDescriptorSetLayout VShader::GetDescriptorLayout() {
+VkDescriptorSetLayout VShader::UpdateDescriptorLayout() {
     VkDescriptorSetLayoutCreateInfo setinfo = {};
     setinfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     setinfo.pNext = nullptr;
@@ -137,7 +131,6 @@ VkDescriptorSetLayout VShader::GetDescriptorLayout() {
     setinfo.bindingCount = bindings.size();
     setinfo.pBindings = bindings.data();
 
-    VkDescriptorSetLayout layout;
     vkCreateDescriptorSetLayout(device->rawDevice, &setinfo, nullptr, &layout);
     return layout;
 }

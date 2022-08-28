@@ -13,8 +13,8 @@
 #include "Type/Sprite.hpp"
 
 struct SpriteRendererData {
-    uint flipX;
-    uint flipY;
+    unsigned int flipX;
+    unsigned int flipY;
 };
 
 class SpriteRenderer : public Component {

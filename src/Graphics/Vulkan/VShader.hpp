@@ -4,13 +4,14 @@
 #include "VTypes.hpp"
 #include <string>
 #include <vector>
+#include <map>
 
 using namespace std;
 
 class VDevice;
 class VDescriptorPool;
 
-enum ReadingMode {
+enum ShaderToken {
     VERTEX,
     FRAGMENT,
     ATTRIBUTES,
@@ -30,14 +31,21 @@ struct VUniformData {
     VUniformData(string value, uint32_t index);
 };
 
+struct ShaderModule {
+    string modulePath;
+    vector<uint32_t> moduleData;
+    VkShaderModule module;
+    VkShaderStageFlagBits flags;
+};
+
 class VShader {
 private:
     VkShaderModule LoadShaderModule(vector<uint32_t>& data) const;
-    VkDescriptorSetLayout GetDescriptorLayout();
+    VkDescriptorSetLayout UpdateDescriptorLayout();
 public:
+    static map<string, ShaderToken> tokens;
     VDevice* device;
-    VkShaderModule vertModule;
-    VkShaderModule fragModule;
+    vector<ShaderModule> modules;
     vector<VUniformData*> uniforms;
     VkDescriptorSetLayout layout;
     VDescriptorPool* descriptorPool;

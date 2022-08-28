@@ -15,21 +15,56 @@ VTexture::VTexture(VDevice* _device, VmaAllocator& _allocator) {
     allocator = _allocator;
 }
 
-void VTexture::LoadTexture(string textureLocation) {
+void VTexture::GenerateImageView(TextureImageView data) {
+    VkImageViewCreateInfo viewInfo = {};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.pNext = nullptr;
+
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.image = buffer->image;
+    viewInfo.format = data.format;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+    viewInfo.subresourceRange.aspectMask = data.aspectMask;
+
+    vkCreateImageView(device->rawDevice, &viewInfo, nullptr, &imageView);
+}
+
+void VTexture::GenerateSampler() {
+    VkSamplerCreateInfo samplerInfo = {};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_NEAREST;
+    samplerInfo.minFilter = VK_FILTER_NEAREST;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.maxAnisotropy = 1.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 1.0f;
+    samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+
+    vkCreateSampler(device->rawDevice, &samplerInfo, nullptr, &textureSampler);
+}
+
+void VTexture::LoadTexture(const string& textureLocation) {
     int texWidth, texHeight, texChannels;
 
     stbi_uc* pixels = stbi_load(textureLocation.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
     size = Vector2(texWidth, texHeight);
 
-    VkDeviceSize size = texWidth * texHeight * 4;
+    VkDeviceSize bufferSize = texWidth * texHeight * 4;
     format = VK_FORMAT_R8G8B8A8_SRGB;
 
     if (!pixels)
         Debug::Error("Failed to load vTexture file - " + textureLocation);
 
     buffer = new VBuffer(device, allocator);
-    buffer->Create(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+    buffer->Create(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
     buffer->Update(pixels);
     stbi_image_free(pixels);
 
@@ -38,40 +73,14 @@ void VTexture::LoadTexture(string textureLocation) {
     imageExtent.height = static_cast<uint32_t>(texHeight);
     imageExtent.depth = 1;
 
-    buffer->CreateImage(Vector2(texWidth, texHeight), format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, imageExtent);
+    buffer->CreateImage(format, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, imageExtent);
 
     buffer->TransitionImageLayout(true);
     buffer->CopyBufferImage();
     buffer->TransitionImageLayout(false);
 
-
-    VkImageViewCreateInfo viewInfo = {};
-    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewInfo.pNext = nullptr;
-
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.image = buffer->image;
-    viewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
-    viewInfo.subresourceRange.baseMipLevel = 0;
-    viewInfo.subresourceRange.levelCount = 1;
-    viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = 1;
-    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-
-    vkCreateImageView(device->rawDevice, &viewInfo, nullptr, &imageView);
-
-    VkSamplerCreateInfo info = {};
-    info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    info.pNext = nullptr;
-
-    info.magFilter = VK_FILTER_NEAREST;
-    info.minFilter = VK_FILTER_NEAREST;
-    info.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    info.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-
-    vkCreateSampler(device->rawDevice, &info, nullptr, &textureSampler);
+    GenerateImageView({});
+    GenerateSampler();
 }
 
 void VTexture::Create(Vector2 _size, VkFormat _format, VkImageUsageFlagBits usage) {
@@ -95,40 +104,12 @@ void VTexture::Create(Vector2 _size, VkFormat _format, VkImageUsageFlagBits usag
     imageExtent.depth = 1;
 
     buffer = new VBuffer(device, allocator);
-    buffer->CreateImage(size, format, usage | VK_IMAGE_USAGE_SAMPLED_BIT, imageExtent);
+    buffer->CreateImage(format, usage | VK_IMAGE_USAGE_SAMPLED_BIT, imageExtent);
 
-    VkImageViewCreateInfo viewInfo{};
-    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.format = format;
-    viewInfo.subresourceRange = {};
-    viewInfo.subresourceRange.aspectMask = aspectMask;
-    viewInfo.subresourceRange.baseMipLevel = 0;
-    viewInfo.subresourceRange.levelCount = 1;
-    viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = 1;
-    viewInfo.image = buffer->image;
-
-    vkCreateImageView(device->rawDevice, &viewInfo, nullptr, &imageView);
-
-    VkSamplerCreateInfo samplerInfo = {};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_NEAREST;
-    samplerInfo.minFilter = VK_FILTER_NEAREST;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    samplerInfo.addressModeV = samplerInfo.addressModeU;
-    samplerInfo.addressModeW = samplerInfo.addressModeU;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.maxAnisotropy = 1.0f;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = 1.0f;
-    samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-
-
-    vkCreateSampler(device->rawDevice, &samplerInfo, nullptr, &textureSampler);
+    GenerateImageView({ .format = format, .aspectMask = aspectMask });
+    GenerateSampler();
 }
 
-void VTexture::Bind(VCommandBuffer* commandBuffer, VPipeline* pipeline) {
+void VTexture::Bind(VCommandBuffer* commandBuffer, VPipeline* pipeline) const {
     vkCmdBindDescriptorSets(commandBuffer->rawCommandBuffers[commandBuffer->recordIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineLayout, 0, 1, &buffer->descriptor, 0, nullptr);
 }

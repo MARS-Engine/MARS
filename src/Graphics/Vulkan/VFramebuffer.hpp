@@ -14,12 +14,14 @@ class Texture;
 class VFramebuffer {
 public:
     vector<VkFramebuffer> rawFramebuffers;
+    vector<VkImageView> attachments;
 
-    VSwapchain* swapchain;
     VRenderPass* renderPass;
 
-    void Create(VSwapchain* swapchain, VRenderPass* renderPass);
-    void Create(Vector2 size, vector<Texture*> textures);
+    void AddAttachment(VkImageView imageView);
+    void SetAttachments(vector<Texture*> textures);
+    void ClearAttachments();
+    void Create(VRenderPass* renderPass, Vector2 size);
     void Clean();
 };
 

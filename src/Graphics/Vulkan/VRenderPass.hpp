@@ -11,24 +11,39 @@ using namespace std;
 class VDevice;
 class VDepth;
 
+struct RenderPassData {
+    bool shouldLoad = true;
+    bool swapchainReady = false;
+
+    VkImageLayout GetInitialImageLayout();
+    VkImageLayout GetFinalImageLayout();
+};
+
 class VRenderPass {
 private:
+    vector<VkSubpassDependency> dependencies;
+    vector<VkAttachmentDescription> descriptions;
+    VkSubpassDescription subpass{};
     VkRenderPassCreateInfo renderPassInfo;
 public:
-    vector<VkSubpassDependency> dependencies;
+    //Vulkan
     vector<VkAttachmentReference> attachments;
-    vector<VkAttachmentDescription> descriptions;
-    VkSubpassDescription subpass;
-    VkRenderPass rawRenderPass;
-    VDevice* device;
-    VDepth* depth;
+
+    //MVRE
+    VDevice* device = nullptr;
+    VDepth* depth = nullptr;
     VmaAllocator allocator;
+
+    //Render Pass
     string name;
+    VkRenderPass rawRenderPass;
+    RenderPassData type;
 
-    VRenderPass(VmaAllocator& allocator, VDevice* device);
+    VRenderPass(VmaAllocator& allocator, VDevice* device, RenderPassData type = {});
 
-    void Prepare(Vector2 size, VkFormat format, bool load = true);
-    void Prepare(vector<Texture*> textures, bool load = true);
+    void AddDescription(VkFormat format);
+    void Prepare(vector<Texture*> textures);
+    void AddDepth(Vector2 size);
     void Create();
     void Clean() const;
 };

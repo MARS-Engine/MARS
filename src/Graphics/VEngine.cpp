@@ -6,6 +6,7 @@
 #include "Vulkan/VCommandPool.hpp"
 #include "Vulkan/VRenderPass.hpp"
 #include "Vulkan/VFramebuffer.hpp"
+#include "Vulkan/VDepth.hpp"
 #include "Vulkan/VSync.hpp"
 #include "Vulkan/VBuffer.hpp"
 #include "Manager/RenderPassManager.hpp"
@@ -13,6 +14,7 @@
 #include "Components/Graphics/Camera.hpp"
 #include "Renderer/DeferredRenderer.hpp"
 #include "Renderer/SimpleRenderer.hpp"
+#include "Window.hpp"
 
 unsigned int VEngine::FRAME_OVERLAP = 2;
 
@@ -45,12 +47,20 @@ void VEngine::CreateBase() {
     sync = new VSync(device);
     sync->Create();
 
-    renderPass = RenderPassManager::GetRenderPass("default", this);
-    renderPass->Prepare(swapchain->size, swapchain->format, false);
+    renderPass = RenderPassManager::GetRenderPass("default", this, { .shouldLoad = false, .swapchainReady = true });
+    renderPass->Prepare({});
+    renderPass->AddDescription(swapchain->format);
+    renderPass->AddDepth(window->size);
     renderPass->Create();
 
     framebuffer = new VFramebuffer();
-    framebuffer->Create(swapchain, renderPass);
+
+    for (auto view : swapchain->imageViews) {
+        framebuffer->AddAttachment(view);
+        framebuffer->AddAttachment(renderPass->depth->imageView);
+        framebuffer->Create(renderPass, swapchain->size);
+        framebuffer->ClearAttachments();
+    }
 }
 
 void VEngine::Create(RENDER_TYPE _type, Window* _window) {

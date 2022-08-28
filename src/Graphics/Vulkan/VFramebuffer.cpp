@@ -5,53 +5,37 @@
 #include "VDepth.hpp"
 #include "VTexture.hpp"
 
-void VFramebuffer::Create(VSwapchain* _swapchain, VRenderPass* _renderPass) {
-    swapchain = _swapchain;
-    renderPass = _renderPass;
-
-    VkFramebufferCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    createInfo.pNext = nullptr;
-
-    createInfo.renderPass = renderPass->rawRenderPass;
-    createInfo.attachmentCount = 1;
-    createInfo.width = swapchain->size.x;
-    createInfo.height = swapchain->size.y;
-    createInfo.layers = 1;
-
-    rawFramebuffers.resize(swapchain->images.size());
-
-    for (size_t i = 0; i < rawFramebuffers.size(); i++) {
-        VkImageView attachments[2];
-        attachments[0] = swapchain->imageViews[i];
-        attachments[1] = renderPass->depth->imageView;
-
-        createInfo.pAttachments = attachments;
-        createInfo.attachmentCount = 2;
-
-        VK_CHECK(vkCreateFramebuffer(renderPass->device->rawDevice, &createInfo, nullptr, &rawFramebuffers[i]));
-    }
+void VFramebuffer::AddAttachment(VkImageView imageView) {
+    attachments.push_back(imageView);
 }
 
-void VFramebuffer::Create(Vector2 size, vector<Texture*> textures) {
-    vector<VkImageView> attachments;
+void VFramebuffer::SetAttachments(vector<Texture*> textures) {
     attachments.resize(textures.size());
-    rawFramebuffers.resize(1);
 
     for (auto i = 0; i < textures.size(); i++)
         attachments[i] = textures[i]->vTexture->imageView;
+}
 
-    VkFramebufferCreateInfo fbufCreateInfo = {};
-    fbufCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    fbufCreateInfo.pNext = NULL;
-    fbufCreateInfo.renderPass = renderPass->rawRenderPass;
-    fbufCreateInfo.pAttachments = attachments.data();
-    fbufCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-    fbufCreateInfo.width = size.x;
-    fbufCreateInfo.height = size.y;
-    fbufCreateInfo.layers = 1;
+void VFramebuffer::ClearAttachments() {
+    attachments.clear();
+}
 
-    VK_CHECK(vkCreateFramebuffer(renderPass->device->rawDevice, &fbufCreateInfo, nullptr, rawFramebuffers.data()));
+void VFramebuffer::Create(VRenderPass* _renderPass, Vector2 size) {
+    renderPass = _renderPass;
+
+    VkFramebufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    bufferInfo.pNext = nullptr;
+    bufferInfo.renderPass = renderPass->rawRenderPass;
+    bufferInfo.pAttachments = attachments.data();
+    bufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+    bufferInfo.width = static_cast<uint32_t>(size.x);
+    bufferInfo.height = static_cast<uint32_t>(size.y);
+    bufferInfo.layers = 1;
+
+    VkFramebuffer buffer;
+    VK_CHECK(vkCreateFramebuffer(renderPass->device->rawDevice, &bufferInfo, nullptr, &buffer));
+    rawFramebuffers.push_back(buffer);
 }
 
 void VFramebuffer::Clean() {

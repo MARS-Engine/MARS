@@ -10,7 +10,9 @@ VkFramebuffer SimpleRenderer::GetFramebuffer(size_t index) {
 
 void SimpleRenderer::Load() {
     auto renderer = RenderPassManager::GetRenderPass("Renderer", engine);
-    renderer->Prepare(engine->window->size, engine->swapchain->format);
+    renderer->Prepare({});
+    renderer->AddDescription(engine->swapchain->format);
+    renderer->AddDepth(engine->window->size);
     renderer->Create();
     
     clearBuffer = new CommandBuffer(engine);

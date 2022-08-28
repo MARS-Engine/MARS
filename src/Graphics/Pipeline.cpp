@@ -6,20 +6,28 @@
 
 Pipeline::Pipeline(VEngine* _engine, Shader* shader) {
     engine = _engine;
-    pipeline = new VPipeline(shader->vShader, engine->device, engine->swapchain, engine->renderPass);
+    pipeline = new VPipeline(engine->device);
+    pipeline->LoadShader(shader->vShader);
+    pipeline->LoadRenderPass(engine->renderPass);
 }
 
 Pipeline::Pipeline(VEngine* _engine, Shader* shader, VRenderPass* renderPass) {
     engine = _engine;
-    pipeline = new VPipeline(shader->vShader, engine->device, engine->swapchain, renderPass);
+    pipeline = new VPipeline(engine->device);
+    pipeline->LoadShader(shader->vShader);
+    pipeline->LoadRenderPass(renderPass);
 }
 
-void Pipeline::CreateLayout(size_t size) const {
-    pipeline->CreateLayout(size);
+void Pipeline::CreateLayout() const {
+    pipeline->CreateLayout();
 }
 
 void Pipeline::ApplyInputDescription(VertexInputDescription* description) const {
     pipeline->ApplyInputDescription(description);
+}
+
+void Pipeline::ApplyViewport(PipelineViewport viewport) {
+    pipeline->ApplyViewport(viewport);
 }
 
 void Pipeline::Create() const {
