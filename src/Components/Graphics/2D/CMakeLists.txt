@@ -1,1 +1,1 @@
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/SpriteRenderer.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/sprite_renderer.cpp)

@@ -1,1 +1,1 @@
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/PrefabManager.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/prefab_manager.cpp)

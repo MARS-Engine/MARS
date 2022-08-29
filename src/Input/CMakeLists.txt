@@ -1,1 +1,1 @@
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/InputHandler.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/input_handler.cpp)

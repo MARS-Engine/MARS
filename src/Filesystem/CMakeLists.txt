@@ -1,1 +1,1 @@
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/FileManager.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/file_manager.cpp)
