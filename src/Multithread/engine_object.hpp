@@ -7,7 +7,6 @@
 #include "Graphics/material.hpp"
 #include "Type/shader_types.hpp"
 
-
 class transform_3d;
 template<class T> class component;
 class component_interface;
@@ -16,15 +15,13 @@ class engine_object {
 private:
     command_buffer* _command_buffer = nullptr;
     vengine* _engine = nullptr;
-    bool _loaded = false;
-    bool _destroyed = false;
 
     bool recursion_checker(engine_object* object);
 public:
     int core_id = -1;
 
-    vector<component_interface*> components;
-    vector<engine_object*> children;
+    vector<component_interface*>* components;
+    vector<engine_object*>* children;
 
     engine_object* parent = nullptr;
     transform_3d* transform  = nullptr;
@@ -38,7 +35,7 @@ public:
 
     inline void set_engine(vengine* engine) {
         _engine = engine;
-        for (auto c : children)
+        for (auto c : *children)
             c->set_engine(engine);
     }
 
@@ -55,7 +52,7 @@ public:
 
     template<class T> T* add_component(T* _component) {
         static_assert(is_base_of<component<T>, T>::value, "Attempted to add a component that doesn't have Component as base");
-        components.push_back(_component);
+        components->push_back(_component);
         _component->object = this;
         return _component;
     }
@@ -63,13 +60,13 @@ public:
     template<class T> T* add_component() {
         static_assert(is_base_of<component<T>, T>::value, "Attempted to add a component that doesn't have Component as base");
         T* t = new T();
-        components.push_back(t);
+        components->push_back(t);
         t->object = this;
         return t;
     }
 
     template<class T> T* get_component() {
-        for (auto comp : components) {
+        for (auto comp : *components) {
             auto conv = dynamic_cast<T*>(comp);
             if (conv != nullptr)
                 return conv;

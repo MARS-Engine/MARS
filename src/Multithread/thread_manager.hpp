@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <map>
 #include <chrono>
+#include "Type/safe_vector.hpp"
 
 using namespace std;
 using namespace std::chrono;
@@ -26,13 +27,16 @@ enum execution_code {
 
 class thread_manager {
 private:
-    static vector<nanoseconds> execution_time;
+    static vector<nanoseconds> _execution_time;
+    static safe_vector<engine_object*> _need_destruction;
+
+    static void final_destroy(engine_object* obj);
+
 public:
     static execution_code curr_exec_code;
     static vector<core*> thread_cores;
     static vector<bool> completed_cores;
     static atomic<bool> threads_working;
-    static map<unsigned int, vector<engine_object*>> cores_objects;
     static condition_variable cv;
     static mutex m;
     static int prev_core_insert;

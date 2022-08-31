@@ -22,28 +22,29 @@ void* prefab_manager::prefab_data_to_object(prefab_data* data) {
 prefab* prefab_manager::create_prefab(engine_object* object) {
     auto _prefab = new prefab();
 
-    _prefab->data = object_to_prefab_data(object, sizeof(engine_object));
-
-    for (auto c : object->children)
+    for (auto c : *object->children)
         _prefab->children.push_back(create_prefab(c));
 
-    for (auto c : object->components)
+    for (auto c : *object->components)
         _prefab->components.push_back(object_to_prefab_data(c, c->size()));
+
+    _prefab->data = object_to_prefab_data(object, sizeof(engine_object));
 
     return _prefab;
 }
 
 engine_object* prefab_manager::instance_prefab(prefab* prefab) {
     auto obj = (engine_object*) prefab_data_to_object(prefab->data);
-    obj->components.clear();
+
+    obj->components = new vector<component_interface*>();
 
     for (auto c : prefab->components) {
         auto new_component = (component_interface*) prefab_data_to_object(c);
         new_component->object = obj;
-        obj->components.push_back(new_component);
+        obj->components->push_back(new_component);
     }
 
-    obj->children.clear();
+    obj->children = new vector<engine_object*>();
     for (auto c : prefab->children)
         obj->add_child(instance_prefab(c));
 

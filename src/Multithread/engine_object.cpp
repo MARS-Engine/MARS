@@ -8,21 +8,22 @@
 engine_object::engine_object() {
     mat = material_manager::get_material("default");
     transform = new transform_3d(this);
-    children = vector<engine_object*>();
+    children = new vector<engine_object*>();
+    components = new vector<component_interface*>();
 }
 
 engine_object::~engine_object() {
-    _destroyed = true;
-
-    for (auto& c :components)
+    for (auto c : *components)
         delete c;
-    components.resize(0);
 
-    for (auto& c :children)
+    components->clear();
+    delete components;
+
+    for (auto c : *children)
         delete c;
-    children.resize(0);
 
-    delete transform;
+    children->clear();
+    delete children;
 }
 
 bool engine_object::recursion_checker(engine_object* object) {
@@ -34,13 +35,13 @@ bool engine_object::recursion_checker(engine_object* object) {
 void engine_object::execute_code(execution_code code) {
     switch (code) {
         case PRE_RENDER:
-            if (find_if(components.begin(), components.end(), [](auto c) { return c->is_renderer; }) == components.end())
+            if (find_if(components->begin(), components->end(), [](auto c) { return c->is_renderer; }) == components->end())
                 break;
 
             for (int i = 0; i < vengine::frame_overlap; i++) {
                 get_command_buffer()->begin(i);
                 get_command_buffer()->load_default(i); //TODO: remove in future or add a conditional
-                for (auto& component : components)
+                for (auto& component : *components)
                     component->pre_render();
                 get_command_buffer()->end();
             }
@@ -57,17 +58,13 @@ void engine_object::execute_code(execution_code code) {
                 _engine->draw_queue.push_back(get_command_buffer()->base_command_buffer->raw_command_buffers[_engine->render_frame]);
             break;
         default:
-            for (auto& component : components) {
-                if (_destroyed)
-                    return;
-
+            for (auto& component : *components) {
                 switch (code) {
                     case PRE_LOAD:
                         component->pre_load();
                         break;
                     case LOAD:
                         component->load();
-                        _loaded = true;
                         break;
                     case UPDATE:
                         component->update();
@@ -83,11 +80,8 @@ void engine_object::execute_code(execution_code code) {
             break;
     }
 
-    for (auto& child : children) {
+    for (auto& child : *children)
         child->execute_code(code);
-        if (_destroyed)
-            return;
-    }
 
     if (code == UPDATE)
         transform->set_has_updated(false);
@@ -97,10 +91,7 @@ void engine_object::add_child(engine_object* child) {
     if (child == this || !recursion_checker(child))
         return debug::alert("Attempted to create a child that is itself, a parent or parent of parent");
 
-    children.push_back(child);
+    children->push_back(child);
     child->parent = this;
     child->_engine = _engine;
-
-    if (_loaded)
-        child->execute_code(LOAD);
 }
