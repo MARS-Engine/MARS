@@ -1,4 +1,4 @@
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Core.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThreadManager.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/EngineObject.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Component.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/core.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/thread_manager.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/engine_object.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp)
