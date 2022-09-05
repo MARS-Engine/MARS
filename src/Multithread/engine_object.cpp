@@ -6,7 +6,7 @@
 #include "Components/Graphics/camera.hpp"
 
 engine_object::engine_object() {
-    mat = material_manager::get_material("default");
+    mat = nullptr;
     transform = new transform_3d(this);
     children = new vector<engine_object*>();
     components = new vector<component_interface*>();

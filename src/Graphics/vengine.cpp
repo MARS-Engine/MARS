@@ -79,6 +79,9 @@ void vengine::create(RENDER_TYPE _type, window* _window) {
             renderer->create_texture("deferredPosition", POSITION);
             renderer->create_texture("deferredNormal", POSITION);
             renderer->create_texture("deferredAlbedo", COLOR);
+            renderer->create_texture("deferredMetal", COLOR);
+            renderer->create_texture("deferredRough", COLOR);
+            renderer->create_texture("deferredAO", COLOR);
             renderer->load();
             break;
     }

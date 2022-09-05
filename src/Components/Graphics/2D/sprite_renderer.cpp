@@ -30,12 +30,6 @@ void sprite_renderer::load() {
 
     is_renderer = true;
 
-    if (get_material()->name == "default") {
-        set_material(material_manager::get_material("Sprite"));
-        get_material()->enable_transparency = true;
-        get_material()->mat_shader = shader_manager::get_shader("Engine/Assets/Shaders/Sprite.shader", get_engine());
-    }
-
     vertice_buffer = new buffer(get_engine());
     vertice_buffer->create(sizeof(vertex3) * 4, MEM_BUFF_VERTEX);
 
@@ -45,23 +39,22 @@ void sprite_renderer::load() {
     vertice_buffer->update(&vertices);
     indice_buffer->update(&indices);
 
-    _pipeline = pipeline_manager::get_pipeline("SpritePipeline" + get_material()->mat_shader->location);
+    _pipeline = pipeline_manager::get_pipeline("SpritePipeline" + get_material()->get_shader()->location);
 
     if (_pipeline == nullptr) {
         auto desc = vector3::get_description();
-        _pipeline = new pipeline(get_engine(), get_material()->mat_shader, render_pass_manager::get_render_pass("Renderer",
-                                                                                                               get_engine()));
+        _pipeline = new pipeline(get_engine(), get_material()->get_shader(), render_pass_manager::get_render_pass("Renderer", get_engine()));
         _pipeline->create_layout();
         _pipeline->apply_viewport({.size = get_engine()->surf_window->size});
         _pipeline->apply_input_description(&desc);
         _pipeline->create();
-        pipeline_manager::add_pipeline("SpritePipeline" + get_material()->mat_shader->location, _pipeline);
+        pipeline_manager::add_pipeline("SpritePipeline" + get_material()->get_shader()->location, _pipeline);
     }
 
-    data = new shader_data(get_material()->mat_shader, get_engine());
+    data = new shader_data(get_material()->get_shader(), get_engine());
     data->get_uniform("UV")->generate(sizeof(quad));
     data->get_uniform("Model")->generate(sizeof(Model));
-    data->get_uniform("texCoord")->setTexture(_sprite->sprite_texture);
+    data->get_uniform("__MainTex")->setTexture(_sprite->sprite_texture);
     data->get_uniform("__SPRITE_RENDERER")->generate(sizeof(sprite_renderer_data));
     data->generate();
 

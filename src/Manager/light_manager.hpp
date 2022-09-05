@@ -23,12 +23,20 @@ struct point_light_data {
     int light_size = 0;
 };
 
+struct global_light_shader_data {
+    sun g_sun;
+    vector3 camPos;
+};
+
 class light_manager {
+private:
+    static global_light_shader_data _shader_data;
 public:
     static sun g_sun;
     static point_light_data pl_data;
     static void add_point_light(point_light light);
     static void generate_shader_uniform(shader_data* data);
+    static void update(vector3 cam);
     static void update_shader_uniform(shader_data* data);
 };
 

@@ -68,7 +68,7 @@ VShader::VShader(vdevice* _device) {
 
 void VShader::load_shader(const string& _location) {
     vector<string> shaderData;
-    if (!FileManager::read_file(_location, shaderData))
+    if (!FileManager::read_file(FileManager::find_file(FileManager::shader_locations(), _location), shaderData))
         debug::error("Vulkan Shader - Failed to read shader - " + _location);
 
     shader_token mode = VERTEX;

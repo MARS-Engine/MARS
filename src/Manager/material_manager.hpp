@@ -10,7 +10,7 @@ class material_manager {
 public:
     static vector<material*> materials;
 
-    static material* get_material(const string& name);
+    static material* get_material(const string& _name, vengine* _engine);
 };
 
 #endif

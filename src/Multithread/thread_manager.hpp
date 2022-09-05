@@ -6,7 +6,7 @@
 #include <condition_variable>
 #include <map>
 #include <chrono>
-#include "Type/safe_vector.hpp"
+#include "safe_vector.hpp"
 
 using namespace std;
 using namespace std::chrono;
@@ -43,8 +43,8 @@ public:
 
     static void init();
     static void execute(execution_code new_code);
-    static void instance(engine_object* obj, vengine* engine = nullptr, engine_object* parent = nullptr);
-    static void instance(engine_object* obj, engine_object* parent);
+    static engine_object* instance(engine_object* obj, vengine* engine = nullptr, engine_object* parent = nullptr);
+    static engine_object* instance(engine_object* obj, engine_object* parent);
     static void destroy(engine_object* obj);
     static nanoseconds get_execution_time(execution_code exec_code);
     static void stop();

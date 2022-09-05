@@ -6,4 +6,4 @@ Sprite/Sprite.frag.spv
 Model
 UV
 __SPRITE_RENDERER
-texCoord TEXTURE
+__MainTex TEXTURE

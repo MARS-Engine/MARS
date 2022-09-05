@@ -62,7 +62,7 @@ nanoseconds thread_manager::get_execution_time(execution_code exec_code) {
     return _execution_time[exec_code];
 }
 
-void thread_manager::instance(engine_object* obj, vengine* engine, engine_object* parent) {
+engine_object* thread_manager::instance(engine_object* obj, vengine* engine, engine_object* parent) {
     obj->set_engine(engine);
 
     if (parent == nullptr) {
@@ -79,10 +79,11 @@ void thread_manager::instance(engine_object* obj, vengine* engine, engine_object
 
     obj->execute_code(LOAD);
     obj->execute_code(PRE_RENDER);
+    return obj;
 }
 
-void thread_manager::instance(engine_object* obj, engine_object* parent) {
-    instance(obj, parent->get_engine(), parent);
+engine_object* thread_manager::instance(engine_object* obj, engine_object* parent) {
+    return instance(obj, parent->get_engine(), parent);
 }
 
 void thread_manager::final_destroy(engine_object* obj) {

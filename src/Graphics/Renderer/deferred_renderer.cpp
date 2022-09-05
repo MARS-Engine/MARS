@@ -47,7 +47,7 @@ void deferred_renderer::load() {
     deferred_render->add_depth(textures[0]._texture->get_size());
     deferred_render->create();
 
-    auto shader = shader_manager::get_shader("Engine/Assets/Shaders/Deferred.shader", engine);
+    auto shader = shader_manager::get_shader("Deferred.shader", engine);
 
     auto render_pipeline = pipeline_manager::get_pipeline("Renderer");
 

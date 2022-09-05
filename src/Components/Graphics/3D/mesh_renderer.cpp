@@ -9,6 +9,7 @@
 #include "Manager/pipeline_manager.hpp"
 #include "Components/Graphics/camera.hpp"
 #include "Graphics/Renderer/deferred_renderer.hpp"
+#include "Graphics/window.hpp"
 
 void mesh_renderer::load_mesh(const string& _mesh_location) {
     if (get_engine() == nullptr) {
@@ -35,18 +36,6 @@ void mesh_renderer::load_mesh(const string& _mesh_location) {
     indice_buffer->update(renderer_mesh->indices.data());
 }
 
-void mesh_renderer::load_texture(const std::string &_texture) {
-    if (get_engine() == nullptr) {
-        texture_path = _texture;
-        return;
-    }
-
-    if (mesh_texture == nullptr)
-        mesh_texture = new texture(get_engine());
-
-    mesh_texture->load_texture(_texture);
-}
-
 void mesh_renderer::load() {
     model = { };
 
@@ -54,26 +43,22 @@ void mesh_renderer::load() {
     if (!mesh_path.empty())
         load_mesh(mesh_path);
 
-    if (!texture_path.empty())
-        load_texture(texture_path);
-
-    _shader = shader_manager::get_shader("Engine/Assets/Shaders/Model.shader", get_engine());
-
     _pipeline = pipeline_manager::get_pipeline("Model");
 
     if (_pipeline == nullptr) {
         auto desc = vertex3::get_description();
-        _pipeline = new pipeline(get_engine(), _shader, render_pass_manager::get_render_pass("Renderer", get_engine()));
+        _pipeline = new pipeline(get_engine(), get_material()->get_shader(), render_pass_manager::get_render_pass("Renderer", get_engine()));
         _pipeline->create_layout();
+        _pipeline->apply_viewport({.size = get_engine()->surf_window->size});
         _pipeline->apply_input_description(&desc);
         _pipeline->create();
         pipeline_manager::add_pipeline("Model", _pipeline);
     }
 
-    data = new shader_data(_shader, get_engine());
+    data = new shader_data(get_material()->get_shader(), get_engine());
     data->get_uniform("Model")->generate(sizeof(shader_model));
     data->get_uniform("Material")->generate(sizeof(material_data));
-    data->get_uniform("texCoord")->setTexture(mesh_texture);
+    get_material()->apply_values(data);
     data->generate();
 
     get_command_buffer()->render_pass = render_pass_manager::get_render_pass("Renderer", get_engine());
