@@ -20,9 +20,13 @@ class deferred_renderer;
 class renderer_base;
 
 enum RENDER_TYPE {
-    //Please avoid SIMPLE rendering, this should only be used if you want to write your own shaders. Because of the lighting system only deferred like renderers will be supported
-    SIMPLE,
-    DEFERRED
+    MVRE_RENDERER_SIMPLE,
+    MVRE_RENDERER_DEFERRED
+};
+
+enum RENDER_BACKEND {
+    MVRE_BACKEND_VULKAN,
+    MVRE_BACKEND_OPENGL
 };
 
 struct transparent_queue_item {
@@ -50,15 +54,16 @@ public:
 
     uint32_t image_index;
 
-    vector<VkCommandBuffer> draw_queue;
-    vector<transparent_queue_item> trans_queue;
+    std::vector<VkCommandBuffer> draw_queue;
+    std::vector<transparent_queue_item> trans_queue;
 
-    vector<Camera*> cameras;
+    std::vector<Camera*> cameras;
 
     RENDER_TYPE type;
+    RENDER_BACKEND backend;
 
     Camera* get_camera();
-    void create(RENDER_TYPE _type, window* _window);
+    void create(RENDER_BACKEND _backend, RENDER_TYPE _type, window* _window);
     VkFramebuffer get_framebuffer(int i);
     void prepare_draw();
     void draw();

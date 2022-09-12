@@ -14,7 +14,7 @@ public:
 
     inline bool is_open() { return _is_open; }
 
-    void init(vector2 _size);
+    void init(const std::string& _title, vector2 _size, bool _is_opengl);
     void process();
     void clean();
 };

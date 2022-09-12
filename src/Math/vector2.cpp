@@ -78,5 +78,5 @@ bool vector2::operator<(const vector2& right) const {
 }
 
 size_t vector2::operator()(const vector2 &v) const {
-    return ((hash<float>()(v.x) ^ (hash<float>()(v.y) << 1)) >> 1);
+    return ((std::hash<float>()(v.x) ^ (std::hash<float>()(v.y) << 1)) >> 1);
 }

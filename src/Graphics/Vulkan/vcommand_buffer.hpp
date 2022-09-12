@@ -5,7 +5,7 @@
 #include "Math/vector4.hpp"
 #include <vector>
 
-using namespace std;
+
 
 class vcommand_pool;
 class vrender_pass;
@@ -14,7 +14,7 @@ class vframebuffer;
 
 class vcommand_buffer {
 public:
-    vector<VkCommandBuffer> raw_command_buffers;
+    std::vector<VkCommandBuffer> raw_command_buffers;
     vcommand_pool* command_pool;
     size_t record_index = 0;
     vector4 clear_color;

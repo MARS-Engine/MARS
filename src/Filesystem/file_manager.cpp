@@ -1,11 +1,11 @@
 #include "file_manager.hpp"
 #include <fstream>
 
-vector<string> FileManager::shader_locations() {
+std::vector<std::string> FileManager::shader_locations() {
     return { "Engine/Assets/Shaders/", "Data/Shaders/" };
 }
 
-string FileManager::find_file(vector<string> _locations, string _file_location) {
+std::string FileManager::find_file(std::vector<std::string> _locations, std::string _file_location) {
     for (auto& l: _locations)
         if (file_exists(l + _file_location))
             return l + _file_location;
@@ -13,13 +13,13 @@ string FileManager::find_file(vector<string> _locations, string _file_location) 
     return  "";
 }
 
-bool FileManager::file_exists(const string& _file_location) {
-    ifstream file(_file_location.c_str());
+bool FileManager::file_exists(const std::string& _file_location) {
+    std::ifstream file(_file_location.c_str());
     return file.is_open();
 }
 
-bool FileManager::read_binary_file(const string& _file_location, vector<uint32_t>& _data) {
-    ifstream file(_file_location.c_str(), std::ios::ate | std::ios::binary);
+bool FileManager::read_binary_file(const std::string& _file_location, std::vector<uint32_t>& _data) {
+    std::ifstream file(_file_location.c_str(), std::ios::ate | std::ios::binary);
 
     if (!file.is_open())
         return false;
@@ -35,13 +35,13 @@ bool FileManager::read_binary_file(const string& _file_location, vector<uint32_t
     return true;
 }
 
-bool FileManager::read_file(const string& _file_location, vector<std::string> &_lines) {
-    ifstream file(_file_location.c_str());
+bool FileManager::read_file(const std::string& _file_location, std::vector<std::string> &_lines) {
+    std::ifstream file(_file_location.c_str());
 
     if (!file.is_open())
         return false;
 
-    string line;
+    std::string line;
     while (getline(file, line))
         _lines.push_back(line);
 

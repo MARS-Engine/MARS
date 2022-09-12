@@ -6,7 +6,7 @@
 #include "../texture.hpp"
 #include <vector>
 
-using namespace std;
+
 
 class vdevice;
 class vdepth;
@@ -21,13 +21,13 @@ struct render_pass_data {
 
 class vrender_pass {
 private:
-    vector<VkSubpassDependency> dependencies;
-    vector<VkAttachmentDescription> descriptions;
+    std::vector<VkSubpassDependency> dependencies;
+    std::vector<VkAttachmentDescription> descriptions;
     VkSubpassDescription subpass{};
     VkRenderPassCreateInfo render_pass_info;
 public:
     //Vulkan
-    vector<VkAttachmentReference> attachments;
+    std::vector<VkAttachmentReference> attachments;
 
     //MVRE
     vdevice* device = nullptr;
@@ -35,14 +35,14 @@ public:
     VmaAllocator allocator;
 
     //Render Pass
-    string name;
+    std::string name;
     VkRenderPass raw_render_pass;
     render_pass_data type;
 
     vrender_pass(VmaAllocator& _allocator, vdevice* _device, render_pass_data _type = {});
 
     void add_description(VkFormat _format);
-    void prepare(vector<texture*> _textures);
+    void prepare(std::vector<texture*> _textures);
     void add_depth(vector2 _size);
     void create();
     void clean() const;

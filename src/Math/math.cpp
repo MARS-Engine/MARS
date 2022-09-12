@@ -18,7 +18,7 @@ unsigned int get_int32(unsigned char* array, int offset) {
                (unsigned char)(array[offset + 3]));
 }
 
-bool is_number(const string& s) {
+bool is_number(const std::string& s) {
     
     return !s.empty() && find_if(s.begin(), 
         s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
@@ -30,7 +30,7 @@ bool is_point_inside_rect(vector2 Point, vector4 Rectangle) {
     return false;
 }
 
-string generate_random_string(size_t Length ) {
+std::string generate_random_string(size_t Length ) {
     auto randchar = []() -> char {
         const char charset[] =
         "0123456789"
@@ -39,7 +39,7 @@ string generate_random_string(size_t Length ) {
         const size_t max_index = (sizeof(charset) - 1);
         return charset[ rand() % max_index ];
     };
-    string str(Length,0);
+    std::string str(Length,0);
     generate_n( str.begin(), Length, randchar );
     return str;
 }

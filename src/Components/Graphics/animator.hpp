@@ -9,7 +9,7 @@
 #include <vector>
 #include <map>
 
-using namespace std;
+
 
 enum animation_type {
     ANIMATION_2D,
@@ -33,8 +33,8 @@ public:
 struct animation {
 public:
     animation_type type;
-    string name;
-    vector<animation_frame> frames;
+    std::string name;
+    std::vector<animation_frame> frames;
 };
 
 class animator : public  component<animator> {
@@ -45,12 +45,12 @@ private:
 
     sprite_renderer* _renderer = nullptr;
 public:
-    static const map<string, animation_token> tokens;
+    static const std::map<std::string, animation_token> tokens;
     texture* ani_texture;
-    vector<animation*> animations;
+    std::vector<animation*> animations;
 
-    void load_sheet(texture* _sprite_texture, const string& _location);
-    void play(const string& _name);
+    void load_sheet(texture* _sprite_texture, const std::string& _location);
+    void play(const std::string& _name);
     void load() override;
     void update() override;
 };

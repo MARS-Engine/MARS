@@ -3,11 +3,11 @@
 
 #include <chrono>
 
-using namespace std;
+
 
 class time_helper {
 private:
-    static chrono::_V2::system_clock::time_point _last_time;
+    static std::chrono::_V2::system_clock::time_point _last_time;
 public:
     static float delta_time;
 

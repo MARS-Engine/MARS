@@ -9,7 +9,7 @@ void vframebuffer::add_attachment(VkImageView _image_view) {
     attachments.push_back(_image_view);
 }
 
-void vframebuffer::set_attachments(vector<texture*> _textures) {
+void vframebuffer::set_attachments(std::vector<texture*> _textures) {
     attachments.resize(_textures.size());
 
     for (auto i = 0; i < _textures.size(); i++)

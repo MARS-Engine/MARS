@@ -4,16 +4,16 @@
 #include <vector>
 #include <string>
 
-using namespace std;
+
 
 class shader;
 class vengine;
 
 class shader_manager {
 public:
-    static vector<shader*> shaders;
+    static std::vector<shader*> shaders;
 
-    static shader* get_shader(const string& path, vengine* engine);
+    static shader* get_shader(const std::string& path, vengine* engine);
     static void clean();
 };
 

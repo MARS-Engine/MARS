@@ -55,7 +55,7 @@ void vcommand_buffer::load_default(vrender_pass* _render_pass, vswapchain* _swap
     rpInfo.framebuffer = _framebuffer;
 
     rpInfo.clearValueCount = _render_pass->attachments.size();
-    vector<VkClearValue> clearValues;
+    std::vector<VkClearValue> clearValues;
     clearValues.resize(_render_pass->attachments.size());
 
     for (auto i = 0; i < clearValues.size(); i++)

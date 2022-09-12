@@ -8,7 +8,7 @@ vdescriptor_pool::vdescriptor_pool(vdevice* _device) {
 }
 
 void vdescriptor_pool::create(VShader* _shader) {
-    vector<VkDescriptorPoolSize> pooldesc;
+    std::vector<VkDescriptorPoolSize> pooldesc;
 
     for (auto uni : _shader->uniforms) {
         VkDescriptorPoolSize poolSize{};

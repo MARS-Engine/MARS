@@ -5,19 +5,19 @@
 #include "Debug/debug.hpp"
 #include "Misc/string_helper.hpp"
 
-map<string, shader_token> VShader::tokens = {
+std::map<std::string, shader_token> VShader::tokens = {
         { "vertexShader", VERTEX },
         { "fragmentShader", FRAGMENT },
         { "attributes", ATTRIBUTES },
         { "uniforms", UNIFORMS }
 };
 
-vuniform_data::vuniform_data(string _value, uint32_t _index) {
+vuniform_data::vuniform_data(std::string _value, uint32_t _index) {
     type = UNIFORM_BUFFER;
     name = _value;
 
-    if (_value.find(' ') != string::npos) {
-        vector<string> values = explode(_value, ' ');
+    if (_value.find(' ') != std::string::npos) {
+        std::vector<std::string> values = explode(_value, ' ');
 
         if (values.size() >= 2) {
             name = values[0];
@@ -48,7 +48,7 @@ vuniform_data::vuniform_data(string _value, uint32_t _index) {
     }
 }
 
-VkShaderModule VShader::load_shader_module(vector<uint32_t>& _data) const {
+VkShaderModule VShader::load_shader_module(std::vector<uint32_t>& _data) const {
     VkShaderModuleCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.pNext = nullptr;
@@ -66,8 +66,8 @@ VShader::VShader(vdevice* _device) {
     device = _device;
 }
 
-void VShader::load_shader(const string& _location) {
-    vector<string> shaderData;
+void VShader::load_shader(const std::string& _location) {
+    std::vector<std::string> shaderData;
     if (!FileManager::read_file(FileManager::find_file(FileManager::shader_locations(), _location), shaderData))
         debug::error("Vulkan Shader - Failed to read shader - " + _location);
 
@@ -77,7 +77,7 @@ void VShader::load_shader(const string& _location) {
     for (auto& line : shaderData) {
         if (line[0] == '#') {
             modeChange = true;
-            string token = line.substr(1, line.size() - 1);
+            std::string token = line.substr(1, line.size() - 1);
             if (tokens.find(token) != tokens.end())
                 mode = tokens[token];
             else
@@ -124,7 +124,7 @@ VkDescriptorSetLayout VShader::update_descriptor_layout() {
 
     setinfo.flags = 0;
 
-    vector<VkDescriptorSetLayoutBinding> bindings;
+    std::vector<VkDescriptorSetLayoutBinding> bindings;
 
     for (auto uniform : uniforms)
         bindings.push_back(uniform->binding);

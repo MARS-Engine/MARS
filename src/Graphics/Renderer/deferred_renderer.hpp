@@ -13,13 +13,13 @@
 class deferred_renderer : public  renderer_base {
 public:
     shader_data* data;
-    vector<texture*> textures_data;
-    vector<deferred_texture> textures;
+    std::vector<texture*> textures_data;
+    std::vector<deferred_texture> textures;
     vframebuffer* framebuffer;
 
     using renderer_base::renderer_base;
 
-    void create_texture(const string& _name, deferred_texture_type _type) override;
+    void create_texture(const std::string& _name, deferred_texture_type _type) override;
     vrender_pass* get_render_pass() override;
     VkFramebuffer get_framebuffer(size_t _index) override;
     void clear() override;

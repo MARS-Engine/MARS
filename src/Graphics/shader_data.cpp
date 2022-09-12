@@ -31,7 +31,7 @@ shader_data::shader_data(shader* _shader, vengine* _engine) {
         uniforms.push_back(new uniform(uni, engine));
 }
 
-uniform* shader_data::get_uniform(const string& _name) {
+uniform* shader_data::get_uniform(const std::string& _name) {
     for (auto uni : uniforms)
         if (uni->raw_uniform->data->name == _name)
             return uni;
@@ -39,7 +39,7 @@ uniform* shader_data::get_uniform(const string& _name) {
     return nullptr;
 }
 
-void shader_data::change_texture(const string& _name, texture* _texture) const {
+void shader_data::change_texture(const std::string& _name, texture* _texture) const {
     base_shader_data->change_texture(_name, _texture->base_texture);
 }
 

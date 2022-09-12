@@ -8,8 +8,8 @@
 engine_object::engine_object() {
     mat = nullptr;
     transform = new transform_3d(this);
-    children = new vector<engine_object*>();
-    components = new vector<component_interface*>();
+    children = new std::vector<engine_object*>();
+    components = new std::vector<component_interface*>();
 }
 
 engine_object::~engine_object() {

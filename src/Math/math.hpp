@@ -17,15 +17,15 @@ struct quaternion;
 #define rad2deg (180.0f/(float)M_PI)
 #define deg2rad ((float)M_PI/180.0f)
 
-using namespace std;
+
 
 unsigned short get_short(unsigned char* array, int offset);
 unsigned int get_int32(unsigned char* array, int offset);
-bool is_number(const string& s);
+bool is_number(const std::string& s);
 
 bool is_point_inside_rect(vector2 Point, vector4 Rectangle);
 
-string generate_random_string(size_t Length );
+std::string generate_random_string(size_t Length );
 float random_number(float min, float max);
 
 vector3 cross(vector3 Left, vector3 Right);

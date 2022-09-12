@@ -13,7 +13,7 @@ class vcommand_buffer;
 #include "vtypes.hpp"
 #include <vector>
 
-using namespace std;
+
 
 struct pipeline_viewport {
     vector2 offset;
@@ -25,8 +25,8 @@ struct pipeline_viewport {
 class vpipeline {
 private:
     //Vulkan values
-    vector<VkPipelineColorBlendAttachmentState> color_blend_attachment;
-    vector<VkPipelineShaderStageCreateInfo> shader_stages;
+    std::vector<VkPipelineColorBlendAttachmentState> color_blend_attachment;
+    std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
     VkPipelineVertexInputStateCreateInfo vertex_input_info;
     VkPipelineInputAssemblyStateCreateInfo input_assembly;
     VkPipelineRasterizationStateCreateInfo rasterization_info;

@@ -4,13 +4,13 @@
 #include "Graphics/material.hpp"
 #include <vector>
 
-using namespace std;
+
 
 class material_manager {
 public:
-    static vector<material*> materials;
+    static std::vector<material*> materials;
 
-    static material* get_material(const string& _name, vengine* _engine);
+    static material* get_material(const std::string& _name, vengine* _engine);
 };
 
 #endif

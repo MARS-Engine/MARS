@@ -14,7 +14,7 @@ enum deferred_texture_type {
 
 struct deferred_texture {
 public:
-    string name;
+    std::string name;
     deferred_texture_type type;
     texture* _texture;
 };
@@ -27,7 +27,7 @@ public:
 
     explicit renderer_base(vengine* _engine);
 
-    virtual void create_texture(const string& _name, deferred_texture_type _type);
+    virtual void create_texture(const std::string& _name, deferred_texture_type _type);
     virtual vrender_pass* get_render_pass();
     virtual VkFramebuffer get_framebuffer(size_t _index);
     virtual void clear();

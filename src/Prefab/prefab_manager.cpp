@@ -2,7 +2,7 @@
 #include "Multithread/component.hpp"
 #include <cstring>
 
-vector<prefab*> prefab_manager::prefabs;
+std::vector<prefab*> prefab_manager::prefabs;
 
 prefab_data* prefab_manager::object_to_prefab_data(void* object, size_t size) {
     auto data = new prefab_data();
@@ -36,7 +36,7 @@ prefab* prefab_manager::create_prefab(engine_object* object) {
 engine_object* prefab_manager::instance_prefab(prefab* prefab) {
     auto obj = (engine_object*) prefab_data_to_object(prefab->data);
 
-    obj->components = new vector<component_interface*>();
+    obj->components = new std::vector<component_interface*>();
 
     for (auto c : prefab->components) {
         auto new_component = (component_interface*) prefab_data_to_object(c);
@@ -44,7 +44,7 @@ engine_object* prefab_manager::instance_prefab(prefab* prefab) {
         obj->components->push_back(new_component);
     }
 
-    obj->children = new vector<engine_object*>();
+    obj->children = new std::vector<engine_object*>();
     for (auto c : prefab->children)
         obj->add_child(instance_prefab(c));
 

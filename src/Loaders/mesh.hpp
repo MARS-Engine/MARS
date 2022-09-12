@@ -5,14 +5,14 @@
 #include <vector>
 #include <string>
 
-using namespace std;
+
 
 class mesh {
 public:
-    vector<vertex3> vertices;
-    vector<uint32_t> indices;
+    std::vector<vertex3> vertices;
+    std::vector<uint32_t> indices;
 
-    void load(const string& meshLocation);
+    void load(const std::string& meshLocation);
 };
 
 #endif

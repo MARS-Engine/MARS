@@ -20,8 +20,8 @@ private:
 public:
     int core_id = -1;
 
-    vector<component_interface*>* components;
-    vector<engine_object*>* children;
+    std::vector<component_interface*>* components;
+    std::vector<engine_object*>* children;
 
     engine_object* parent = nullptr;
     transform_3d* transform  = nullptr;
@@ -51,14 +51,14 @@ public:
     }
 
     template<class T> T* add_component(T* _component) {
-        static_assert(is_base_of<component<T>, T>::value, "Attempted to add a component that doesn't have Component as base");
+        static_assert(std::is_base_of<component<T>, T>::value, "Attempted to add a component that doesn't have Component as base");
         components->push_back(_component);
         _component->object = this;
         return _component;
     }
 
     template<class T> T* add_component() {
-        static_assert(is_base_of<component<T>, T>::value, "Attempted to add a component that doesn't have Component as base");
+        static_assert(std::is_base_of<component<T>, T>::value, "Attempted to add a component that doesn't have Component as base");
         T* t = new T();
         components->push_back(t);
         t->object = this;

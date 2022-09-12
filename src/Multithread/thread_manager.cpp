@@ -5,13 +5,13 @@
 #include <algorithm>
 
 execution_code thread_manager::curr_exec_code;
-vector<core*> thread_manager::thread_cores;
-vector<bool> thread_manager::completed_cores;
-atomic<bool> thread_manager::threads_working;
-condition_variable thread_manager::cv;
-mutex thread_manager::m;
+std::vector<core*> thread_manager::thread_cores;
+std::vector<bool> thread_manager::completed_cores;
+std::atomic<bool> thread_manager::threads_working;
+std::condition_variable thread_manager::cv;
+std::mutex thread_manager::m;
 int thread_manager::prev_core_insert = 0;
-vector<nanoseconds> thread_manager::_execution_time;
+std::vector<nanoseconds> thread_manager::_execution_time;
 safe_vector<engine_object*> thread_manager::_need_destruction;
 
 void thread_manager::init() {
@@ -44,7 +44,7 @@ void thread_manager::execute(execution_code new_code) {
         completed_cores[i] = false;
 
     cv.notify_all();
-     unique_lock lk(m);
+    std::unique_lock lk(m);
     cv.wait(lk, [&] { return  all_of(completed_cores.begin(), completed_cores.end(), [](bool v) { return v; }); });
     now = high_resolution_clock::now();
 

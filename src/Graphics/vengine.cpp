@@ -63,18 +63,19 @@ void vengine::create_base() {
     }
 }
 
-void vengine::create(RENDER_TYPE _type, window* _window) {
+void vengine::create(RENDER_BACKEND _backend, RENDER_TYPE _type, window* _window) {
     surf_window = _window;
     type = _type;
+    backend = _backend;
 
     create_base();
 
     switch (type) {
-        case SIMPLE:
+        case MVRE_RENDERER_SIMPLE:
             renderer = new simple_renderer(this);
             renderer->load();
             break;
-        case DEFERRED:
+        case MVRE_RENDERER_DEFERRED:
             renderer = new deferred_renderer(this);
             renderer->create_texture("deferredPosition", POSITION);
             renderer->create_texture("deferredNormal", POSITION);

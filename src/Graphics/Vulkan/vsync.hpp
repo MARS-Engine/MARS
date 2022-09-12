@@ -8,9 +8,9 @@ class vdevice;
 
 class vsync {
 public:
-    vector<VkFence> fences;
-    vector<VkSemaphore> presents;
-    vector<VkSemaphore> renders;
+    std::vector<VkFence> fences;
+    std::vector<VkSemaphore> presents;
+    std::vector<VkSemaphore> renders;
     vdevice* device;
 
     vsync(vdevice* _device);

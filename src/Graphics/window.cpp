@@ -4,7 +4,7 @@
 #include <SDL2/SDL_vulkan.h>
 #include "Input/input_handler.hpp"
 
-void window::init(vector2 _size) {
+void window::init(const std::string& _title, vector2 _size, bool _is_opengl) {
     size = _size;
 
 	SDL_Init(SDL_INIT_VIDEO);
@@ -14,7 +14,7 @@ void window::init(vector2 _size) {
 
     SDL_SetHint(SDL_HINT_GRAB_KEYBOARD, "1");
 
-    raw_window = SDL_CreateWindow("Vulkan Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, window_size.width, window_size.height, window_flags);
+    raw_window = SDL_CreateWindow(_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, window_size.width, window_size.height, window_flags);
 }
 
 void window::process() {

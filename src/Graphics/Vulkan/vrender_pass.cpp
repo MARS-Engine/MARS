@@ -39,7 +39,7 @@ void vrender_pass::add_description(VkFormat _format) {
     attachments.push_back(attachment);
 }
 
-void vrender_pass::prepare(vector<texture*> _textures) {
+void vrender_pass::prepare(std::vector<texture*> _textures) {
 
     for (size_t i = 0; i < _textures.size(); i++)
         add_description(_textures[i]->base_texture->format);

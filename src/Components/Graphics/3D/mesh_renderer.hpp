@@ -12,7 +12,7 @@
 #include "Graphics/shader_data.hpp"
 #include "Loaders/mesh.hpp"
 
-using namespace std;
+
 
 class mesh_renderer : public component<mesh_renderer> {
 private:
@@ -22,10 +22,10 @@ public:
     buffer* indice_buffer;
     shader_data* data;
     mesh* renderer_mesh;
-    string mesh_path;
+    std::string mesh_path;
     shader_model model;
 
-    void load_mesh(const string& _mesh_location);
+    void load_mesh(const std::string& _mesh_location);
     void load() override;
     void update() override;
     void pre_render() override;

@@ -4,24 +4,24 @@
 #include <vector>
 #include <string>
 #include "Graphics/vengine.hpp"
-using namespace std;
+
 
 class scene {
 public:
-    string name;
+    std::string name;
     vengine* engine;
 
-    scene(const string& _name, vengine* _engine);
+    scene(const std::string& _name, vengine* _engine);
 
     virtual void load();
 };
 
 class scene_manager {
 public:
-    static vector<scene*> scenes;
+    static std::vector<scene*> scenes;
 
     static void add_scene(scene* scene);
-    static void load_scene(string name);
+    static void load_scene(std::string name);
 };
 
 #endif

@@ -50,7 +50,7 @@ void vtexture::generate_sampler() {
     vkCreateSampler(device->raw_device, &samplerInfo, nullptr, &sampler);
 }
 
-void vtexture::load_texture(const string& _texture_location) {
+void vtexture::load_texture(const std::string& _texture_location) {
     int texWidth, texHeight, texChannels;
 
     stbi_uc* pixels = stbi_load(_texture_location.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);

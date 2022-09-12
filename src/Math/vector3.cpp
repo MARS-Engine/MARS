@@ -181,7 +181,7 @@ float& vector3::operator[](int index) {
 }
 
 size_t vector3::operator()(const vector3 &v) const {
-    return ((hash<float>()(v.x) ^ (hash<float>()(v.y) << 1)) >> 1) ^ (hash<float>()(v.z) << 1);
+    return ((std::hash<float>()(v.x) ^ (std::hash<float>()(v.y) << 1)) >> 1) ^ (std::hash<float>()(v.z) << 1);
 }
 
 VertexInputDescription vector3::get_description() {

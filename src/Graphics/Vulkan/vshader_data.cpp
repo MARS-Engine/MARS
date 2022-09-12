@@ -37,7 +37,7 @@ vshader_data::vshader_data(VShader* _shader, VmaAllocator& _allocator) {
             uniforms.push_back(new vuniform(uni, shader->device, allocator));
 }
 
-vuniform* vshader_data::get_uniform(string _name) {
+vuniform* vshader_data::get_uniform(std::string _name) {
     for (auto uni : uniforms)
         if (uni->data->name == _name)
             return  uni;
@@ -47,7 +47,7 @@ vuniform* vshader_data::get_uniform(string _name) {
 
 void vshader_data::update_descriptors() {
     for (size_t Index = 0; Index < size; Index++) {
-        vector<VkWriteDescriptorSet> descriptorWrites;
+        std::vector<VkWriteDescriptorSet> descriptorWrites;
 
         for (size_t SubIndex = 0; SubIndex < uniforms.size(); SubIndex++) {
             VkWriteDescriptorSet descriptorWrite{};
@@ -93,7 +93,7 @@ void vshader_data::update_descriptors() {
 void vshader_data::generate(size_t _size) {
     size = _size;
 
-    vector<VkDescriptorSetLayoutBinding> LayoutBindings = vector<VkDescriptorSetLayoutBinding>(uniforms.size());
+    std::vector<VkDescriptorSetLayoutBinding> LayoutBindings = std::vector<VkDescriptorSetLayoutBinding>(uniforms.size());
 
     for (size_t Index = 0; Index < LayoutBindings.size(); Index++)
         LayoutBindings[Index] = uniforms[Index]->data->binding;
@@ -127,7 +127,7 @@ void vshader_data::generate(size_t _size) {
     update_descriptors();
 }
 
-void vshader_data::change_texture(string _name, vtexture* _texture) {
+void vshader_data::change_texture(std::string _name, vtexture* _texture) {
     for (auto& uni : uniforms) {
         if (uni->data->name == _name) {
             uni->texture = _texture;

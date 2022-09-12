@@ -5,17 +5,17 @@
 #include "Time/time_helper.hpp"
 #include <regex>
 
-const map<string, animation_token> animator::tokens = {
+const std::map<std::string, animation_token> animator::tokens = {
         {"A", AT_A},
         {"AF", AT_AF},
         {"FL", AT_FL},
         {"F", AT_F}
 };
 
-void animator::load_sheet(texture* _sprite_texture, const string& _location) {
+void animator::load_sheet(texture* _sprite_texture, const std::string& _location) {
     ani_texture = _sprite_texture;
 
-    vector<string> lines;
+    std::vector<std::string> lines;
     if (!FileManager::read_file(_location, lines))
         return debug::alert("Animator - error failed to load file " + _location);
 
@@ -25,18 +25,18 @@ void animator::load_sheet(texture* _sprite_texture, const string& _location) {
         if (lines[i].empty())
             continue;
 
-        if (!regex_match(lines[i], regex("^[0-9a-zA-Z/ -]+$"))) {
+        if (!regex_match(lines[i], std::regex("^[0-9a-zA-Z/ -]+$"))) {
             debug::alert(
-                    "Animator - Invalid line " + to_string(i) + " with content  " + lines[i] + " in file " + _location);
+                    "Animator - Invalid line " + std::to_string(i) + " with content  " + lines[i] + " in file " + _location);
             continue;
         }
 
-        vector<string> data = explode(lines[i], ' ');
+        std::vector<std::string> data = explode(lines[i], ' ');
 
         auto token = animator::tokens.find(data[0]);
 
         if (token == animator::tokens.end()) {
-            debug::alert("Animator - Invalid token " + data[0] + " in line " + to_string(i) + " in file " + _location);
+            debug::alert("Animator - Invalid token " + data[0] + " in line " + std::to_string(i) + " in file " + _location);
             continue;
         }
 

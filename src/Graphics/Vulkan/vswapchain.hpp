@@ -5,7 +5,7 @@
 #include <vector>
 #include "../../Math/vector2.hpp"
 
-using namespace std;
+
 
 class vdevice;
 
@@ -14,8 +14,8 @@ public:
     vdevice* device;
     VkSwapchainKHR raw_swapchain;
     VkFormat format;
-    vector<VkImage> images;
-    vector<VkImageView> image_views;
+    std::vector<VkImage> images;
+    std::vector<VkImageView> image_views;
     vector2 size;
 
     vswapchain(vdevice* _device);

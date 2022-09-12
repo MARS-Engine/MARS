@@ -8,7 +8,7 @@
 #include <map>
 #include "Debug/debug.hpp"
 
-using namespace std;
+
 
 namespace vtypes {
     const inline std::map<VkResult, std::string> results = {
@@ -64,8 +64,8 @@ namespace vtypes {
 
 struct VertexInputDescription {
 
-    vector<VkVertexInputBindingDescription> bindings;
-    vector<VkVertexInputAttributeDescription> attributes;
+    std::vector<VkVertexInputBindingDescription> bindings;
+    std::vector<VkVertexInputAttributeDescription> attributes;
 
     VkPipelineVertexInputStateCreateFlags flags = 0;
 };

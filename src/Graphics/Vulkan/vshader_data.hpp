@@ -6,7 +6,7 @@
 #include <map>
 #include <string>
 
-using namespace std;
+
 
 struct vuniform_data;
 class vdescriptor_pool;
@@ -20,7 +20,7 @@ class vpipeline;
 struct vuniform {
     vuniform_data* data;
     vtexture* texture;
-    vector<vbuffer*> uniform;
+    std::vector<vbuffer*> uniform;
     vdevice* device;
     VmaAllocator allocator;
 
@@ -36,16 +36,16 @@ private:
 
     void update_descriptors();
 public:
-    vector<vuniform*> uniforms;
+    std::vector<vuniform*> uniforms;
     VShader* shader;
     VkDescriptorSetLayout descriptor_set_layout;
     vdescriptor_pool* descriptor_pool;
-    vector<VkDescriptorSet> descriptor_sets;
+    std::vector<VkDescriptorSet> descriptor_sets;
     VmaAllocator allocator;
 
     vshader_data(VShader* _shader, VmaAllocator& _allocator);
-    vuniform* get_uniform(string _name);
-    void change_texture(string _name, vtexture* _texture);
+    vuniform* get_uniform(std::string _name);
+    void change_texture(std::string _name, vtexture* _texture);
     void bind(vcommand_buffer* _command_buffer, vpipeline* _pipeline);
     void generate(size_t _size);
 };

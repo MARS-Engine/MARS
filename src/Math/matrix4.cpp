@@ -252,7 +252,7 @@ matrix4 matrix4::perspective_fov_lh(float fov, float width, float height, float 
 
 matrix4 matrix4::perspective_lh(float fov, float aspect, float z_near, float z_far) {
 
-    if (abs(aspect - numeric_limits<float>::epsilon()) < 0.0f) {
+    if (abs(aspect - std::numeric_limits<float>::epsilon()) < 0.0f) {
         debug::alert("PespectiveFov Faild Because Width Is Negative");
         return matrix4(1);
     }

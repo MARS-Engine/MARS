@@ -11,7 +11,7 @@
 #include "Graphics/Renderer/deferred_renderer.hpp"
 #include "Graphics/window.hpp"
 
-void mesh_renderer::load_mesh(const string& _mesh_location) {
+void mesh_renderer::load_mesh(const std::string& _mesh_location) {
     if (get_engine() == nullptr) {
         mesh_path = _mesh_location;
         return;

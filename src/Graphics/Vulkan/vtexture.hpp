@@ -5,7 +5,7 @@
 #include "Math/vector2.hpp"
 #include <string>
 
-using namespace std;
+
 
 class vbuffer;
 class vdevice;
@@ -33,7 +33,7 @@ public:
     VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
     
     vtexture(vdevice* _device, VmaAllocator& _allocator);
-    void load_texture(const string& _texture_location);
+    void load_texture(const std::string& _texture_location);
     void create(vector2 _size, VkFormat _format, VkImageUsageFlagBits _usage);
     void bind(vcommand_buffer* _command_buffer, vpipeline* _pipeline) const;
 };

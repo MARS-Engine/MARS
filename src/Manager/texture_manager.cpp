@@ -1,8 +1,8 @@
 #include "texture_manager.hpp"
 
-vector<texture*> texture_manager::textures;
+std::vector<texture*> texture_manager::textures;
 
-texture* texture_manager::get_texture(vengine* engine, const string& location) {
+texture* texture_manager::get_texture(vengine* engine, const std::string& location) {
     for (auto t : textures)
         if (t->location == location && t->engine == engine)
             return t;

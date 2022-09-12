@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-using namespace std;
+
 
 class vengine;
 class texture;
@@ -31,11 +31,11 @@ public:
     vshader_data* base_shader_data;
     shader* base_shader;
     vengine* engine;
-    vector<uniform*> uniforms;
+    std::vector<uniform*> uniforms;
 
     shader_data(shader* _shader, vengine* _engine);
-    uniform* get_uniform(const string& _name);
-    void change_texture(const string& _name, texture* _texture) const;
+    uniform* get_uniform(const std::string& _name);
+    void change_texture(const std::string& _name, texture* _texture) const;
     void bind(command_buffer* _command_buffer, pipeline* _pipeline) const;
     void generate() const;
 };

@@ -6,7 +6,7 @@
 #include "Manager/light_manager.hpp"
 #include "../Vulkan/vdepth.hpp"
 
-void deferred_renderer::create_texture(const string& _name, deferred_texture_type _type) {
+void deferred_renderer::create_texture(const std::string& _name, deferred_texture_type _type) {
     auto new_texture = new texture(engine);
 
     VkFormat format;

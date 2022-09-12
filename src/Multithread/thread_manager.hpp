@@ -8,7 +8,7 @@
 #include <chrono>
 #include "safe_vector.hpp"
 
-using namespace std;
+
 using namespace std::chrono;
 
 class core;
@@ -27,18 +27,18 @@ enum execution_code {
 
 class thread_manager {
 private:
-    static vector<nanoseconds> _execution_time;
+    static std::vector<nanoseconds> _execution_time;
     static safe_vector<engine_object*> _need_destruction;
 
     static void final_destroy(engine_object* obj);
 
 public:
     static execution_code curr_exec_code;
-    static vector<core*> thread_cores;
-    static vector<bool> completed_cores;
-    static atomic<bool> threads_working;
-    static condition_variable cv;
-    static mutex m;
+    static std::vector<core*> thread_cores;
+    static std::vector<bool> completed_cores;
+    static std::atomic<bool> threads_working;
+    static std::condition_variable cv;
+    static std::mutex m;
     static int prev_core_insert;
 
     static void init();

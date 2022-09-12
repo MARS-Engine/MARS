@@ -1,7 +1,7 @@
 #include "shader_manager.hpp"
 #include "Graphics/shader.hpp"
 
-vector<shader*> shader_manager::shaders;
+std::vector<shader*> shader_manager::shaders;
 
 shader *shader_manager::get_shader(const std::string& path, vengine *engine) {
     for (auto shader : shaders)

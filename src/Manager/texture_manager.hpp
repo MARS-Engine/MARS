@@ -5,13 +5,13 @@
 
 #include <vector>
 
-using namespace std;
+
 
 class texture_manager {
 public:
-    static vector<texture*> textures;
+    static std::vector<texture*> textures;
 
-    static texture* get_texture(vengine* engine, const string& location);
+    static texture* get_texture(vengine* engine, const std::string& location);
 };
 
 #endif

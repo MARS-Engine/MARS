@@ -3,7 +3,7 @@
 
 #include <vector>
 
-using namespace std;
+
 
 struct vector2 {
     float x, y;
@@ -29,7 +29,7 @@ struct vector2 {
     bool operator>(const vector2& right) const;
     bool operator<(const vector2& right) const;
 
-    size_t operator()(const vector2& v) const;
+    std::size_t operator()(const vector2& v) const;
 
 };
 

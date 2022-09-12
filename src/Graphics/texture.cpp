@@ -8,7 +8,7 @@ texture::texture(vengine* _engine) {
     base_texture = new vtexture(engine->device, engine->allocator);
 }
 
-void texture::load_texture(const string& _location) {
+void texture::load_texture(const std::string& _location) {
     location = _location;
     base_texture->load_texture(_location);
 }

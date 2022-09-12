@@ -4,8 +4,8 @@
 #include <vector>
 #include <string>
 
-using namespace std;
 
-vector<string> explode(string const& value, char delimeter);
+
+std::vector<std::string> explode(std::string const& value, char delimeter);
 
 #endif

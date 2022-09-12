@@ -27,13 +27,13 @@ vector3 quaternion::to_euler() {
 float quaternion::pitch(quaternion quat) {
     float y = 2.0f * (quat.value.y * quat.value.z + quat.value.w * quat.value.x);
     float x = quat.value.w * quat.value.w - quat.value.x * quat.value.x - quat.value.y * quat.value.y + quat.value.z * quat.value.z;
-    if (equals(x, 0.0f, numeric_limits<float>::epsilon()) && equals(y, 0.0f, numeric_limits<float>::epsilon()))
+    if (equals(x, 0.0f, std::numeric_limits<float>::epsilon()) && equals(y, 0.0f, std::numeric_limits<float>::epsilon()))
         return 2.0f * atan2f(quat.value.x, quat.value.w);
     return atan2f(y, x);
 }
 
 float quaternion::yaw(quaternion quat) {
-    return asin(clamp(-2.0f * (quat.value.x * quat.value.z - quat.value.w * quat.value.y), -1.0f, 1.0f));
+    return asin(std::clamp(-2.0f * (quat.value.x * quat.value.z - quat.value.w * quat.value.y), -1.0f, 1.0f));
 }
 
 float quaternion::roll(quaternion quat) {
