@@ -1,7 +1,0 @@
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/light_manager.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/shader_manager.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/pipeline_manager.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/render_pass_manager.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/material_manager.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/scene_manager.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/texture_manager.cpp)

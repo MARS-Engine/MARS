@@ -1,0 +1,6 @@
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gl_context.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gl_engine_instance.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gl_buffer.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gl_shader.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gl_shader_data.cpp)
+target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/gl_shader_input.cpp)

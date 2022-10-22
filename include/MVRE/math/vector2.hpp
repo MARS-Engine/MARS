@@ -1,0 +1,21 @@
+#ifndef __MVRE__VECTOR2__
+#define __MVRE__VECTOR2__
+
+#include "vector_base.hpp"
+
+namespace mvre_math {
+
+    template<typename T> requires arithmetic<T> class vector2 : public vector_base<T, 2> {
+    public:
+        inline T x() { return this->get(0); }
+        inline T y() { return this->get(1); }
+
+        inline void x(T value) { this[0] = value; }
+        inline void y(T value) { this[1] = value; }
+
+        vector2() : vector_base<T, 2>(new T[]{0, 0}) {  }
+        vector2(T _x, T _y) : vector_base<T, 2>(new T[]{_x, _y}) { }
+    };
+}
+
+#endif

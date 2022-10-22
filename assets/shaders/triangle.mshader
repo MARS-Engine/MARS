@@ -1,0 +1,6 @@
+#vertex
+triangle/triangle.vert
+#fragment
+triangle/triangle.frag
+#uniform
+ourColor float 4
