@@ -78,7 +78,7 @@ void base_shader::clean() {
         delete uni;
 }
 
-mvre_shader_uniform* base_shader::get_uniform(std::string _name) {
+mvre_shader_uniform* base_shader::get_uniform(const std::string& _name) {
     for (auto uni : m_uniforms)
         if (uni->name == _name)
             return uni;

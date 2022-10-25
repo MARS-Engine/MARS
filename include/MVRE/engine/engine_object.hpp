@@ -19,7 +19,7 @@ namespace mvre_engine {
         pl::safe_vector<component_interface*> components;
 
         inline void set_instance(mvre_graphics::engine_instance* _new_instance) { m_instance = _new_instance; }
-        inline mvre_graphics::engine_instance* get_instance() { return m_instance; }
+        inline mvre_graphics::engine_instance* instance() { return m_instance; }
 
         inline void set_parent(engine_object* _parent) { m_parent = _parent; }
 

@@ -40,5 +40,5 @@ engine_object* engine_handler::instance(engine_object *_obj, engine_instance *_i
 }
 
 engine_object* engine_handler::instance(engine_object *_obj, engine_object *_parent) {
-    return instance(_obj, _parent->get_instance(), _parent);
+    return instance(_obj, _parent->instance(), _parent);
 }

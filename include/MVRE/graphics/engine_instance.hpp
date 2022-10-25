@@ -24,6 +24,8 @@ namespace mvre_graphics {
     public:
         mvre_graphics_base::base_engine_instance* backend;
 
+        inline MVRE_INSTANCE_TYPE get_backend_type() { return m_instance_data.type; }
+
         inline std::string get_window_name() const { return m_instance_data.name; }
         inline mvre_math::vector2<int> get_window_size() const { return m_instance_data.size; }
 

@@ -25,7 +25,7 @@ namespace mvre_graphics_base {
 
         virtual void bind() {  }
 
-        mvre_shader_uniform* get_uniform(std::string _name);
+        mvre_shader_uniform* get_uniform(const std::string& _name);
     };
 }
 

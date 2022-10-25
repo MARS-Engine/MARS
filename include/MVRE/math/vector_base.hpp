@@ -3,7 +3,7 @@
 
 #include "math_concept.hpp"
 #include <string>
-#include <string.h>
+#include <cstring>
 
 namespace mvre_math {
 

@@ -38,6 +38,9 @@ namespace mvre_engine {
             static_assert(std::is_base_of<component, derived>::value, "derived must be derived of component");
         }
 
+        inline engine_object* object() { return m_object; }
+        inline mvre_graphics::engine_instance* instance() { return m_object->instance(); }
+
         std::size_t size() const override { return sizeof(derived); }
 
         template<class T> inline T* get_component() { return m_object->get_component<T>(); }

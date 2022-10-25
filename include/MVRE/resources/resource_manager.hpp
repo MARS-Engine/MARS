@@ -3,6 +3,7 @@
 
 #include "MVRE/debug/debug.hpp"
 #include "MVRE/graphics/backend/base/base_types.hpp"
+#include "MVRE/graphics/engine_instance.hpp"
 
 #include <pl/safe_map.hpp>
 #include <string>
@@ -11,7 +12,11 @@
 namespace mvre_resources {
 
     class resource_base {
+    protected:
+        mvre_graphics::engine_instance* instance = nullptr;
     public:
+        inline void set_instance(mvre_graphics::engine_instance* _instance) { instance = _instance; }
+
         inline virtual bool load_resource(const std::string& _path) { return false; }
         inline virtual void clean() { }
     };
@@ -41,7 +46,7 @@ namespace mvre_resources {
          * @param _resource reference to resource pointer
          * @return true if successfully loads or finds cached or false otherwise
          */
-        template<typename T> static bool load_resource(const std::string& _path, T*& _resource) {
+        template<typename T> static bool load_resource(const std::string& _path, T*& _resource, mvre_graphics::engine_instance* _instance) {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base");
 
             auto temp_resource = get_cached_resource<T>(_path);
@@ -52,6 +57,7 @@ namespace mvre_resources {
             }
 
             temp_resource = new T();
+            temp_resource->set_instance(_instance);
             if (!temp_resource->load_resource(_path)) {
                 delete temp_resource;
                 return false;
