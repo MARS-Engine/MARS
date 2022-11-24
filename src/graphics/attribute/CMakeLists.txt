@@ -1,2 +1,4 @@
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/vertex1.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/vertex3.cpp)
+target_sources(MVRE PUBLIC
+        vertex1.cpp
+        vertex2.cpp
+        vertex3.cpp)

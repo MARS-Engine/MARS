@@ -1,15 +1,15 @@
-#ifndef __SCENE__
-#define __SCENE__
+#ifndef __MVRE__SCENE__
+#define __MVRE__SCENE__
 
-#include "MVRE/graphics/engine_instance.hpp"
+#include <MVRE/graphics/graphics_instance.hpp>
 
 namespace mvre_scenes {
 
     class scene {
     protected:
-        mvre_graphics::engine_instance* m_instance = nullptr;
+        mvre_graphics::graphics_instance* m_instance = nullptr;
     public:
-        explicit scene(mvre_graphics::engine_instance* _instance) { m_instance = _instance; }
+        explicit scene(mvre_graphics::graphics_instance* _instance) { m_instance = _instance; }
 
         virtual void load() { }
     };

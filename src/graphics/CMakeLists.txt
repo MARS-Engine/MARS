@@ -1,7 +1,3 @@
 add_subdirectory(backend)
 add_subdirectory(attribute)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/window.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/engine_instance.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/shader.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/shader_input.cpp)
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/command_buffer.cpp)
+target_sources(MVRE PUBLIC material.cpp)

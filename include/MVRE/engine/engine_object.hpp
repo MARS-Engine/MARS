@@ -3,7 +3,7 @@
 
 #include <pl/safe_vector.hpp>
 
-#include "MVRE/graphics/engine_instance.hpp"
+#include <MVRE/graphics/graphics_instance.hpp>
 #include "engine_handler.hpp"
 
 namespace mvre_engine {
@@ -14,12 +14,12 @@ namespace mvre_engine {
     class engine_object {
     private:
         engine_object* m_parent = nullptr;
-        mvre_graphics::engine_instance* m_instance = nullptr;
+        mvre_graphics::graphics_instance* m_instance = nullptr;
     public:
         pl::safe_vector<component_interface*> components;
 
-        inline void set_instance(mvre_graphics::engine_instance* _new_instance) { m_instance = _new_instance; }
-        inline mvre_graphics::engine_instance* instance() { return m_instance; }
+        inline void set_instance(mvre_graphics::graphics_instance* _new_instance) { m_instance = _new_instance; }
+        inline mvre_graphics::graphics_instance* instance() { return m_instance; }
 
         inline void set_parent(engine_object* _parent) { m_parent = _parent; }
 

@@ -15,6 +15,7 @@ namespace mvre_engine {
         engine_object* m_object;
     public:
         mvre_executioner::executioner_job* render_job = nullptr;
+        mvre_executioner::executioner_job* update_job = nullptr;
 
         void set_object(engine_object* _new_object) { m_object = _new_object; }
 
@@ -39,7 +40,7 @@ namespace mvre_engine {
         }
 
         inline engine_object* object() { return m_object; }
-        inline mvre_graphics::engine_instance* instance() { return m_object->instance(); }
+        inline mvre_graphics::graphics_instance* g_instance() { return m_object->instance(); }
 
         std::size_t size() const override { return sizeof(derived); }
 

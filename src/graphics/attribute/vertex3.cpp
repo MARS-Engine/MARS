@@ -1,9 +1,8 @@
-#include "MVRE/graphics/attribute/vertex3.hpp"
+#include <MVRE/graphics/attribute/vertex3.hpp>
 
 using namespace mvre_graphics;
-using namespace mvre_graphics_base;
 
-mvre_graphics_base::mvre_shader_inputs vertex3::m_description = {
+mvre_shader_inputs vertex3::m_description = {
     .input_data = new mvre_shader_input[3]{
         { 3 },
         { 3 },

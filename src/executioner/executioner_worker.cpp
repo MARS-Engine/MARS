@@ -15,17 +15,22 @@ executioner_worker::~executioner_worker() {
 }
 
 void executioner_worker::worker() {
-    std::mutex mtx;
-    std::unique_lock<std::mutex> l(mtx);
 
     while (m_running) {
         //1ms just to ensure that the code doesn't lock, temp solution
-        m_worker_cv.wait(l, [&]{ return !m_jobs[EXECUTIONER_JOB_PRIORITY_IN_FLIGHT].empty() || m_execute || !m_running; });
+
+        {
+            std::unique_lock lk(mtx);
+            m_worker_cv.wait(lk, [&]{ return !m_jobs[EXECUTIONER_JOB_PRIORITY_IN_FLIGHT].empty() || m_execute || !m_running; });
+        }
 
         while (!m_jobs[EXECUTIONER_JOB_PRIORITY_IN_FLIGHT].empty()) {
             auto job = m_jobs[EXECUTIONER_JOB_PRIORITY_IN_FLIGHT][0];
             job->callback();
-            job->finished = true;
+            {
+                std::lock_guard lk(job->mtx);
+                job->finished = true;
+            }
             job->wait_room.notify_all();
             m_jobs[EXECUTIONER_JOB_PRIORITY_IN_FLIGHT].erase_at(0);
         }
@@ -34,15 +39,19 @@ void executioner_worker::worker() {
             while (!m_jobs[EXECUTIONER_JOB_PRIORITY_NORMAL].empty()) {
                 auto job = m_jobs[EXECUTIONER_JOB_PRIORITY_NORMAL][0];
                 job->callback();
-                job->finished = true;
+                {
+                    std::lock_guard lk(job->mtx);
+                    job->finished = true;
+                }
                 job->wait_room.notify_all();
                 m_jobs[EXECUTIONER_JOB_PRIORITY_NORMAL].erase_at(0);
             }
         }
 
-        m_execute = false;
+        {
+            std::lock_guard lk(mtx);
+            m_execute = false;
+        }
         wait_room.notify_all();
     }
-
-    l.unlock();
 }

@@ -18,15 +18,19 @@ namespace mvre_executioner {
     public:
         std::atomic<bool> finished;
 
+        std::mutex mtx;
         ///condition_variable called when finished
         std::condition_variable wait_room;
         std::function<void()> callback;
 
-        executioner_job() = default;
-        explicit executioner_job(std::function<void()> _callback) { callback = _callback; }
+        inline void reset() {
+            std::unique_lock<std::mutex> l(mtx);
+            finished = false;
+        }
+
+        explicit executioner_job(std::function<void()> _callback) { finished = false; callback = _callback; }
 
         void wait() {
-            std::mutex mtx;
             std::unique_lock<std::mutex> l(mtx);
             wait_room.wait(l, [&]() { return finished.load(); });
         }
@@ -45,14 +49,28 @@ namespace mvre_executioner {
         std::thread _thread;
 
     public:
+        std::mutex mtx;
         std::condition_variable wait_room;
 
         inline void stop() { m_running = false; m_worker_cv.notify_all(); }
 
         inline bool executing() { return m_execute; }
-        inline void execute() { m_execute = true; m_worker_cv.notify_all(); };
 
-        inline void add_job(EXECUTIONER_JOB_PRIORITY _priority, executioner_job* _job) { m_jobs[_priority].push_back(_job); m_worker_cv.notify_all(); }
+        inline void execute() {
+            {
+                std::lock_guard lk(mtx);
+                m_execute = true;
+            }
+            m_worker_cv.notify_all();
+        };
+
+        inline void add_job(EXECUTIONER_JOB_PRIORITY _priority, executioner_job* _job) {
+            {
+                std::unique_lock lk(mtx);
+                m_jobs[_priority].push_back(_job);
+            }
+            m_worker_cv.notify_all();
+        }
 
         executioner_worker();
         ~executioner_worker();

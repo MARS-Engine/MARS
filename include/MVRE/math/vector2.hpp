@@ -13,8 +13,8 @@ namespace mvre_math {
         inline void x(T value) { this[0] = value; }
         inline void y(T value) { this[1] = value; }
 
-        vector2() : vector_base<T, 2>(new T[]{0, 0}) {  }
-        vector2(T _x, T _y) : vector_base<T, 2>(new T[]{_x, _y}) { }
+        vector2() : vector_base<T, 2>() { this->set(0, 0); this->set(1, 0); }
+        vector2(T _x, T _y)  : vector_base<T, 2>() { this->set(0, _x); this->set(1, _y); }
     };
 }
 

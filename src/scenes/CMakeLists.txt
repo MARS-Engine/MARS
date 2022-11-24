@@ -1,1 +1,1 @@
-target_sources(MVRE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/scene_manager.cpp)
+target_sources(MVRE PUBLIC scene_manager.cpp)

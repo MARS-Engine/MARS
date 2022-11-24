@@ -6,7 +6,7 @@ std::vector<std::string> mvre_string::explode(const std::string& _value, char _d
     std::istringstream iss(_value);
 
     for (std::string token; std::getline(iss, token, _delimeter); )
-        result.push_back(move(token));
+        result.push_back(std::move(token));
 
     return result;
 }

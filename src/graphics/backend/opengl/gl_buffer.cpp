@@ -1,10 +1,9 @@
-#include "MVRE/graphics/backend/opengl/gl_buffer.hpp"
+#include <MVRE/graphics/backend/opengl/gl_buffer.hpp>
 
-using namespace mvre_graphics_opengl;
-using namespace mvre_graphics_base;
+using namespace mvre_graphics;
 
 void gl_buffer::create(size_t _size, MVRE_MEMORY_TYPE _mem_type) {
-    base_buffer::create(_size, _mem_type);
+    buffer::create(_size, _mem_type);
     glGenBuffers(1, &m_buffer_id);
 
     switch (_mem_type) {
