@@ -4,6 +4,7 @@
 #include "math_concept.hpp"
 #include <string>
 #include <cstring>
+#include <math.h>
 
 namespace mvre_math {
 
@@ -102,6 +103,10 @@ namespace mvre_math {
             for (auto i = 0; i < Length; i++)
                 m_data[i] *= right;
             return *this;
+        }
+
+        bool operator==(const vector_base<T, Length>& _right) const {
+            return memcmp(&m_data, &_right.m_data, sizeof(T) * Length) == 0;
         }
     };
 }

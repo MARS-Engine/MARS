@@ -40,6 +40,7 @@ void gl_backend_instance::create_with_window(const std::string& _title, mvre_mat
         glDebugMessageCallback(MessageCallback, nullptr);
 
         glEnable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
     });
 
     executioner::add_job(mvre_executioner::EXECUTIONER_JOB_PRIORITY_IN_FLIGHT, &job_high);
@@ -47,11 +48,9 @@ void gl_backend_instance::create_with_window(const std::string& _title, mvre_mat
     //wait to make it's done before executing more opengl
     job_high.wait();
 
-    std::srand((unsigned) time(0));
-
     //create clear job
     clear_job = new executioner_job([&]() {
-        glClearColor(0.0, 0.0, 0.0, 1.0f); glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.0, 0.0, 0.0, 1.0f); glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     });
     //windows requires this to be on render thread
     swap_job = new executioner_job([&]() { SDL_GL_SwapWindow(raw_window->raw_window()); });

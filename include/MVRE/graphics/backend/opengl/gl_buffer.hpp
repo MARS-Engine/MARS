@@ -17,7 +17,7 @@ namespace mvre_graphics {
 
         void create(size_t _size, MVRE_MEMORY_TYPE _mem_type) override;
 
-        void copy_data(void* data) override { glBufferData(m_gl_type, m_size, data, GL_STATIC_DRAW); }
+        void copy_data(void* data) override { glBufferData(m_gl_type, static_cast<GLsizeiptr>(m_size), data, GL_STATIC_DRAW); }
 
         void bind() override { glBindBuffer(m_gl_type, m_buffer_id); }
         void unbind() override { glBindBuffer(m_gl_type, 0); }
