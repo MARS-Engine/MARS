@@ -9,7 +9,7 @@ namespace mvre_math {
 
     template<typename T, size_t Length> requires arithmetic<T> class vector_base {
     protected:
-        T m_data[Length];
+        T m_data[Length] = {0};
     public:
 
         vector_base() = default;

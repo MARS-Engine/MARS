@@ -45,10 +45,12 @@ namespace mvre_math {
         matrix_base<T, Cols, Rows> operator*(const matrix_base<T, Cols, Rows>& right) const {
             vector_base<T, Rows> new_data[Cols];
 
-            for (auto col = 0; col < Cols; col++)
+            int cur_col;
+            for (auto col = 0; col < Cols; col++) {
+                cur_col = 0;
                 for (auto j = 0; j < Rows; j++)
-                    for (auto i = 0; i < Cols; i++)
-                        new_data[i] +=  m_data[i] * right.get(col, Rows);
+                    new_data[col] +=  m_data[cur_col++] * right.get(col, j);
+            }
 
             return matrix_base<T, Cols, Rows>(new_data);
         }
