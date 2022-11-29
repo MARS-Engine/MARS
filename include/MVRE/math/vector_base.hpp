@@ -75,6 +75,14 @@ namespace mvre_math {
             return vector_base<T, Length>(new_data);
         }
 
+        vector_base<T, Length> operator/(const float& right) const {
+            T* new_data = new T[Length];
+            for (auto i = 0; i < Length; i++)
+                new_data[i] = m_data[i] / right;
+
+            return vector_base<T, Length>(new_data);
+        }
+
         vector_base<T, Length>& operator+=(const vector_base<T, Length>& right) {
             for (auto i = 0; i < Length; i++)
                 m_data[i] += right.get(i);

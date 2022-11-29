@@ -21,9 +21,9 @@ bool mvre_loader::wavefront_load(const std::string& _path, wavefront_mesh* _mesh
 
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
-    std::string warn, err;
+    std::string err;
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, _path.c_str(), "./", true)) {
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, _path.c_str(), "./", true)) {
         mvre_debug::debug::error("MVRE - Wavefront Loader - Failed to load object, path - " + _path);
         return false;
     }

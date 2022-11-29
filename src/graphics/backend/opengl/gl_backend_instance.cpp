@@ -40,7 +40,7 @@ void gl_backend_instance::create_with_window(const std::string& _title, mvre_mat
         glDebugMessageCallback(MessageCallback, nullptr);
 
         glEnable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
+        glDepthFunc(GL_LESS);
     });
 
     executioner::add_job(mvre_executioner::EXECUTIONER_JOB_PRIORITY_IN_FLIGHT, &job_high);

@@ -2,6 +2,7 @@
 #define __MVRE__MATRIX4__
 
 #include "matrix_base.hpp"
+#include "quaternion.hpp"
 
 namespace mvre_math {
 
@@ -35,6 +36,36 @@ namespace mvre_math {
             this->get(1) *= _scale.y();
             this->get(2) *= _scale.z();
             return *this;
+        }
+
+        static matrix4<T> create_from_axis_angle(vector4<T> _axis_angle) {
+            vector3<T> norm_axis = _axis_angle.xyz().normalize();
+
+            T _cos = cos(-_axis_angle.w());
+            T _sin = sin(-_axis_angle.w());
+            T t   = 1.0f - _cos;
+
+            T tXX = t * _axis_angle.x() * _axis_angle.x();
+            T tXY = t * _axis_angle.x() * _axis_angle.y();
+            T tXZ = t * _axis_angle.x() * _axis_angle.z();
+            T tYY = t * _axis_angle.y() * _axis_angle.y();
+            T tYZ = t * _axis_angle.y() * _axis_angle.z();
+            T tZZ = t * _axis_angle.z() * _axis_angle.z();
+
+            T sinX = _sin * _axis_angle.x();
+            T sinY = _sin * _axis_angle.y();
+            T sinZ = _sin * _axis_angle.z();
+
+            return {
+                    { tXX + _cos, tXY - sinZ, tXZ + sinY, 0 },
+                    { tXY + sinZ, tYY + _cos, tYZ - sinX, 0 },
+                    { tXZ - sinY, tYZ + sinX, tZZ + _cos, 0 },
+                    { 0, 0, 0, 1 }
+            };
+        }
+
+        static inline matrix4<T> from_quaternion(quaternion<T> _quat) {
+            return create_from_axis_angle(_quat.to_axis_angle());
         }
 
         static matrix4<T> look_at_lh(vector3<T> _eye, vector3<T> _center, vector3<T> _up) {

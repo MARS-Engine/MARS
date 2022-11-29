@@ -30,6 +30,11 @@ namespace mvre_math {
             return x() * x() + y() * y() + z() * z();
         }
 
+        vector3<T>& normalize() {
+            vector3<T>::operator*=(1.0f / length());
+            return *this;
+        }
+
         static vector3<T> normalize(vector3<T> _val) {
             return _val * (1.0f / _val.length());
         }

@@ -9,7 +9,7 @@ find_package(SDL2 REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(OpenGL REQUIRED)
 
-add_library(MVRE STATIC)
+add_library(MVRE SHARED)
 
 add_subdirectory(third_party/)
 

@@ -9,7 +9,7 @@ namespace mvre_loader {
 
     template<typename T> class mesh {
     public:
-        std::vector<uint> indices;
+        std::vector<uint32_t> indices;
         std::vector<T> vertices;
     };
 }

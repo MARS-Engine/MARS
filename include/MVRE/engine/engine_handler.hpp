@@ -7,28 +7,19 @@
 
 namespace mvre_engine {
 
-    class engine_worker;
     class engine_object;
-
-    enum MVRE_EXECUTION_CODE {
-        PRE_LOAD,
-        LOAD,
-        UPDATE,
-        PRE_RENDER,
-        RENDER,
-        POST_RENDER,
-        CLEAN
-    };
+    class engine_layer;
 
     class engine_handler {
     private:
         static int next_code;
         static pl::pl_job* m_job;
+        static pl::safe_map<int, pl::safe_vector<engine_object*>> m_workers;
     public:
-        static std::vector<engine_worker*> workers;
+        static pl::safe_map<int, pl::safe_vector<engine_object*>>& workers() { return m_workers; };
 
         static void init();
-        static void execute(MVRE_EXECUTION_CODE _code);
+        static void process_layer(engine_layer* _layer);
         static void clean();
 
         static engine_object* instance(engine_object* _obj, mvre_graphics::graphics_instance* _instance, engine_object* _parent);

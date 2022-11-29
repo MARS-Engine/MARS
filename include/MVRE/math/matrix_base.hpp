@@ -54,6 +54,19 @@ namespace mvre_math {
 
             return matrix_base<T, Cols, Rows>(new_data);
         }
+
+        void operator*=(const matrix_base<T, Cols, Rows>& right) {
+            vector_base<T, Rows> new_data[Cols];
+
+            int cur_col;
+            for (auto col = 0; col < Cols; col++) {
+                cur_col = 0;
+                for (auto j = 0; j < Rows; j++)
+                    new_data[col] +=  m_data[cur_col++] * right.get(col, j);
+            }
+
+            memcpy(&m_data, &new_data, sizeof(T) * Cols * Rows);
+        }
     };
 }
 

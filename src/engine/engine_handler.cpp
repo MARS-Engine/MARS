@@ -1,23 +1,23 @@
-#include "MVRE/engine/engine_handler.hpp"
-#include "MVRE/engine/engine_worker.hpp"
+#include <MVRE/engine/engine_handler.hpp>
+#include <MVRE/engine/engine_layer.hpp>
+#include <MVRE/engine/engine_object.hpp>
 
 using namespace mvre_engine;
 using namespace mvre_graphics;
 
 int engine_handler::next_code = 0;
-std::vector<engine_worker*> engine_handler::workers;
+pl::safe_map<int, pl::safe_vector<engine_object*>> engine_handler::m_workers;
 pl::pl_job* engine_handler::m_job = nullptr;
 
 void engine_handler::init() {
-    workers.resize(std::thread::hardware_concurrency());
-    for (auto& worker : workers)
-        worker = new engine_worker();
+    for (auto i = 0; i < std::thread::hardware_concurrency(); i++)
+        m_workers[i] = pl::safe_vector<engine_object*>();
 }
 
-void engine_handler::execute(MVRE_EXECUTION_CODE _code) {
+void engine_handler::process_layer(engine_layer* _layer) {
     if (m_job == nullptr) {
-        m_job = pl::async_foreach<engine_worker*>(workers.data(), workers.size(), [&](engine_worker* worker) {
-            worker->execute(_code);
+        m_job = pl::async_for(0, m_workers.size(), [&](int _thread_idx) {
+            _layer->on_process(m_workers[_thread_idx]);
             return true;
         });
     }
@@ -29,17 +29,16 @@ void engine_handler::clean() {
     m_job->clean();
     delete m_job;
 
-    for (auto worker : workers)
-        delete worker;
-
-    workers.clear();
-    workers.shrink_to_fit();
+    m_workers.clear();
 }
 
 engine_object* engine_handler::instance(engine_object *_obj, graphics_instance *_instance, engine_object *_parent) {
     _obj->set_instance(_instance);
-    _obj->set_parent(_parent);
-    workers[next_code++]->objects.push_back(_obj);
+    if (_parent != nullptr)
+        _obj->set_parent(_parent);
+    m_workers[next_code++].push_back(_obj);
+    if (next_code >= m_workers.size())
+        next_code = 0;
     return _obj;
 }
 

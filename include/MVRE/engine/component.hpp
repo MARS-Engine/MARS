@@ -6,6 +6,7 @@
 
 #include "engine_object.hpp"
 #include "MVRE/executioner/executioner.hpp"
+#include "transform_3d.hpp"
 
 namespace mvre_engine {
 
@@ -20,17 +21,10 @@ namespace mvre_engine {
         void set_object(engine_object* _new_object) { m_object = _new_object; }
 
         ~component_interface() {
-            if (render_job != nullptr)
-                delete render_job;
+            delete render_job;
         }
 
         virtual std::size_t size() const { return 0; }
-        virtual void pre_load() { }
-        virtual void load() { }
-        virtual void pre_render() { }
-        virtual void update() { }
-        virtual void post_render() { }
-        virtual void clean() { }
     };
 
     template<class derived> class component : public component_interface{
@@ -39,6 +33,7 @@ namespace mvre_engine {
             static_assert(std::is_base_of<component, derived>::value, "derived must be derived of component");
         }
 
+        inline transform_3d* transform() { return m_object->transform(); }
         inline engine_object* object() { return m_object; }
         inline mvre_graphics::graphics_instance* g_instance() { return m_object->instance(); }
 
