@@ -4,7 +4,6 @@
 #include <pl/safe_vector.hpp>
 
 #include <MVRE/graphics/graphics_instance.hpp>
-#include "engine_handler.hpp"
 
 namespace mvre_engine {
 

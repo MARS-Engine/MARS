@@ -4,6 +4,7 @@ project(MVRE)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 
 find_package(SDL2 REQUIRED)
 find_package(Vulkan REQUIRED)

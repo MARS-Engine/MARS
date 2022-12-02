@@ -5,7 +5,7 @@
 #include <MVRE/engine/layers/main_layers.hpp>
 
 namespace mvre_component {
-    class camera_updater : public mvre_engine::component<camera_updater>, public mvre_layers::component_main_layer {
+    class camera_updater : public mvre_engine::component<camera_updater>, public mvre_layers::update_layer {
     public:
         void pre_update() override;
     };

@@ -3,31 +3,25 @@
 
 using namespace mvre_layers;
 
-void load_layer::process_engine_list(const std::vector<mvre_engine::engine_object*>& _process_order) {
-    for (auto& component : get_valid_components<component_main_layer>(_process_order))
-        component->load();
+void mvre_layers::load_layer_callback(mvre_engine::engine_layers* _layer, int _thread) {
+    for (auto component : _layer->valid_components[_thread])
+        ((load_layer*)component)->load();
 }
 
-void update_layer::process_engine_list(const std::vector<mvre_engine::engine_object*>& _process_order) {
-    auto components = get_valid_components<component_main_layer>(_process_order);
-
-    for (auto& component : components)
-        component->pre_update();
-    for (auto& component : components)
-        component->update();
-    for (auto& component : components)
-        component->post_update();
+void mvre_layers::update_layer_callback(mvre_engine::engine_layers* _layer, int _thread) {
+    for (auto& component : _layer->valid_components[_thread])
+        ((update_layer*)component)->pre_update();
+    for (auto& component : _layer->valid_components[_thread])
+        ((update_layer*)component)->update();
+    for (auto& component : _layer->valid_components[_thread])
+        ((update_layer*)component)->post_update();
 }
 
-void render_layer::process_engine_list(const std::vector<mvre_engine::engine_object*>& _process_order) {
-    auto components = get_valid_components<component_main_layer>(_process_order);
-
-    for (auto& component : components)
-        component->pre_render();
-    for (auto& object : _process_order)
-        for (auto& component : object->components())
-            if (component->render_job != nullptr)
-                mvre_executioner::executioner::add_job(mvre_executioner::EXECUTIONER_JOB_PRIORITY_NORMAL, component->render_job);
-    for (auto& component : components)
-        component->post_render();
+void mvre_layers::render_layer_callback(mvre_engine::engine_layers* _layer, int _thread) {
+    for (auto& component : _layer->valid_components[_thread])
+        ((render_layer*)component)->pre_render();
+    for (auto& component : _layer->valid_components[_thread])
+        mvre_executioner::executioner::add_job(mvre_executioner::EXECUTIONER_JOB_PRIORITY_NORMAL, ((render_layer*)component)->render_job);
+    for (auto& component : _layer->valid_components[_thread])
+        ((render_layer*)component)->post_render();
 }

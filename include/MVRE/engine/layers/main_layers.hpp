@@ -1,39 +1,44 @@
 #ifndef __MVRE__MAIN__LAYERS__
 #define __MVRE__MAIN__LAYERS__
 
-#include <MVRE/engine/engine_layer.hpp>
 #include <MVRE/engine/engine_object.hpp>
+#include <MVRE/engine/engine_handler.hpp>
 
 namespace mvre_layers {
     /**
      * Layer containing main functions, exp: load, update, render, etc...
      */
-    class component_main_layer {
+
+    class load_layer {
     public:
         virtual void load() { }
+    };
 
+    class update_layer {
+    public:
         virtual void pre_update() { }
         virtual void update() { }
         virtual void post_update() { }
+    };
+
+    class render_layer {
+    public:
+        mvre_executioner::executioner_job* render_job = nullptr;
+
+        ~render_layer() {
+            delete render_job;
+        }
 
         virtual void pre_render() { }
         virtual void post_render() { }
     };
 
-    class load_layer : public mvre_engine::engine_layer {
-    public:
-        void process_engine_list(const std::vector<mvre_engine::engine_object*>& _process_order) override;
-    };
+    void load_layer_callback(mvre_engine::engine_layers* _layer, int _thread);
 
-    class update_layer : public mvre_engine::engine_layer {
-    public:
-        void process_engine_list(const std::vector<mvre_engine::engine_object*>& _process_order) override;
-    };
+    void update_layer_callback(mvre_engine::engine_layers* _layer, int _thread);
 
-    class render_layer : public mvre_engine::engine_layer {
-    public:
-        void process_engine_list(const std::vector<mvre_engine::engine_object*>& _process_order) override;
-    };
+    void render_layer_callback(mvre_engine::engine_layers* _layer, int _thread);
+
 }
 
 #endif

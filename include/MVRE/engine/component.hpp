@@ -12,17 +12,11 @@ namespace mvre_engine {
 
     class component_interface {
     protected:
-        bool m_is_renderer = false;
         engine_object* m_object;
     public:
-        mvre_executioner::executioner_job* render_job = nullptr;
         mvre_executioner::executioner_job* update_job = nullptr;
 
         void set_object(engine_object* _new_object) { m_object = _new_object; }
-
-        ~component_interface() {
-            delete render_job;
-        }
 
         virtual std::size_t size() const { return 0; }
     };

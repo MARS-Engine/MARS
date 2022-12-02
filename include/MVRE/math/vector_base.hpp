@@ -36,7 +36,7 @@ namespace mvre_math {
         }
 
         vector_base<T, Length> operator+(const vector_base<T, Length>& right) const {
-            T* new_data = new T[Length];
+            T new_data[Length];
             for (auto i = 0; i < Length; i++)
                 new_data[i] = m_data[i] + right.get(i);
 
@@ -44,7 +44,7 @@ namespace mvre_math {
         }
 
         vector_base<T, Length> operator-(const vector_base<T, Length>& right) const {
-            T* new_data = new T[Length];
+            T new_data[Length];
             for (auto i = 0; i < Length; i++)
                 new_data[i] = m_data[i] - right.get(i);
 
@@ -52,7 +52,7 @@ namespace mvre_math {
         }
 
         vector_base<T, Length> operator/(const vector_base<T, Length>& right) const {
-            T* new_data = new T[Length];
+            T new_data[Length];
             for (auto i = 0; i < Length; i++)
                 new_data[i] = m_data[i] / right.get(i);
 
@@ -60,7 +60,7 @@ namespace mvre_math {
         }
 
         vector_base<T, Length> operator*(const vector_base<T, Length>& right) const {
-            T* new_data = new T[Length];
+            T new_data[Length];
             for (auto i = 0; i < Length; i++)
                 new_data[i] = m_data[i] * right.get(i);
 
@@ -68,7 +68,7 @@ namespace mvre_math {
         }
 
         vector_base<T, Length> operator*(const float& right) const {
-            T* new_data = new T[Length];
+            T new_data[Length];
             for (auto i = 0; i < Length; i++)
                 new_data[i] = m_data[i] * right;
 
@@ -76,7 +76,7 @@ namespace mvre_math {
         }
 
         vector_base<T, Length> operator/(const float& right) const {
-            T* new_data = new T[Length];
+            T new_data[Length];
             for (auto i = 0; i < Length; i++)
                 new_data[i] = m_data[i] / right;
 
