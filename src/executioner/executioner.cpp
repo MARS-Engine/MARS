@@ -12,10 +12,10 @@ void executioner::execute() {
     if (worker == nullptr)
         return;
 
+    worker->execute();
+
     std::mutex mtx;
     std::unique_lock<std::mutex> l(mtx);
-
-    worker->execute();
     worker->wait_room.wait(l, [&] { return !worker->executing(); });
 }
 
