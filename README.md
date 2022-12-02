@@ -5,6 +5,13 @@ Feel free to join MVRE [Discord Server](https://discord.gg/VHEP99VShx) if you wi
 
 For a test sample, you can go [here](https://github.com/MVREngine/MVRE-Samples)
 
+## Building
+To build you need the base-devel, cmake, vulkan and sdl2
+
+You also need tyo manually compile and install [Parallel](https://github.com/PedroSilva8/parallel)
+
+For Windows use MinGW, [MSYS2](https://www.msys2.org/) should help a lot
+
 ## MVRE Structure
 
 MVRE is separated into multiples folders, each folder acts like a module by being separated into its own namespace
