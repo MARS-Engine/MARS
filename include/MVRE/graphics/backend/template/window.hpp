@@ -22,6 +22,12 @@ namespace mvre_graphics {
 
         struct SDL_Window* m_window = nullptr;
     public:
+
+        ~window() {
+            if (m_window != nullptr)
+                SDL_DestroyWindow(m_window);
+        }
+
         inline struct SDL_Window* raw_window() { return m_window; }
 
         /**
@@ -68,14 +74,6 @@ namespace mvre_graphics {
                         break;
                 }
             }
-        }
-
-        /**
-         * Destroy Window
-         */
-        virtual void destroy() {
-            if (m_window != nullptr)
-                SDL_DestroyWindow(m_window);
         }
     };
 }

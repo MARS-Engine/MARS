@@ -3,6 +3,7 @@
 
 #include <MVRE/engine/engine_object.hpp>
 #include <MVRE/engine/engine_handler.hpp>
+#include <MVRE/graphics/backend/template/command_buffer.hpp>
 
 namespace mvre_layers {
     /**

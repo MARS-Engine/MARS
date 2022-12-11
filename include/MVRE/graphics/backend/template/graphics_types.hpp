@@ -40,6 +40,12 @@ namespace mvre_graphics {
         MVRE_UNIFORM_TYPE_SAMPLER
     };
 
+    enum MVRE_SHADER_INPUT_TYPE {
+        MVRE_SHADER_INPUT_TYPE_SF_RG,
+        MVRE_SHADER_INPUT_TYPE_SF_RGB,
+        MVRE_SHADER_INPUT_TYPE_SF_RGBA,
+    };
+
     struct mvre_shader_uniform {
         std::string name;
         MVRE_UNIFORM_TYPE type;
@@ -57,6 +63,8 @@ namespace mvre_graphics {
     struct mvre_shader_input {
     public:
         int stride;
+        unsigned int offset;
+        MVRE_SHADER_INPUT_TYPE type;
     };
 
     struct mvre_shader_inputs {

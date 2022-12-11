@@ -24,7 +24,7 @@ void gl_shader_uniform::update(void *_data) {
     }
 }
 
-void gl_shader::generate_shader(MVRE_SHADER_TYPE _type, const char* _data) {
+void gl_shader::generate_shader(MVRE_SHADER_TYPE _type, const std::string& _data) {
     unsigned int module_id;
     switch (_type) {
         case MVRE_SHADER_TYPE_VERTEX:
@@ -35,7 +35,8 @@ void gl_shader::generate_shader(MVRE_SHADER_TYPE _type, const char* _data) {
             break;
     }
 
-    glShaderSource(module_id, 1, &_data, nullptr);
+    const char* shader_source = _data.data();
+    glShaderSource(module_id, 1, &shader_source, nullptr);
     glCompileShader(module_id);
 
     int  success;
@@ -61,7 +62,7 @@ bool gl_shader::load_resource(const std::string &_path) {
         switch (m.first) {
             case MVRE_SHADER_TYPE_VERTEX:
             case MVRE_SHADER_TYPE_FRAGMENT:
-                generate_shader(m.first, m.second.c_str());
+                generate_shader(m.first, m.second);
                 break;
         }
     }

@@ -55,7 +55,7 @@ void gl_backend_instance::create_with_window(const std::string& _title, mvre_mat
     //windows requires this to be on render thread
     swap_job = new executioner_job([&]() { SDL_GL_SwapWindow(raw_window->raw_window()); });
 
-    m_primary_buffer = new gl_command_buffer();
+    m_primary_buffer = new gl_command_buffer(this);
 }
 
 void gl_backend_instance::update() {
@@ -71,5 +71,5 @@ void gl_backend_instance::draw() {
 }
 
 void gl_backend_instance::destroy() {
-    raw_window->destroy();
+    delete raw_window;
 }

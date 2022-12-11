@@ -2,16 +2,42 @@
 #define __MVRE__V__INSTANCE__
 
 #include <vulkan/vulkan.h>
+#include "v_base.hpp"
+#include <MVRE/graphics/backend/vulkan/v_backend/v_debug.hpp>
 
 namespace mvre_graphics {
 
-    class v_instance {
+    class v_instance : public v_base {
     private:
+        VkDebugUtilsMessengerEXT debugMessenger = nullptr;
         VkInstance m_instance = nullptr;
     public:
-        inline VkInstance instance() { return m_instance;}
+        const std::vector<const char*> validation_layers = {
+                "VK_LAYER_KHRONOS_validation"
+        };
 
+        const std::vector<const char*> device_extensions = {
+                VK_KHR_SWAPCHAIN_EXTENSION_NAME
+        };
+
+        using v_base::v_base;
+
+        ~v_instance() {
+            destroy();
+        }
+
+        inline VkInstance raw_instance() { return m_instance;}
+
+        std::vector<const char*> get_required_extensions();
+        bool check_validation_layer_support();
         void create();
+
+        inline void destroy() {
+            if (graphics_instance()->enable_validation_layer())
+                destroy_debug_utils_messenger_ext(raw_instance(), debugMessenger, nullptr);
+
+            vkDestroyInstance(raw_instance(), nullptr);
+        }
     };
 }
 

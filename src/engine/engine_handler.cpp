@@ -10,8 +10,6 @@ void engine_handler::init() {
 }
 
 void engine_handler::clean() {
-    m_job->clean();
-    delete m_job;
 
     m_workers.clear();
 

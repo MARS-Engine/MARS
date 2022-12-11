@@ -11,6 +11,7 @@ namespace mvre_graphics {
     public:
 
         inline backend_instance* instance() { return m_instance; }
+        template<typename T> inline T* instance() { return static_cast<T*>(m_instance); }
 
         graphics_component(backend_instance* _instance) { m_instance = _instance; }
     };

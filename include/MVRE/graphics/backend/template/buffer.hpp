@@ -14,7 +14,8 @@ namespace mvre_graphics {
     public:
         using graphics_component::graphics_component;
 
-        inline size_t size() { return m_size; }
+        inline size_t size() const { return m_size; }
+        inline MVRE_MEMORY_TYPE type() const { return m_mem_type; }
 
         virtual void create(size_t _size, MVRE_MEMORY_TYPE _mem_type) { m_size = _size; m_mem_type = _mem_type; }
 

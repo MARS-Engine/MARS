@@ -20,7 +20,7 @@ namespace mvre_graphics {
 
         std::map<MVRE_SHADER_TYPE, unsigned int> m_shaders_modules;
 
-        void generate_shader(MVRE_SHADER_TYPE _type, const char* _data);
+        void generate_shader(MVRE_SHADER_TYPE _type, const std::string& _data) override;
     public:
         using shader::shader;
 

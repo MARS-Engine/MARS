@@ -17,6 +17,8 @@ namespace mvre_graphics {
         std::map<MVRE_SHADER_TYPE, std::string> m_modules;
         std::vector<mvre_shader_uniform*> m_uniforms;
 
+        virtual void generate_shader(MVRE_SHADER_TYPE _type, const std::string& _data) { }
+
         bool load_shader_file(std::string _path, std::string _path_sufix = "");
     public:
         using graphics_component::graphics_component;
