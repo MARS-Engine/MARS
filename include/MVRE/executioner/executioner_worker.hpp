@@ -7,6 +7,10 @@
 #include <condition_variable>
 #include <atomic>
 
+namespace mvre_graphics {
+    class pipeline;
+}
+
 namespace mvre_executioner {
 
     enum EXECUTIONER_JOB_PRIORITY {
@@ -15,6 +19,8 @@ namespace mvre_executioner {
     };
 
     struct executioner_job {
+    private:
+        mvre_graphics::pipeline* m_pipeline;
     public:
         std::atomic<bool> finished;
 
@@ -28,7 +34,11 @@ namespace mvre_executioner {
             finished = false;
         }
 
-        explicit executioner_job(std::function<void()> _callback) { finished = false; callback = _callback; }
+        inline mvre_graphics::pipeline* get_pipeline() { return m_pipeline; }
+        inline void change_pipeline(mvre_graphics::pipeline* _pipeline) { m_pipeline = _pipeline; }
+
+        explicit executioner_job(mvre_graphics::pipeline* _pipeline, const std::function<void()>& _callback) { m_pipeline = _pipeline; finished = false; callback = _callback; }
+        explicit executioner_job(const std::function<void()>& _callback) { m_pipeline = nullptr; finished = false; callback = _callback; }
 
         void wait() {
             std::unique_lock<std::mutex> l(mtx);
@@ -45,11 +55,13 @@ namespace mvre_executioner {
         std::condition_variable m_worker_cv;
 
         pl::safe_map<EXECUTIONER_JOB_PRIORITY, pl::safe_vector<executioner_job*>> m_jobs;
+        pl::safe_map<mvre_graphics::pipeline*, pl::safe_vector<executioner_job*>> render_jobs;
 
         std::thread _thread;
 
     public:
-        std::mutex mtx;
+        std::mutex job_mtx;
+        std::mutex render_mtx;
         std::condition_variable wait_room;
 
         inline void stop() { m_running = false; m_worker_cv.notify_all(); }
@@ -58,18 +70,28 @@ namespace mvre_executioner {
 
         inline void execute() {
             {
-                std::lock_guard lk(mtx);
+                std::lock_guard lk(job_mtx);
                 m_execute = true;
             }
             m_worker_cv.notify_all();
         };
 
         inline void add_job(EXECUTIONER_JOB_PRIORITY _priority, executioner_job* _job) {
-            {
-                std::unique_lock lk(mtx);
-                m_jobs[_priority].push_back(_job);
+            if (_priority == EXECUTIONER_JOB_PRIORITY_NORMAL && _job->get_pipeline() != nullptr) {
+                {
+                    std::unique_lock lk(render_mtx);
+                    render_jobs[_job->get_pipeline()].push_back(_job);
+                }
             }
-            m_worker_cv.notify_all();
+            else {
+                {
+                    std::unique_lock lk(job_mtx);
+                    m_jobs[_priority].push_back(_job);
+                }
+
+                if (_priority == EXECUTIONER_JOB_PRIORITY_IN_FLIGHT)
+                    m_worker_cv.notify_all();
+            }
         }
 
         executioner_worker();

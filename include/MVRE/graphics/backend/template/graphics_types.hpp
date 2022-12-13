@@ -2,6 +2,8 @@
 #define __MVRE__GRAPHICS__TYPES__
 
 #include <string>
+#include <MVRE/math/vector4.hpp>
+#include <MVRE/math/vector2.hpp>
 
 namespace mvre_graphics {
 
@@ -71,6 +73,13 @@ namespace mvre_graphics {
     public:
         mvre_shader_input* input_data;
         size_t length;
+    };
+
+    struct mvre_viewport {
+    public:
+        mvre_math::vector2<int> position;
+        mvre_math::vector2<size_t> size;
+        mvre_math::vector2<float> depth;
     };
 
     class graphics_types {

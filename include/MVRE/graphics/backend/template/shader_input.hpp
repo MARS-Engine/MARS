@@ -3,6 +3,7 @@
 
 #include "graphics_component.hpp"
 #include "buffer.hpp"
+
 namespace mvre_graphics {
 
     class shader_input : public graphics_component {

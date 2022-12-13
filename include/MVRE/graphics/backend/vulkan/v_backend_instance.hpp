@@ -32,6 +32,7 @@ namespace mvre_graphics {
         pipeline* generate_pipeline() override { return new v_pipeline(this); }
         render_pass * generate_render_pass() override { return new v_render_pass(this); }
     public:
+        inline v_render_pass* get_render_pass() const { return m_render_pass; }
         inline v_instance* instance() const { return m_instance; }
         inline v_window* get_vulkan_window() const { return dynamic_cast<v_window*>(get_window()); }
         inline v_device* device() const { return m_device; }

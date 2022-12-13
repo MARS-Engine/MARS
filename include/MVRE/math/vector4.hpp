@@ -3,6 +3,7 @@
 
 #include "vector_base.hpp"
 #include "vector3.hpp"
+#include "vector2.hpp"
 
 namespace mvre_math {
 
@@ -18,6 +19,8 @@ namespace mvre_math {
         inline void z(T value) { this->set(2, value); }
         inline void w(T value) { this->set(3, value); }
 
+        inline vector2<T> xy() { return { x(), y() }; };
+        inline vector2<T> zw() { return { z(), w() }; };
         inline vector3<T> xyz() { return { x(), y(), z() }; };
         inline void xyz(vector3<T> _val) { x(_val.x()); y(_val.y()); z(_val.z()); };
 

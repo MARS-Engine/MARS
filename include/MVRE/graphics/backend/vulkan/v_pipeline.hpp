@@ -28,9 +28,6 @@ namespace mvre_graphics {
     public:
         explicit v_pipeline(backend_instance* _instance);
 
-        void set_viewport(mvre_math::vector4<float> _view, mvre_math::vector2<float> _depth) override;
-        void set_extension(mvre_math::vector4<int> _view) override;
-
         void create() override;
         void destroy() override;
     };

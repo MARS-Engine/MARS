@@ -7,28 +7,6 @@
 
 using namespace mvre_graphics;
 
-void v_pipeline::set_viewport(mvre_math::vector4<float> _view, mvre_math::vector2<float> _depth) {
-    VkViewport viewport {
-        .x = _view.x(),
-        .y = _view.y(),
-        .width = _view.z(),
-        .height = _view.w(),
-        .minDepth = _depth.x(),
-        .maxDepth = _depth.y(),
-    };
-    vkCmdSetViewport(instance<v_backend_instance>()->raw_command_buffer(), 0, 1, &viewport);
-
-}
-
-void v_pipeline::set_extension(mvre_math::vector4<int> _view) {
-    VkRect2D scissor {
-        .offset = { _view.x(), _view.y() },
-        .extent = { .width = static_cast<uint32_t>(_view.z()), .height = static_cast<uint32_t>(_view.w()) },
-    };
-
-    vkCmdSetScissor(instance<v_backend_instance>()->raw_command_buffer(), 0, 1, &scissor);
-}
-
 v_pipeline::v_pipeline(backend_instance* _instance) : pipeline(_instance) {
     m_dynamic_states = {
             VK_DYNAMIC_STATE_VIEWPORT,
@@ -44,9 +22,9 @@ v_pipeline::v_pipeline(backend_instance* _instance) : pipeline(_instance) {
     m_vertex_input_info = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
             .vertexBindingDescriptionCount = 1,
-            .pVertexBindingDescriptions = &((v_shader_input*)m_shader_input)->raw_binding(),
-            .vertexAttributeDescriptionCount = static_cast<uint32_t>(((v_shader_input*)m_shader_input)->raw_descriptions().size()),
-            .pVertexAttributeDescriptions = ((v_shader_input*)m_shader_input)->raw_descriptions().data()
+            //.pVertexBindingDescriptions = &((v_shader_input*)m_shader_input)->raw_binding(),
+            //.vertexAttributeDescriptionCount = static_cast<uint32_t>(((v_shader_input*)m_shader_input)->raw_descriptions().size()),
+            //.pVertexAttributeDescriptions = ((v_shader_input*)m_shader_input)->raw_descriptions().data()
     };
 
     m_input_assembly = {
@@ -134,7 +112,7 @@ void v_pipeline::create() {
         .pColorBlendState = &m_color_blending,
         .pDynamicState = &m_dynamic_state,
         .layout = m_pipeline_layout,
-        .renderPass = ((v_render_pass*)m_render_pass)->raw_render_pass(),
+        .renderPass = ((v_render_pass*)instance<v_backend_instance>()->get_render_pass())->raw_render_pass(),
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE
     };

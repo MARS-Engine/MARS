@@ -15,7 +15,7 @@ namespace mvre_graphics {
         mvre_math::vector3<float> normal;
         mvre_math::vector2<float> uv;
 
-        static mvre_shader_inputs get_description() { return m_description; };
+        static mvre_shader_inputs& get_description() { return m_description; };
     };
 }
 

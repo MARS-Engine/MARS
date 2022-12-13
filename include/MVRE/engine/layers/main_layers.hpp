@@ -4,6 +4,7 @@
 #include <MVRE/engine/engine_object.hpp>
 #include <MVRE/engine/engine_handler.hpp>
 #include <MVRE/graphics/backend/template/command_buffer.hpp>
+#include <MVRE/graphics/material.hpp>
 
 namespace mvre_layers {
     /**
@@ -25,6 +26,7 @@ namespace mvre_layers {
     class render_layer {
     public:
         mvre_executioner::executioner_job* render_job = nullptr;
+        mvre_graphics::material* render_material = nullptr;
 
         ~render_layer() {
             delete render_job;

@@ -14,7 +14,7 @@ namespace mvre_graphics {
 
         explicit vertex1(mvre_math::vector3<float> _position) { position = _position; }
 
-        static mvre_shader_inputs get_description() { return m_description; };
+        static mvre_shader_inputs& get_description() { return m_description; };
     };
 }
 

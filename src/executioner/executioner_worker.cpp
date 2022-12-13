@@ -1,4 +1,5 @@
-#include "MVRE/executioner/executioner_worker.hpp"
+#include <MVRE/executioner/executioner_worker.hpp>
+#include <MVRE/graphics/backend/template/pipeline.hpp>
 #include <mutex>
 
 using namespace mvre_executioner;
@@ -17,10 +18,8 @@ executioner_worker::~executioner_worker() {
 void executioner_worker::worker() {
 
     while (m_running) {
-        //1ms just to ensure that the code doesn't lock, temp solution
-
         {
-            std::unique_lock lk(mtx);
+            std::unique_lock lk(job_mtx);
             m_worker_cv.wait(lk, [&]{ return !m_jobs[EXECUTIONER_JOB_PRIORITY_IN_FLIGHT].empty() || m_execute || !m_running; });
         }
 
@@ -46,10 +45,24 @@ void executioner_worker::worker() {
                 job->wait_room.notify_all();
                 m_jobs[EXECUTIONER_JOB_PRIORITY_NORMAL].erase_at(0);
             }
+
+            for (auto& pair : render_jobs) {
+                pair.first->bind();
+                while (!render_jobs[pair.first].empty()) {
+                    auto job = render_jobs[pair.first][0];
+                    job->callback();
+                    {
+                        std::lock_guard lk(job->mtx);
+                        job->finished = true;
+                    }
+                    job->wait_room.notify_all();
+                    render_jobs[pair.first].erase_at(0);
+                }
+            }
         }
 
         {
-            std::lock_guard lk(mtx);
+            std::lock_guard lk(job_mtx);
             m_execute = false;
         }
         wait_room.notify_all();

@@ -22,7 +22,16 @@ void gl_shader_input::load_input(mvre_shader_inputs _inputs) {
 
     size_t accumulated_stride = 0;
     for (auto i = 0; i < _inputs.length; i++) {
-        glVertexAttribPointer(i, _inputs.input_data[i].stride, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)(accumulated_stride * sizeof(float)));
+        GLenum type;
+        switch (_inputs.input_data[i].type) {
+            case MVRE_SHADER_INPUT_TYPE_SF_RG:
+            case MVRE_SHADER_INPUT_TYPE_SF_RGB:
+            case MVRE_SHADER_INPUT_TYPE_SF_RGBA:
+                type = GL_FLOAT;
+                break;
+        }
+
+        glVertexAttribPointer(i, _inputs.input_data[i].stride, type, GL_FALSE, stride * sizeof(float), (void*)(accumulated_stride * sizeof(float)));
         glEnableVertexAttribArray(i);
         accumulated_stride += _inputs.input_data[i].stride;
     }
