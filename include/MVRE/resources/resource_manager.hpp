@@ -8,6 +8,7 @@
 #include <pl/safe_map.hpp>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 
 namespace mvre_resources {
 
@@ -118,6 +119,14 @@ namespace mvre_resources {
             resources[_path] = temp_resource;
             _resource = temp_resource;
             return true;
+        }
+
+        /***
+         *
+         */
+        static inline bool file_exists(const std::string& _file) {
+            struct stat buffer{};
+            return (stat(_file.c_str(), &buffer) == 0);
         }
 
         /***

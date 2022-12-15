@@ -107,7 +107,17 @@ namespace mvre_math {
             return res;
         }
 
+        static matrix4<T> ortho_lh(float _left, float _right, float _bottom, float _top, float _z_near, float _z_far) {
 
+            auto Result = matrix4<T>(1);
+            Result.set(0,0, 2.0f / (_right - _left));
+            Result.set(1,1, 2.0f / (_top - _bottom));
+            Result.set(2,2, 1.0f / (_z_far - _z_near));
+            Result.set(3,0, - (_right + _left) / (_right - _left));
+            Result.set(3,1, - (_top + _bottom) / (_top - _bottom));
+            Result.set(3,2, - _z_near / (_z_far - _z_near));
+            return Result;
+        }
     };
 }
 

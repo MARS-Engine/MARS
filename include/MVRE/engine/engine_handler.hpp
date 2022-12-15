@@ -34,6 +34,7 @@ namespace mvre_engine {
             return result;
         }
 
+        void process_layers(engine_object* _obj);
     public:
         pl::safe_map<int, pl::safe_vector<engine_object*>>& workers() { return m_workers; };
 

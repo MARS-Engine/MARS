@@ -18,13 +18,28 @@ void engine_handler::clean() {
     layer_data.clear();
 }
 
+void engine_handler::process_layers(engine_object* _obj) {
+    for (auto& layer : layer_data) {
+        auto valid_layers = layer.second->validator(_obj);
+        for (auto component: valid_layers)
+            layer.second->valid_components[next_code].push_back(component);
+    }
+}
+
 engine_object* engine_handler::instance(engine_object *_obj, graphics_instance *_instance, engine_object *_parent) {
     _obj->set_instance(_instance);
 
-    for (auto& layer : layer_data) {
-        auto valid_layers = layer.second->validator(_obj);
-        for (auto component : valid_layers)
-            layer.second->valid_components[next_code].push_back(component);
+    std::vector<engine_object*> stk;
+    stk.push_back(_obj);
+
+    while (!stk.empty()) {
+        auto top = stk[stk.size() - 1];
+        stk.pop_back();
+
+        for (auto child : top->children())
+            stk.push_back(child);
+
+        process_layers(top);
     }
 
     if (_parent != nullptr) {

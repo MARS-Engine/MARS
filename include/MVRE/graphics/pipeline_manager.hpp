@@ -14,7 +14,7 @@ namespace mvre_graphics {
     public:
         template<typename T> static inline void add_input(mvre_shader_inputs* _input) { m_input_map[typeid(T).hash_code()] = _input; }
         template<typename T> static inline mvre_shader_inputs* get_input() {
-            static_assert(std::is_function_v<decltype(T::get_description)>);
+            static_assert(std::is_function_v<decltype(T::get_description)>, "MVRE - Pipeline Manager - Type Missing static get_description");
             auto hash = typeid(T).hash_code();
             auto result = m_input_map[hash];
 

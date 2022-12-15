@@ -19,21 +19,29 @@ namespace mvre_engine {
         pl::safe_vector<engine_object*> m_children;
         pl::safe_vector<component_interface*> m_components;
     public:
-        inline engine_object* parent() { return m_parent; }
-        inline transform_3d* transform() { return m_transform; }
+        inline engine_object* parent() const { return m_parent; }
+        inline transform_3d* transform() const { return m_transform; }
         inline pl::safe_vector<engine_object*>& children() { return m_children; }
         inline pl::safe_vector<component_interface*>& components() { return m_components; }
 
 
-        inline void set_instance(mvre_graphics::graphics_instance* _new_instance) { m_instance = _new_instance; }
-        inline mvre_graphics::graphics_instance* instance() { return m_instance; }
+        void set_instance(mvre_graphics::graphics_instance* _new_instance) {
+            m_instance = _new_instance;
+
+            //TODO: Make non-recursive
+            for (auto i : m_children)
+                i->set_instance(m_instance);
+        }
+
+
+        inline mvre_graphics::graphics_instance* instance() const { return m_instance; }
 
         inline void set_parent(engine_object* _parent) { m_parent = _parent; m_parent->m_children.push_back(this); }
 
         engine_object();
         ~engine_object();
 
-        template<class T> T* get_component() {
+        template<class T> T* get_component() const {
             static_assert(std::is_base_of<component<T>, T>::value, "invalid component - component must have type mvre_engine::component has a base");
             for (auto c : m_components) {
                 auto cast = dynamic_cast<T*>(c);
