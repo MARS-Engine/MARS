@@ -9,7 +9,9 @@ namespace mvre_graphics {
 
     enum MVRE_MEMORY_TYPE {
         MVRE_MEMORY_TYPE_VERTEX,
-        MVRE_MEMORY_TYPE_INDEX
+        MVRE_MEMORY_TYPE_INDEX,
+        MVRE_MEMORY_TYPE_TRANSFER,
+        MVRE_MEMORY_TYPE_UNIFORM,
     };
 
     enum MVRE_RESOURCE_TYPE {
@@ -53,13 +55,13 @@ namespace mvre_graphics {
         MVRE_UNIFORM_TYPE type;
         size_t size;
 
+        mvre_shader_uniform() = default;
+
         mvre_shader_uniform(std::string _name, MVRE_UNIFORM_TYPE _type, size_t _size) {
             name = _name;
             type = _type;
             size = _size;
         }
-
-        virtual void update(void* _data) { }
     };
 
     struct mvre_shader_input {

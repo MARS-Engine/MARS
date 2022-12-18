@@ -11,6 +11,39 @@
 
 using namespace mvre_graphics;
 
+VkCommandBuffer v_backend_instance::get_single_time_command() {
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = command_pool()->raw_command_pool();
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(device()->raw_device(), &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    return commandBuffer;
+}
+
+void v_backend_instance::end_single_time_command(VkCommandBuffer _command) {
+    vkEndCommandBuffer(_command);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &_command;
+
+    vkQueueSubmit(device()->raw_graphics_queue(), 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(device()->raw_graphics_queue());
+
+    vkFreeCommandBuffers(device()->raw_device(), command_pool()->raw_command_pool(), 1, &_command);
+}
+
 void v_backend_instance::create_with_window(const std::string &_title, mvre_math::vector2<int> _size) {
     raw_window = new v_window();
     raw_window->initialize(_title, _size);
@@ -37,7 +70,7 @@ void v_backend_instance::create_with_window(const std::string &_title, mvre_math
 
     m_framebuffer = new v_framebuffer(this);
     m_framebuffer->set_render_pass(m_render_pass);
-    m_framebuffer->create(m_swapchain->image_views());
+    m_framebuffer->create({ m_swapchain->extent().width, m_swapchain->extent().height }, m_swapchain->image_views());
 
     m_command_pool = new v_command_pool(this);
     m_command_pool->create();
@@ -57,6 +90,8 @@ void v_backend_instance::update() {
 void v_backend_instance::prepare_render() {
     m_sync->wait();
     vkAcquireNextImageKHR(device()->raw_device(), swapchain()->raw_swapchain(), UINT64_MAX, sync()->image_available(), VK_NULL_HANDLE, &m_image_index);
+    m_framebuffer->set_frame(m_image_index);
+
     m_primary_buffer->reset();
     m_primary_buffer->begin();
     m_render_pass->begin();

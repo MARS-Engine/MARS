@@ -3,7 +3,8 @@
 
 using namespace mvre_graphics;
 
-void v_framebuffer::create(const std::vector<VkImageView>& _views) {
+void v_framebuffer::create(mvre_math::vector2<uint32_t> _size, const std::vector<VkImageView>& _views) {
+    m_size = _size;
     m_framebuffers.resize(_views.size());
 
     VkFramebufferCreateInfo framebufferInfo {
@@ -18,7 +19,7 @@ void v_framebuffer::create(const std::vector<VkImageView>& _views) {
     for (int i = 0; i < _views.size(); i++) {
         framebufferInfo.pAttachments = &_views[i];
 
-        if (vkCreateFramebuffer(graphics_instance()->device()->raw_device(), &framebufferInfo, nullptr, &m_framebuffers[i++]) != VK_SUCCESS)
+        if (vkCreateFramebuffer(graphics_instance()->device()->raw_device(), &framebufferInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS)
             mvre_debug::debug::error("MVRE - Vulkan - Failed to create framebuffer");
     }
 }

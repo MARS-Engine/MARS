@@ -23,10 +23,15 @@ namespace mvre_graphics {
         VkPipelineRasterizationStateCreateInfo m_rasterizer;
         VkPipelineMultisampleStateCreateInfo m_multisampling;
 
-        VkViewport m_viewport;
         VkRect2D m_scissor;
+
+        std::vector<VkDescriptorSet> m_descriptor_set;
+
+        void create_descriptor_sets();
     public:
         explicit v_pipeline(backend_instance* _instance);
+
+        void bind() override;
 
         void create() override;
         void destroy() override;

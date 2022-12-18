@@ -12,7 +12,7 @@ namespace mvre_graphics {
     public:
         using texture::texture;
 
-        inline void bind() override { glBindTexture(GL_TEXTURE_2D, m_texture_id); }
+        inline void bind() override { glActiveTexture(GL_TEXTURE0 + m_index); glBindTexture(GL_TEXTURE_2D, m_texture_id); }
         inline void unbind() override { glBindTexture(GL_TEXTURE_2D, 0);  }
 
         bool load_resource(const std::string &_texture_path) override;

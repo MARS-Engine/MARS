@@ -1,6 +1,25 @@
 #include <MVRE/graphics/backend/vulkan/v_shader_input.hpp>
+#include <MVRE/graphics/backend/vulkan/v_backend/v_device.hpp>
 
 using namespace mvre_graphics;
+
+void v_shader_input::bind() {
+    for (auto& buffer : m_buffers) {
+        auto og_buffer =  (v_buffer*)buffer;
+
+        VkBuffer vertexBuffers[] = { og_buffer->vulkan_buffer() };
+        VkDeviceSize offsets[] = {0};
+
+        switch (og_buffer->type()) {
+            case MVRE_MEMORY_TYPE_VERTEX:
+                vkCmdBindVertexBuffers(instance<v_backend_instance>()->raw_command_buffer(), 0, 1, vertexBuffers, offsets);
+                break;
+            case MVRE_MEMORY_TYPE_INDEX:
+                vkCmdBindIndexBuffer(instance<v_backend_instance>()->raw_command_buffer(), vertexBuffers[0], 0, VK_INDEX_TYPE_UINT32);
+                break;
+        }
+    }
+}
 
 void v_shader_input::load_input(mvre_shader_inputs _inputs) {
     int stride = 0;

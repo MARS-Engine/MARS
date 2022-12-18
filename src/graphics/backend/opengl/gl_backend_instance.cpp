@@ -16,9 +16,9 @@ void gl_backend_instance::create_with_window(const std::string& _title, mvre_mat
     raw_window = new gl_window();
     raw_window->initialize(_title, _size);
 
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     raw_window->create();
 
@@ -67,7 +67,8 @@ void gl_backend_instance::prepare_render() {
 }
 
 void gl_backend_instance::draw() {
-    executioner::add_job(EXECUTIONER_JOB_PRIORITY_NORMAL, swap_job);
+    executioner::add_job(EXECUTIONER_JOB_PRIORITY_IN_FLIGHT, swap_job);
+    swap_job->wait();
 }
 
 void gl_backend_instance::destroy() {

@@ -4,26 +4,6 @@
 using namespace mvre_graphics;
 using namespace mvre_executioner;
 
-void gl_shader_uniform::update(void *_data) {
-    switch (type) {
-        case MVRE_UNIFORM_TYPE_FLOAT:
-            switch (size) {
-                case 4:
-                    glUniform4fv(id, 1, (float*)_data);
-                    break;
-            }
-            break;
-        case MVRE_UNIFORM_TYPE_MATRIX:
-            switch (size) {
-                case 4:
-                    glUniformMatrix4fv(id, 1, false, (float*)_data);
-            }
-            break;
-        case MVRE_UNIFORM_TYPE_SAMPLER:
-            break;
-    }
-}
-
 void gl_shader::generate_shader(MVRE_SHADER_TYPE _type, const std::string& _data) {
     unsigned int module_id;
     switch (_type) {
@@ -68,14 +48,6 @@ bool gl_shader::load_resource(const std::string &_path) {
     }
     glLinkProgram(id);
     glUseProgram(id);
-
-    for (auto& m_uniform : m_uniforms) {
-        auto uni = new gl_shader_uniform(*m_uniform);
-        delete m_uniform;
-        m_uniform = uni;
-
-        uni->id = glGetUniformLocation(id, uni->name.c_str());
-    }
 
     return true;
 }

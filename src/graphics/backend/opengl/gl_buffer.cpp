@@ -13,5 +13,8 @@ void gl_buffer::create(size_t _size, MVRE_MEMORY_TYPE _mem_type) {
         case MVRE_MEMORY_TYPE_INDEX:
             m_gl_type = GL_ELEMENT_ARRAY_BUFFER;
             break;
+        case MVRE_MEMORY_TYPE_UNIFORM:
+            m_gl_type = GL_UNIFORM_BUFFER;
+            break;
     }
 }

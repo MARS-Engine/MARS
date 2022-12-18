@@ -23,6 +23,8 @@ namespace mvre_graphics {
     public:
         using graphics_component::graphics_component;
 
+        std::vector<mvre_shader_uniform*>& get_uniforms() { return m_uniforms; }
+
         bool load_resource(const std::string& _path) override;
         void clean() override;
 

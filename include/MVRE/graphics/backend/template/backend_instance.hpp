@@ -14,6 +14,7 @@ namespace mvre_graphics {
     class pipeline;
     class render_pass;
     class command_buffer;
+    class shader_data;
 
     class backend_instance {
     protected:
@@ -30,6 +31,7 @@ namespace mvre_graphics {
         virtual texture* generate_texture() { return nullptr; }
         virtual pipeline* generate_pipeline() { return nullptr; }
         virtual render_pass* generate_render_pass() { return nullptr; }
+        virtual shader_data* generate_shader_data() { return nullptr; }
 
         uint32_t m_image_index = 0;
         uint32_t m_current_frame = 0;
@@ -63,6 +65,7 @@ namespace mvre_graphics {
     template<> inline texture* backend_instance::instance<texture>() { return generate_texture(); }
     template<> inline pipeline* backend_instance::instance<pipeline>() { return generate_pipeline(); }
     template<> inline render_pass* backend_instance::instance<render_pass>() { return generate_render_pass(); }
+    template<> inline shader_data* backend_instance::instance<shader_data>() { return generate_shader_data(); }
 }
 
 #endif

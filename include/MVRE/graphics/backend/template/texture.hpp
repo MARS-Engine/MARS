@@ -6,8 +6,9 @@
 
 namespace mvre_graphics {
 
-    class texture : public mvre_resources::resource_base, graphics_component {
+    class texture : public mvre_resources::resource_base, public graphics_component {
     protected:
+        size_t m_index = 0;
         mvre_math::vector2<int> m_size {};
         int m_channels = -1;
         unsigned char* m_data = nullptr;
@@ -24,6 +25,8 @@ namespace mvre_graphics {
         void free_og_texture();
     public:
         using graphics_component::graphics_component;
+
+        inline void set_index(size_t _index) { m_index  = _index; }
 
         virtual void bind() { }
         virtual void unbind() { }

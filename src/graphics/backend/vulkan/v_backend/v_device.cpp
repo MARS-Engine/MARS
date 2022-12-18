@@ -84,8 +84,11 @@ bool v_device::is_device_suitable() {
     else
         return false;
 
+    VkPhysicalDeviceFeatures supportedFeatures;
+    vkGetPhysicalDeviceFeatures(m_physical_device, &supportedFeatures);
 
-    return m_indices.value().is_complete();
+
+    return m_indices.value().is_complete() && supportedFeatures.samplerAnisotropy;
 }
 
 uint32_t v_device::find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
@@ -117,7 +120,9 @@ void v_device::create() {
             .pQueuePriorities = &queuePriority
         });
 
-    VkPhysicalDeviceFeatures device_features {};
+    VkPhysicalDeviceFeatures device_features {
+        .samplerAnisotropy = VK_TRUE
+    };
 
     VkDeviceCreateInfo create_info {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,

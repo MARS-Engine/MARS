@@ -7,6 +7,8 @@
 #include <MVRE/graphics/backend/vulkan/v_render_pass.hpp>
 #include <MVRE/graphics/backend/vulkan/v_shader.hpp>
 #include <MVRE/graphics/backend/vulkan/v_command_buffer.hpp>
+#include <MVRE/graphics/backend/vulkan/v_texture.hpp>
+#include <MVRE/graphics/backend/vulkan/v_shader_input.hpp>
 
 namespace mvre_graphics {
 
@@ -30,7 +32,9 @@ namespace mvre_graphics {
     protected:
         shader* generate_shader() override { return new v_shader(this); }
         pipeline* generate_pipeline() override { return new v_pipeline(this); }
-        render_pass * generate_render_pass() override { return new v_render_pass(this); }
+        render_pass* generate_render_pass() override { return new v_render_pass(this); }
+        texture* generate_texture() override { return new v_texture(this); }
+        shader_input * generate_shader_input() override { return new v_shader_input(this); }
     public:
         inline v_render_pass* get_render_pass() const { return m_render_pass; }
         inline v_instance* instance() const { return m_instance; }
@@ -44,6 +48,9 @@ namespace mvre_graphics {
         inline VkCommandBuffer raw_command_buffer() const { return dynamic_cast<v_command_buffer*>(primary_buffer())->raw_command_buffer(); }
 
         using backend_instance::backend_instance;
+
+        VkCommandBuffer get_single_time_command();
+        void end_single_time_command(VkCommandBuffer _command);
 
         void create_with_window(const std::string& _title, mvre_math::vector2<int> _size) override;
 

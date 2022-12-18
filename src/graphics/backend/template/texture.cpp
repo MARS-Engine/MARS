@@ -8,7 +8,8 @@ using namespace mvre_math;
 
 bool texture::load_texture(const std::string& _img_path) {
     int width, height;
-    m_data = stbi_load(_img_path.c_str(), &width, &height, &m_channels, 0);
+    m_data = stbi_load(_img_path.c_str(), &width, &height, &m_channels, STBI_rgb_alpha);
+    m_channels = 4;
 
     if (m_data == nullptr) {
         mvre_debug::debug::error("MVRE - Texture - Failed to load image " + _img_path);

@@ -11,26 +11,12 @@ namespace mvre_graphics {
         VkVertexInputBindingDescription m_binding;
         std::vector<VkVertexInputAttributeDescription> m_descriptions;
     public:
+        using shader_input::shader_input;
+
         inline VkVertexInputBindingDescription& raw_binding() { return m_binding; }
         inline std::vector<VkVertexInputAttributeDescription>& raw_descriptions() { return m_descriptions; }
 
-        void bind() override {
-            for (auto& buffer : m_buffers) {
-                auto og_buffer =  (v_buffer*)buffer;
-
-                VkBuffer vertexBuffers[] = { og_buffer->vulkan_buffer() };
-                VkDeviceSize offsets[] = {0};
-
-                switch (og_buffer->type()) {
-                    case MVRE_MEMORY_TYPE_VERTEX:
-                        vkCmdBindVertexBuffers(instance<v_backend_instance>()->raw_command_buffer(), 0, 1, vertexBuffers, offsets);
-                        break;
-                    case MVRE_MEMORY_TYPE_INDEX:
-                        vkCmdBindIndexBuffer(instance<v_backend_instance>()->raw_command_buffer(), vertexBuffers[0], 0, VK_INDEX_TYPE_UINT32);
-                        break;
-                }
-            }
-        }
+        void bind() override;
 
         void load_input(mvre_shader_inputs _inputs) override;
 

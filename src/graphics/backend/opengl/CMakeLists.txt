@@ -1,6 +1,8 @@
-target_sources(MVRE PUBLIC gl_window.cpp)
-target_sources(MVRE PUBLIC gl_backend_instance.cpp)
-target_sources(MVRE PUBLIC gl_buffer.cpp)
-target_sources(MVRE PUBLIC gl_shader.cpp)
-target_sources(MVRE PUBLIC gl_shader_input.cpp)
-target_sources(MVRE PUBLIC gl_texture.cpp)
+target_sources(MVRE PUBLIC
+        gl_window.cpp
+        gl_backend_instance.cpp
+        gl_buffer.cpp
+        gl_shader.cpp
+        gl_shader_input.cpp
+        gl_texture.cpp
+        gl_shader_data.cpp)

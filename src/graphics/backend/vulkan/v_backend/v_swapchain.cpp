@@ -82,7 +82,7 @@ void v_swapchain::create() {
     m_swapchain_image_format = surface_format.format;
     m_swapchain_extent = extent;
 
-    m_swapchain_image_views.reserve(image_count);
+    m_swapchain_image_views.resize(image_count);
 
     for (size_t i = 0; i < m_swapchain_image_views.size(); i++) {
         VkImageViewCreateInfo view_create_info {

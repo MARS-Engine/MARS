@@ -7,6 +7,7 @@
 #include "gl_shader_input.hpp"
 #include "gl_texture.hpp"
 #include "gl_pipeline.hpp"
+#include "gl_shader_data.hpp"
 
 namespace mvre_graphics {
 
@@ -17,8 +18,9 @@ namespace mvre_graphics {
         buffer* generate_buffer() override { return new gl_buffer(this); }
         shader* generate_shader() override { return new gl_shader(this); }
         shader_input* generate_shader_input() override { return new gl_shader_input(this); }
-        texture * generate_texture() override { return new gl_texture(this); }
-        pipeline * generate_pipeline() override { return new gl_pipeline(this); }
+        texture* generate_texture() override { return new gl_texture(this); }
+        pipeline* generate_pipeline() override { return new gl_pipeline(this); }
+        shader_data* generate_shader_data() override { return new gl_shader_data(this); }
 
     public:
         using backend_instance::backend_instance;

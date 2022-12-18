@@ -7,6 +7,7 @@
 #include <MVRE/graphics/backend/template/shader.hpp>
 #include <MVRE/graphics/backend/template/texture.hpp>
 #include <MVRE/graphics/backend/template/pipeline.hpp>
+#include <MVRE/graphics/backend/template/shader_data.hpp>
 #include "pipeline_manager.hpp"
 
 namespace mvre_graphics {
@@ -25,18 +26,19 @@ namespace mvre_graphics {
 
         inline pipeline* get_pipeline() { return m_pipeline; }
 
+        inline shader_data* generate_shader_data() {
+            auto data = m_instance->instance<shader_data>();
+            data->generate(m_shader);
+            return data;
+        }
+
         template<typename T> inline void set_pipeline() {
             m_pipeline = pipeline_manager::load_pipeline(pipeline_manager::get_input<T>(), m_shader, m_instance);
         }
 
         inline void bind() {
-            m_pipeline->bind();
             for (auto& tex: m_textures)
                 tex.second->bind();
-        }
-
-        inline mvre_shader_uniform* get_uniform(const std::string& _uniform) {
-            return m_pipeline->get_shader()->get_uniform(_uniform);
         }
 
         bool load_resource(const std::string &_path) override;
