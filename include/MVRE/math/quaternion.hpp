@@ -1,5 +1,5 @@
-#ifndef __MVRE__QUATERNION__
-#define __MVRE__QUATERNION__
+#ifndef MVRE_QUATERNION_
+#define MVRE_QUATERNION_
 
 #include "vector4.hpp"
 #include "vector3.hpp"

@@ -1,5 +1,5 @@
-#ifndef __MVRE__DEBUG__
-#define __MVRE__DEBUG__
+#ifndef MVRE_DEBUG_
+#define MVRE_DEBUG_
 
 #include <iostream>
 

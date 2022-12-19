@@ -1,5 +1,5 @@
-#ifndef __MVRE__GL__BACKEND__INSTANCE__
-#define __MVRE__GL__BACKEND__INSTANCE__
+#ifndef MVRE_GL_BACKEND_INSTANCE_
+#define MVRE_GL_BACKEND_INSTANCE_
 
 #include <MVRE/graphics/backend/template/backend_instance.hpp>
 #include "gl_buffer.hpp"

@@ -1,5 +1,5 @@
-#ifndef __MVRE__GL__BUFFER__
-#define __MVRE__GL__BUFFER__
+#ifndef MVRE_GL_BUFFER_
+#define MVRE_GL_BUFFER_
 
 #include <MVRE/graphics/backend/template/buffer.hpp>
 #include <glad/glad.h>

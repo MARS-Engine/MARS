@@ -1,5 +1,5 @@
-#ifndef __MVRE__SHADER__DATA__
-#define __MVRE__SHADER__DATA__
+#ifndef MVRE_SHADER_DATA_
+#define MVRE_SHADER_DATA_
 
 #include "graphics_component.hpp"
 #include "buffer.hpp"
@@ -18,6 +18,7 @@ namespace mvre_graphics {
         mvre_shader_uniform* get_data() { return m_uni_data; }
 
         explicit uniform(mvre_shader_uniform* _uni_data, size_t _index, shader* _shader, std::vector<buffer*>& _buffers) { m_uni_data = _uni_data; m_index = _index; m_shader = _shader; m_buffers = _buffers; }
+        explicit uniform(mvre_shader_uniform* _uni_data, size_t _index, shader* _shader) { m_uni_data = _uni_data; m_index = _index; m_shader = _shader; }
 
         inline void update(size_t _frame, void* _data) { m_buffers[_frame]->copy_data(_data); }
         virtual void bind(size_t _index) { }

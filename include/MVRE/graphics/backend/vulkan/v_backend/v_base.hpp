@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__BASE__
-#define __MVRE__V__BASE__
+#ifndef MVRE_V_BASE_
+#define MVRE_V_BASE_
 
 #include <vulkan/vulkan.h>
 #include <MVRE/graphics/backend/vulkan/v_backend_instance.hpp>

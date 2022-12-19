@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__SHADER__INPUT__
-#define __MVRE__V__SHADER__INPUT__
+#ifndef MVRE_V_SHADER_INPUT_
+#define MVRE_V_SHADER_INPUT_
 
 #include <MVRE/graphics/backend/template/shader_input.hpp>
 #include <MVRE/graphics/backend/vulkan/v_buffer.hpp>

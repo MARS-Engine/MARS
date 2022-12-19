@@ -1,5 +1,5 @@
-#ifndef __MVRE__MATRIX4__
-#define __MVRE__MATRIX4__
+#ifndef MVRE_MATRIX4_
+#define MVRE_MATRIX4_
 
 #include "matrix_base.hpp"
 #include "quaternion.hpp"

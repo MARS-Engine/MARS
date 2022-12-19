@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__BACKEND__INSTANCE__
-#define __MVRE__V__BACKEND__INSTANCE__
+#ifndef MVRE_V_BACKEND_INSTANCE_
+#define MVRE_V_BACKEND_INSTANCE_
 
 #include <MVRE/graphics/backend/template/backend_instance.hpp>
 #include <MVRE/graphics/backend/vulkan/v_window.hpp>

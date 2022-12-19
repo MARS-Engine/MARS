@@ -1,5 +1,5 @@
-#ifndef __MVRE__VECTOR__BASE__
-#define __MVRE__VECTOR__BASE__
+#ifndef MVRE_VECTOR_BASE_
+#define MVRE_VECTOR_BASE_
 
 #include "math_concept.hpp"
 #include <string>

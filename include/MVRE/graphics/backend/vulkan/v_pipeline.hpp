@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__PIPELINE__
-#define __MVRE__V__PIPELINE__
+#ifndef MVRE_V_PIPELINE_
+#define MVRE_V_PIPELINE_
 
 #include <MVRE/graphics/backend/template/pipeline.hpp>
 #include <vulkan/vulkan.h>

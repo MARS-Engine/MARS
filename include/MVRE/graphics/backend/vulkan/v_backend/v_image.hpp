@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__IMAGE__
-#define __MVRE__V__IMAGE__
+#ifndef MVRE_V_IMAGE_
+#define MVRE_V_IMAGE_
 
 #include "v_base.hpp"
 

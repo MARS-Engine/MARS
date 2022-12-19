@@ -52,6 +52,11 @@ void v_shader_data::generate(pipeline* _pipeline, shader* _shader) {
     auto uniforms = _shader->get_uniforms();
 
     for (size_t i = 0; i < uniforms.size(); i++) {
+        if (uniforms[i]->type == MVRE_UNIFORM_TYPE_SAMPLER) {
+            auto uni = new v_uniform(uniforms[i], i, _shader);
+            m_uniforms.insert(std::make_pair(uniforms[i]->name, (uniform*)uni));
+            continue;
+        }
 
         std::vector<buffer*> m_buffers(instance()->max_frames());
 

@@ -1,5 +1,5 @@
-#ifndef __MVRE__VERTEX1__
-#define __MVRE__VERTEX1__
+#ifndef MVRE_VERTEX1_
+#define MVRE_VERTEX1_
 
 #include <MVRE/graphics/backend/template/shader_input.hpp>
 #include <MVRE/math/vector3.hpp>

@@ -1,5 +1,5 @@
-#ifndef __MVRE__MATH__CONCEPT__
-#define __MVRE__MATH__CONCEPT__
+#ifndef MVRE_MATH_CONCEPT_
+#define MVRE_MATH_CONCEPT_
 
 #include <concepts>
 

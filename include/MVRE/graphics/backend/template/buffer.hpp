@@ -1,5 +1,5 @@
-#ifndef __MVRE__BUFFER__
-#define __MVRE__BUFFER__
+#ifndef MVRE_BUFFER_
+#define MVRE_BUFFER_
 
 #include "graphics_component.hpp"
 #include "graphics_types.hpp"

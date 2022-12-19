@@ -1,5 +1,5 @@
-#ifndef __MVRE__SHADER__
-#define __MVRE__SHADER__
+#ifndef MVRE_SHADER_
+#define MVRE_SHADER_
 
 #include <map>
 #include <vector>

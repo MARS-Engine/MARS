@@ -1,5 +1,5 @@
-#ifndef __MVRE__GRAPHICS__TYPES__
-#define __MVRE__GRAPHICS__TYPES__
+#ifndef MVRE_GRAPHICS_TYPES_
+#define MVRE_GRAPHICS_TYPES_
 
 #include <string>
 #include <MVRE/math/vector4.hpp>

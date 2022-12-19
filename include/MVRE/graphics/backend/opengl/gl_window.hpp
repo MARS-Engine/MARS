@@ -1,5 +1,5 @@
-#ifndef __MVRE__GL__WINDOW__
-#define __MVRE__GL__WINDOW__
+#ifndef MVRE_GL_WINDOW_
+#define MVRE_GL_WINDOW_
 
 #include <MVRE/graphics/backend/template/window.hpp>
 

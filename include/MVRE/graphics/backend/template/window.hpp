@@ -1,5 +1,5 @@
-#ifndef __MVRE__WINDOW__
-#define __MVRE__WINDOW__
+#ifndef MVRE_WINDOW_
+#define MVRE_WINDOW_
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>

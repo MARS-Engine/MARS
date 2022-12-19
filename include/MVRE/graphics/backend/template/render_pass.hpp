@@ -1,5 +1,5 @@
-#ifndef __MVRE__RENDER__PASS__
-#define __MVRE__RENDER__PASS__
+#ifndef MVRE_RENDER_PASS_
+#define MVRE_RENDER_PASS_
 
 #include "graphics_component.hpp"
 

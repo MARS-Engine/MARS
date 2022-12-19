@@ -1,5 +1,5 @@
-#ifndef __MVRE__COMMAND__BUFFER__
-#define __MVRE__COMMAND__BUFFER__
+#ifndef MVRE_COMMAND_BUFFER_
+#define MVRE_COMMAND_BUFFER_
 
 #include "graphics_component.hpp"
 

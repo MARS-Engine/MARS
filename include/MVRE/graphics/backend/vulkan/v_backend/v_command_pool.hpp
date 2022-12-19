@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__COMMAND__POOL__
-#define __MVRE__V__COMMAND__POOL__
+#ifndef MVRE_V_COMMAND_POOL_
+#define MVRE_V_COMMAND_POOL_
 
 #include "v_base.hpp"
 #include "v_device.hpp"

@@ -1,5 +1,5 @@
-#ifndef __MVRE__VECTOR2__
-#define __MVRE__VECTOR2__
+#ifndef MVRE_VECTOR2_
+#define MVRE_VECTOR2_
 
 #include "vector_base.hpp"
 

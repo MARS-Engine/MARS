@@ -1,5 +1,5 @@
-#ifndef __MVRE__STRING__
-#define __MVRE__STRING__
+#ifndef MVRE_STRING_
+#define MVRE_STRING_
 
 #include <vector>
 #include <string>

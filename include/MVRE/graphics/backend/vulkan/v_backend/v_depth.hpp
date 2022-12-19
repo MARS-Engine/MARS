@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__DEPTH__
-#define __MVRE__V__DEPTH__
+#ifndef MVRE_V_DEPTH_
+#define MVRE_V_DEPTH_
 
 #include "v_base.hpp"
 #include "v_image.hpp"

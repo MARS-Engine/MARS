@@ -1,5 +1,5 @@
-#ifndef __MVRE__VECTOR4__
-#define __MVRE__VECTOR4__
+#ifndef MVRE_VECTOR4_
+#define MVRE_VECTOR4_
 
 #include "vector_base.hpp"
 #include "vector3.hpp"

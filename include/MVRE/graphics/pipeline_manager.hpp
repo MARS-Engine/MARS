@@ -1,5 +1,5 @@
-#ifndef __MVRE__PIPELINE__MANAGER__
-#define __MVRE__PIPELINE__MANAGER__
+#ifndef MVRE_PIPELINE_MANAGER_
+#define MVRE_PIPELINE_MANAGER_
 
 #include <pl/safe_map.hpp>
 #include "backend/template/pipeline.hpp"

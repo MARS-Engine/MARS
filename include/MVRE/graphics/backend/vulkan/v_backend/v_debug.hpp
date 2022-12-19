@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__DEBUG__
-#define __MVRE__V__DEBUG__
+#ifndef MVRE_V_DEBUG_
+#define MVRE_V_DEBUG_
 
 #include <vulkan/vulkan.h>
 

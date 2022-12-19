@@ -1,5 +1,5 @@
-#ifndef __MVRE__COMPONENT__
-#define __MVRE__COMPONENT__
+#ifndef MVRE_COMPONENT_
+#define MVRE_COMPONENT_
 
 #include <type_traits>
 #include <cstddef>

@@ -1,5 +1,5 @@
-#ifndef __MVRE__GRAPHICS__COMPONENT__
-#define __MVRE__GRAPHICS__COMPONENT__
+#ifndef MVRE_GRAPHICS_COMPONENT_
+#define MVRE_GRAPHICS_COMPONENT_
 
 #include "backend_instance.hpp"
 

@@ -1,5 +1,5 @@
-#ifndef __MVRE__GL__SHADER__
-#define __MVRE__GL__SHADER__
+#ifndef MVRE_GL_SHADER_
+#define MVRE_GL_SHADER_
 
 #include <MVRE/graphics/backend/template/shader.hpp>
 #include <glad/glad.h>

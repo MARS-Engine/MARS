@@ -1,5 +1,5 @@
-#ifndef __V__WINDOW__
-#define __V__WINDOW__
+#ifndef V_WINDOW_
+#define V_WINDOW_
 
 #include <MVRE/graphics/backend/template/window.hpp>
 #include <vulkan/vulkan.h>

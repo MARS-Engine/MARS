@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__FRAMEBUFFER__
-#define __MVRE__V__FRAMEBUFFER__
+#ifndef MVRE_V_FRAMEBUFFER_
+#define MVRE_V_FRAMEBUFFER_
 
 #include "v_base.hpp"
 #include <MVRE/graphics/backend/vulkan/v_render_pass.hpp>

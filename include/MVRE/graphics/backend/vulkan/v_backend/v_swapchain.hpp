@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__SWAPCHAIN__
-#define __MVRE__V__SWAPCHAIN__
+#ifndef MVRE_V_SWAPCHAIN_
+#define MVRE_V_SWAPCHAIN_
 
 #include <MVRE/graphics/backend/vulkan/v_backend/v_device.hpp>
 #include "v_base.hpp"

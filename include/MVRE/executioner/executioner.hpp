@@ -1,5 +1,5 @@
-#ifndef __MVRE__EXECUTIONER__
-#define __MVRE__EXECUTIONER__
+#ifndef MVRE_EXECUTIONER_
+#define MVRE_EXECUTIONER_
 
 #include "executioner_worker.hpp"
 

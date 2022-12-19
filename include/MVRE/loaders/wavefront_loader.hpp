@@ -1,5 +1,5 @@
-#ifndef __WAVEFRONT__LOADER__
-#define __WAVEFRONT__LOADER__
+#ifndef WAVEFRONT_LOADER_
+#define WAVEFRONT_LOADER_
 
 #include <string>
 #include "mesh.hpp"

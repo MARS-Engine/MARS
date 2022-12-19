@@ -1,5 +1,5 @@
-#ifndef __MVRE__MATERIAL__
-#define __MVRE__MATERIAL__
+#ifndef MVRE_MATERIAL_
+#define MVRE_MATERIAL_
 
 #include <MVRE/resources/resource_manager.hpp>
 #include <MVRE/graphics/backend/template/backend_instance.hpp>

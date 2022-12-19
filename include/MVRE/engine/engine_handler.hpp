@@ -1,5 +1,5 @@
-#ifndef __MVRE__ENGINE__HANDLER__
-#define __MVRE__ENGINE__HANDLER__
+#ifndef MVRE_ENGINE_HANDLER_
+#define MVRE_ENGINE_HANDLER_
 
 #include <pl/parallel.hpp>
 #include <MVRE/graphics/graphics_instance.hpp>

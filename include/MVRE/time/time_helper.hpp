@@ -1,5 +1,5 @@
-#ifndef __MVRE__TIME__HELPER__
-#define __MVRE__TIME__HELPER__
+#ifndef MVRE_TIME_HELPER_
+#define MVRE_TIME_HELPER_
 
 #include <chrono>
 

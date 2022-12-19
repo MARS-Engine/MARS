@@ -1,5 +1,5 @@
-#ifndef __MVRE__MATH__
-#define __MVRE__MATH__
+#ifndef MVRE_MATH_
+#define MVRE_MATH_
 
 #include <string>
 #include <array>

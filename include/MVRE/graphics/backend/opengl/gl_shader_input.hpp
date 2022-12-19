@@ -1,5 +1,5 @@
-#ifndef __MVRE__GL__SHADER__INPUT__
-#define __MVRE__GL__SHADER__INPUT__
+#ifndef MVRE_GL_SHADER_INPUT_
+#define MVRE_GL_SHADER_INPUT_
 
 #include <MVRE/graphics/backend/template/shader_input.hpp>
 #include <glad/glad.h>

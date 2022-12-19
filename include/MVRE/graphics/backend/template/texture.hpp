@@ -1,5 +1,5 @@
-#ifndef __MVRE__TEXTURE__
-#define __MVRE__TEXTURE__
+#ifndef MVRE_TEXTURE_
+#define MVRE_TEXTURE_
 
 #include "graphics_component.hpp"
 #include <MVRE/resources/resource_manager.hpp>

@@ -1,5 +1,5 @@
-#ifndef __MVRE__SHADER__INPUT__
-#define __MVRE__SHADER__INPUT__
+#ifndef MVRE_SHADER_INPUT_
+#define MVRE_SHADER_INPUT_
 
 #include "graphics_component.hpp"
 #include "buffer.hpp"

@@ -15,8 +15,6 @@ bool material::load_resource(const std::string &_path) {
     if (!resource_manager::read_file(_path, lines))
         mvre_debug::debug::error("MVRE - Material - Failed to find material - " + _path);
 
-    size_t texture_id = 0;
-
     for (const auto& line : lines) {
         if (!line.contains(':'))
             continue;
@@ -35,7 +33,6 @@ bool material::load_resource(const std::string &_path) {
             case MVRE_MATERIAL_INPUT_TEXTURE:
                 texture* new_texture;
                 resource_manager::load_graphical_resource<texture>(resource_manager::find_path(data[0], MVRE_RESOURCE_TYPE_TEXTURE), new_texture, m_instance);
-                new_texture->set_index(texture_id++);
                 m_textures[data[2]] = new_texture;
                 break;
         }

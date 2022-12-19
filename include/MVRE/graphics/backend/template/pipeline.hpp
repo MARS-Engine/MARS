@@ -1,5 +1,5 @@
-#ifndef __MVRE__PIPELINE__
-#define __MVRE__PIPELINE__
+#ifndef MVRE_PIPELINE_
+#define MVRE_PIPELINE_
 
 #include "graphics_component.hpp"
 #include "shader.hpp"

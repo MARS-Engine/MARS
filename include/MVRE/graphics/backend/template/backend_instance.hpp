@@ -1,5 +1,5 @@
-#ifndef __MVRE__BACKEND__INSTANCE__
-#define __MVRE__BACKEND__INSTANCE__
+#ifndef MVRE_BACKEND_INSTANCE_
+#define MVRE_BACKEND_INSTANCE_
 
 #include <MVRE/debug/debug.hpp>
 #include <MVRE/executioner/executioner.hpp>

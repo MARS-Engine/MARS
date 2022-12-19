@@ -1,5 +1,5 @@
-#ifndef __MVRE__ENGINE__OBJECT__
-#define __MVRE__ENGINE__OBJECT__
+#ifndef MVRE_ENGINE_OBJECT_
+#define MVRE_ENGINE_OBJECT_
 
 #include <pl/safe_vector.hpp>
 

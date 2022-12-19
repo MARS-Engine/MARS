@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__SYNC__
-#define __MVRE__V__SYNC__
+#ifndef MVRE_V_SYNC_
+#define MVRE_V_SYNC_
 
 #include "v_base.hpp"
 

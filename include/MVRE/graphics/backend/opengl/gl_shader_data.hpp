@@ -1,5 +1,5 @@
-#ifndef __MVRE__GL__SHADER__DATA__
-#define __MVRE__GL__SHADER__DATA__
+#ifndef MVRE_GL_SHADER_DATA_
+#define MVRE_GL_SHADER_DATA_
 
 #include "gl_buffer.hpp"
 #include "gl_shader.hpp"

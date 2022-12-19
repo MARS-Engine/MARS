@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__DEVICE__MANAGER__
-#define __MVRE__V__DEVICE__MANAGER__
+#ifndef MVRE_V_DEVICE_MANAGER_
+#define MVRE_V_DEVICE_MANAGER_
 
 #include "v_device.hpp"
 

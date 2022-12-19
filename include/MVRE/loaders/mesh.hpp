@@ -1,5 +1,5 @@
-#ifndef __MVRE__MESH__
-#define __MVRE__MESH__
+#ifndef MVRE_MESH_
+#define MVRE_MESH_
 
 #include <vector>
 #include <MVRE/math/vector3.hpp>

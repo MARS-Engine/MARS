@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__INSTANCE__
-#define __MVRE__V__INSTANCE__
+#ifndef MVRE_V_INSTANCE_
+#define MVRE_V_INSTANCE_
 
 #include <vulkan/vulkan.h>
 #include "v_base.hpp"

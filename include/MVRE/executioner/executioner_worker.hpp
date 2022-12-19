@@ -1,5 +1,5 @@
-#ifndef __MVRE__EXECUTIONER__WORKER__
-#define __MVRE__EXECUTIONER__WORKER__
+#ifndef MVRE_EXECUTIONER_WORKER_
+#define MVRE_EXECUTIONER_WORKER_
 
 #include <pl/safe_map.hpp>
 #include <pl/safe_vector.hpp>

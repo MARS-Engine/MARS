@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__SHADER__
-#define __MVRE__V__SHADER__
+#ifndef MVRE_V_SHADER_
+#define MVRE_V_SHADER_
 
 #include <MVRE/graphics/backend/template/shader.hpp>
 #include <vulkan/vulkan.h>

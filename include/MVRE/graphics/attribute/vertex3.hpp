@@ -1,5 +1,5 @@
-#ifndef __MVRE__VERTEX3__
-#define __MVRE__VERTEX3__
+#ifndef MVRE_VERTEX3_
+#define MVRE_VERTEX3_
 
 #include "MVRE/math/vector2.hpp"
 #include "MVRE/math/vector3.hpp"

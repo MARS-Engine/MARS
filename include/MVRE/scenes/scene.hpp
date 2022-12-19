@@ -1,5 +1,5 @@
-#ifndef __MVRE__SCENE__
-#define __MVRE__SCENE__
+#ifndef MVRE_SCENE_
+#define MVRE_SCENE_
 
 #include <MVRE/graphics/graphics_instance.hpp>
 #include <MVRE/engine/engine_handler.hpp>

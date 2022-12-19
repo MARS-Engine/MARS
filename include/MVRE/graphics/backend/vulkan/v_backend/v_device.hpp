@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__DEVICE__
-#define __MVRE__V__DEVICE__
+#ifndef MVRE_V_DEVICE_
+#define MVRE_V_DEVICE_
 
 #include "v_base.hpp"
 #include <optional>

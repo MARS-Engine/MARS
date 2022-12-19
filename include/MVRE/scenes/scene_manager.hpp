@@ -1,5 +1,5 @@
-#ifndef __MVRE__SCENE__MANAGER__
-#define __MVRE__SCENE__MANAGER__
+#ifndef MVRE_SCENE_MANAGER_
+#define MVRE_SCENE_MANAGER_
 
 #include <string>
 #include <pl/safe_map.hpp>

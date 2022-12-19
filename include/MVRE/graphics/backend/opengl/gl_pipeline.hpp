@@ -1,5 +1,5 @@
-#ifndef __MVRE__GL__PIPELINE__
-#define __MVRE__GL__PIPELINE__
+#ifndef MVRE_GL_PIPELINE_
+#define MVRE_GL_PIPELINE_
 
 #include <MVRE/graphics/backend/template/pipeline.hpp>
 #include <glad/glad.h>

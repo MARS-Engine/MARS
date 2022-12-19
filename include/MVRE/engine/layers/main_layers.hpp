@@ -1,5 +1,5 @@
-#ifndef __MVRE__MAIN__LAYERS__
-#define __MVRE__MAIN__LAYERS__
+#ifndef MVRE_MAIN_LAYERS_
+#define MVRE_MAIN_LAYERS_
 
 #include <MVRE/engine/engine_object.hpp>
 #include <MVRE/engine/engine_handler.hpp>

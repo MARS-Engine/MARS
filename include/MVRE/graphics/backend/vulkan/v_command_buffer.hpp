@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__COMMAND__BUFFER__
-#define __MVRE__V__COMMAND__BUFFER__
+#ifndef MVRE_V_COMMAND_BUFFER_
+#define MVRE_V_COMMAND_BUFFER_
 
 #include <MVRE/graphics/backend/template/command_buffer.hpp>
 #include <vulkan/vulkan.h>

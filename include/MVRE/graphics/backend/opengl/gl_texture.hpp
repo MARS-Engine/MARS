@@ -1,5 +1,5 @@
-#ifndef __MVRE__GL__TEXTURE__
-#define __MVRE__GL__TEXTURE__
+#ifndef MVRE_GL_TEXTURE_
+#define MVRE_GL_TEXTURE_
 
 #include <MVRE/graphics/backend/template/texture.hpp>
 #include <glad/glad.h>

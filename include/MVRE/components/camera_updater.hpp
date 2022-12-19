@@ -1,5 +1,5 @@
-#ifndef __MVRE__CAMERA__COMPONENT__
-#define __MVRE__CAMERA__COMPONENT__
+#ifndef MVRE_CAMERA_COMPONENT_
+#define MVRE_CAMERA_COMPONENT_
 
 #include <MVRE/engine/component.hpp>
 #include <MVRE/engine/layers/main_layers.hpp>

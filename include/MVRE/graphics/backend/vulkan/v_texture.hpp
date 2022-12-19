@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__TEXTURE__
-#define __MVRE__V__TEXTURE__
+#ifndef MVRE_V_TEXTURE_
+#define MVRE_V_TEXTURE_
 
 #include <MVRE/graphics/backend/template/texture.hpp>
 #include <vulkan/vulkan.h>

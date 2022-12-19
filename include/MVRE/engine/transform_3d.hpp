@@ -1,5 +1,5 @@
-#ifndef __MVRE__TRANSFORM__3D__
-#define __MVRE__TRANSFORM__3D__
+#ifndef MVRE_TRANSFORM_3D_
+#define MVRE_TRANSFORM_3D_
 
 #include <MVRE/math/vector3.hpp>
 #include <MVRE/math/quaternion.hpp>

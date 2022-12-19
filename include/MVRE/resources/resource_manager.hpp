@@ -1,5 +1,5 @@
-#ifndef __MVRE__RESOURCE__MANAGER__
-#define __MVRE__RESOURCE__MANAGER__
+#ifndef MVRE_RESOURCE_MANAGER_
+#define MVRE_RESOURCE_MANAGER_
 
 #include <MVRE/debug/debug.hpp>
 #include <MVRE/graphics/backend/template/graphics_component.hpp>

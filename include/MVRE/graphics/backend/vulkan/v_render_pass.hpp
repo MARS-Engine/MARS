@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__RENDER__PASS__
-#define __MVRE__V__RENDER__PASS__
+#ifndef MVRE_V_RENDER_PASS_
+#define MVRE_V_RENDER_PASS_
 
 #include <MVRE/graphics/backend/template/render_pass.hpp>
 #include <vulkan/vulkan.h>

@@ -1,5 +1,5 @@
-#ifndef __MVRE__GL__COMMAND__BUFFER__
-#define __MVRE__GL__COMMAND__BUFFER__
+#ifndef MVRE_GL_COMMAND_BUFFER_
+#define MVRE_GL_COMMAND_BUFFER_
 
 #include <MVRE/graphics/backend/template/command_buffer.hpp>
 #include <glad/glad.h>

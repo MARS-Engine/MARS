@@ -1,5 +1,5 @@
-#ifndef __MVRE__V__BUFFER__
-#define __MVRE__V__BUFFER__
+#ifndef MVRE_V_BUFFER_
+#define MVRE_V_BUFFER_
 
 #include <MVRE/graphics/backend/template/buffer.hpp>
 
