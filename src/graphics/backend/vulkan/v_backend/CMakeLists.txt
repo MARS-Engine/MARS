@@ -6,4 +6,6 @@ target_sources(MVRE PUBLIC
         v_swapchain.cpp
         v_framebuffer.cpp
         v_command_pool.cpp
-        v_sync.cpp)
+        v_sync.cpp
+        v_depth.cpp
+        v_image.cpp)

@@ -6,6 +6,8 @@ using namespace mvre_graphics;
 VKAPI_ATTR VkBool32 VKAPI_CALL mvre_graphics::debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT _message_severity, VkDebugUtilsMessageTypeFlagsEXT _message_type, const VkDebugUtilsMessengerCallbackDataEXT* _callback_data, void* _user_data) {
     if (_message_severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
         mvre_debug::debug::alert("MVRE - Vulkan - Validation layer: " + (std::string)_callback_data->pMessage);
+    else
+        mvre_debug::debug::log("MVRE - Vulkan - Validation layer: " + (std::string)_callback_data->pMessage);
 
     return VK_FALSE;
 }

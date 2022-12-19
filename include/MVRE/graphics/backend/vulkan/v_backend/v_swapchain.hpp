@@ -21,15 +21,11 @@ namespace mvre_graphics {
     public:
 
         inline std::vector<VkImageView>& image_views() { return m_swapchain_image_views; }
-        inline VkSwapchainKHR  raw_swapchain() const { return m_swapchain; }
+        inline VkSwapchainKHR&  raw_swapchain() { return m_swapchain; }
         inline VkFormat image_format() const { return  m_swapchain_image_format; }
         inline VkExtent2D extent() const { return  m_swapchain_extent; }
 
         using v_base::v_base;
-
-        ~v_swapchain() {
-            destroy();
-        }
 
         void create();
 

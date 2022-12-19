@@ -42,6 +42,7 @@ namespace mvre_graphics {
         }
 
         void create();
+        void destroy();
     };
 }
 

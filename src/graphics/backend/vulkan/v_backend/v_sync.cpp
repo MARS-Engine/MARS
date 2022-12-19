@@ -27,7 +27,6 @@ void v_sync::create() {
 
 void v_sync::wait() {
     vkWaitForFences(graphics_instance()->device()->raw_device(), 1, &m_inflight_fence[graphics_instance()->current_frame()], VK_TRUE, UINT64_MAX);
-    vkResetFences(graphics_instance()->device()->raw_device(), 1, &m_inflight_fence[graphics_instance()->current_frame()]);
 }
 
 void v_sync::destroy() {

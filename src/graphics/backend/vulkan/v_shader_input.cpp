@@ -46,12 +46,6 @@ void v_shader_input::load_input(mvre_shader_inputs _inputs) {
         }
 
         m_descriptions.push_back(new_dec);
-
-        m_binding = {
-            .binding = 0,
-            .stride = static_cast<uint32_t>(stride),
-            .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
-        };
     }
 }
 
@@ -60,4 +54,11 @@ buffer* v_shader_input::add_buffer(size_t _input_size, MVRE_MEMORY_TYPE _input_t
     new_buffer->create(_input_size, _input_type);
     m_buffers.push_back(new_buffer);
     return new_buffer;
+}
+
+void v_shader_input::destroy() {
+    for (auto& buffer : m_buffers) {
+        buffer->destroy();
+        delete buffer;
+    }
 }

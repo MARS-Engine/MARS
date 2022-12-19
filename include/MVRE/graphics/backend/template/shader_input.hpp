@@ -17,6 +17,8 @@ namespace mvre_graphics {
         virtual void bind() { }
         virtual void unbind() { }
 
+        virtual void destroy() { }
+
         virtual buffer* add_buffer(size_t _input_size, MVRE_MEMORY_TYPE _input_type) { return nullptr; }
         virtual void load_input(mvre_shader_inputs _inputs) { }
     };

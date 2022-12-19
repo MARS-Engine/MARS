@@ -16,3 +16,7 @@ void v_command_buffer::create() {
     if (vkAllocateCommandBuffers(instance<v_backend_instance>()->device()->raw_device(), &allocInfo, m_command_buffer.data()) != VK_SUCCESS)
         mvre_debug::debug::error("MVRE - Vulkan - Failed to allocate command buffers");
 }
+
+void v_command_buffer::destroy() {
+    vkFreeCommandBuffers(instance<v_backend_instance>()->device()->raw_device(), instance<v_backend_instance>()->command_pool()->raw_command_pool(), m_command_buffer.size(), m_command_buffer.data());
+}

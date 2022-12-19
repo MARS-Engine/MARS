@@ -5,7 +5,6 @@
 #include <vulkan/vulkan.h>
 
 namespace mvre_graphics {
-
     class v_render_pass : public render_pass {
     private:
         VkRenderPass m_render_pass;

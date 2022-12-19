@@ -27,6 +27,8 @@ namespace mvre_graphics {
         }
 
         static pipeline* load_pipeline(mvre_shader_inputs* _input, shader* _shader, graphics_instance* _graphics_instance);
+
+        static void destroy();
     };
 }
 

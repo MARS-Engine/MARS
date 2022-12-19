@@ -18,6 +18,8 @@ namespace mvre_engine {
 
         void set_object(engine_object* _new_object) { m_object = _new_object; }
 
+        virtual void destroy() { }
+
         virtual std::size_t size() const { return 0; }
     };
 

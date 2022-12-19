@@ -8,6 +8,7 @@
 #include <MVRE/graphics/backend/vulkan/v_backend/v_sync.hpp>
 #include <MVRE/graphics/backend/vulkan/v_backend/v_framebuffer.hpp>
 #include <MVRE/graphics/backend/vulkan/v_backend/v_command_pool.hpp>
+#include <MVRE/graphics/backend/vulkan/v_backend/v_depth.hpp>
 
 using namespace mvre_graphics;
 
@@ -65,6 +66,9 @@ void v_backend_instance::create_with_window(const std::string &_title, mvre_math
     m_swapchain = new v_swapchain(this);
     m_swapchain->create();
 
+    m_depth = new v_depth(this);
+    m_depth->create();
+
     m_render_pass = new v_render_pass(this);
     m_render_pass->create();
 
@@ -90,7 +94,7 @@ void v_backend_instance::update() {
 void v_backend_instance::prepare_render() {
     m_sync->wait();
     vkAcquireNextImageKHR(device()->raw_device(), swapchain()->raw_swapchain(), UINT64_MAX, sync()->image_available(), VK_NULL_HANDLE, &m_image_index);
-    m_framebuffer->set_frame(m_image_index);
+    vkResetFences(device()->raw_device(), 1, &sync()->inflight_fence());
 
     m_primary_buffer->reset();
     m_primary_buffer->begin();
@@ -101,46 +105,64 @@ void v_backend_instance::draw() {
     m_render_pass->end();
     m_primary_buffer->end();
 
-    VkSemaphore wait_semaphores[] = { sync()->image_available() };
-    VkSemaphore signal_semaphores[] = { sync()->render_finished() };
-    VkPipelineStageFlags wait_Stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
     VkSubmitInfo submit_Info {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .waitSemaphoreCount = 1,
-        .pWaitSemaphores = wait_semaphores,
-        .pWaitDstStageMask = wait_Stages,
+        .pWaitSemaphores = &sync()->image_available(),
+        .pWaitDstStageMask = &wait_stage,
         .commandBufferCount = 1,
         .pCommandBuffers = &((v_command_buffer*)m_primary_buffer)->raw_command_buffer(),
         .signalSemaphoreCount = 1,
-        .pSignalSemaphores = signal_semaphores,
+        .pSignalSemaphores = &sync()->render_finished(),
     };
 
     if (vkQueueSubmit(device()->raw_graphics_queue(), 1, &submit_Info, sync()->inflight_fence()) != VK_SUCCESS)
         mvre_debug::debug::error("MVRE - Vulkan - Backend Instance - Failed to submit draw command buffer");
 
-    VkSwapchainKHR swapchains[] = { swapchain()->raw_swapchain() };
-
     VkPresentInfoKHR presentInfo {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .waitSemaphoreCount = 1,
-        .pWaitSemaphores = signal_semaphores,
+        .pWaitSemaphores = &sync()->render_finished(),
         .swapchainCount = 1,
-        .pSwapchains = swapchains,
+        .pSwapchains = &swapchain()->raw_swapchain(),
         .pImageIndices = &m_image_index,
     };
 
-    vkQueuePresentKHR(device()->raw_present_queue(), &presentInfo);
-
+    if (vkQueuePresentKHR(device()->raw_present_queue(), &presentInfo) != VK_SUCCESS)
+        mvre_debug::debug::error("MVRE - Present Failed");
+    vkQueueWaitIdle(device()->raw_present_queue());
     m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void v_backend_instance::destroy() {
+    m_render_pass->destroy();
+    delete m_render_pass;
+
+    m_depth->destroy();
+    delete m_depth;
+
+    m_swapchain->destroy();
     delete m_swapchain;
 
+    ((v_command_buffer*)m_primary_buffer)->destroy();
+    delete m_primary_buffer;
+
+    m_command_pool->destroy();
+    delete m_command_pool;
+
+    m_sync->destroy();
+    delete m_sync;
+
+    m_framebuffer->destroy();
+    delete m_framebuffer;
+
+    m_device->destroy();
     delete m_device;
 
     ((v_window*)raw_window)->destroy_surface();
+    m_instance->destroy();
     delete m_instance;
     delete raw_window;
 }

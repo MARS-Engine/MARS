@@ -4,7 +4,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <string>
-
+#include <MVRE/debug/debug.hpp>
 #include "MVRE/math/vector2.hpp"
 
 namespace mvre_graphics {

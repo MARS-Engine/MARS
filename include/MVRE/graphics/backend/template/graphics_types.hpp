@@ -54,13 +54,15 @@ namespace mvre_graphics {
         std::string name;
         MVRE_UNIFORM_TYPE type;
         size_t size;
+        size_t binding;
 
         mvre_shader_uniform() = default;
 
-        mvre_shader_uniform(std::string _name, MVRE_UNIFORM_TYPE _type, size_t _size) {
+        mvre_shader_uniform(std::string _name, MVRE_UNIFORM_TYPE _type, size_t _size, size_t _binding) {
             name = _name;
             type = _type;
             size = _size;
+            binding = _binding;
         }
     };
 

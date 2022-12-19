@@ -12,8 +12,8 @@ namespace mvre_graphics {
     public:
         using uniform::uniform;
 
-        void bind() override {
-            glBindBufferBase(GL_UNIFORM_BUFFER, m_index, ((gl_buffer*)m_buffer)->id());
+        void bind(size_t _index) override {
+            glBindBufferBase(GL_UNIFORM_BUFFER, m_index, ((gl_buffer*)m_buffers[_index])->id());
         }
     };
 
@@ -23,10 +23,12 @@ namespace mvre_graphics {
 
         void bind() override {
             for (auto& uni : m_uniforms)
-                uni.second->bind();
+                uni.second->bind(instance()->current_frame());
+            for (auto& tex : m_textures)
+                tex.second->bind();
         }
 
-        void generate(shader* _shader) override;
+        void generate(pipeline* _pipeline, shader* _shader) override;
     };
 }
 

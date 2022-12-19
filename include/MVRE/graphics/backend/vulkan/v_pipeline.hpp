@@ -21,14 +21,15 @@ namespace mvre_graphics {
         VkPipelineInputAssemblyStateCreateInfo m_input_assembly;
         VkPipelineViewportStateCreateInfo m_viewport_state;
         VkPipelineRasterizationStateCreateInfo m_rasterizer;
+        VkPipelineDepthStencilStateCreateInfo m_depth;
         VkPipelineMultisampleStateCreateInfo m_multisampling;
 
         VkRect2D m_scissor;
 
         std::vector<VkDescriptorSet> m_descriptor_set;
-
-        void create_descriptor_sets();
     public:
+        inline VkPipelineLayout raw_layout() { return m_pipeline_layout; }
+
         explicit v_pipeline(backend_instance* _instance);
 
         void bind() override;

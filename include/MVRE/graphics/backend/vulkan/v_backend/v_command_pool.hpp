@@ -14,10 +14,6 @@ namespace mvre_graphics {
 
         inline VkCommandPool raw_command_pool() const { return m_command_pool; }
 
-        ~v_command_pool() {
-            destroy();
-        }
-
         void create();
 
         inline void destroy() {

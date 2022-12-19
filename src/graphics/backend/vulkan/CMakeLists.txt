@@ -8,4 +8,5 @@ target_sources(MVRE PUBLIC
         v_command_buffer.cpp
         v_shader_input.cpp
         v_buffer.cpp
-        v_texture.cpp)
+        v_texture.cpp
+        v_shader_data.cpp)

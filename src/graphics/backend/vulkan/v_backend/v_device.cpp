@@ -144,5 +144,5 @@ void v_device::create() {
         mvre_debug::debug::error("MVRE - Vulkan - Failed to create logical device");
 
     vkGetDeviceQueue(m_device, m_indices.value().graphics_family.value(), 0, &m_graphics_queue);
-    vkGetDeviceQueue(m_device, m_indices.value().graphics_family.value(), 0, &m_present_queue);
+    vkGetDeviceQueue(m_device, m_indices.value().present_family.value(), 0, &m_present_queue);
 }

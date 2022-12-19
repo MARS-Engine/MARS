@@ -14,18 +14,22 @@ namespace mvre_graphics {
         std::map<MVRE_SHADER_TYPE, unsigned int> m_shaders_modules;
 
         VkDescriptorSetLayout m_uniform_layout;
-        VkDescriptorPool m_descriptor_pool;
+
+        std::vector<VkDescriptorPoolSize> m_pool_descriptors;
 
         void generate_shader(MVRE_SHADER_TYPE _type, const std::string& _data) override;
     public:
         std::vector<VkPipelineShaderStageCreateInfo> get_stages();
 
-        inline VkDescriptorSetLayout raw_uniform_layout() { return m_uniform_layout; }
-        inline VkDescriptorPool raw_descriptor_pool() { return m_descriptor_pool; }
+        inline std::vector<VkDescriptorPoolSize>& get_pool_descriptors() { return m_pool_descriptors; }
+
+        inline VkDescriptorSetLayout& raw_uniform_layout() { return m_uniform_layout; }
 
         using shader::shader;
 
         bool load_resource(const std::string& _path) override;
+
+        void clean() override;
     };
 }
 

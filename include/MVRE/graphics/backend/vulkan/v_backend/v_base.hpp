@@ -10,9 +10,9 @@ namespace mvre_graphics {
     private:
         v_backend_instance* m_instance;
     public:
-        inline v_backend_instance* graphics_instance() { return m_instance; }
+        inline v_backend_instance* graphics_instance() const { return m_instance; }
 
-        v_base(v_backend_instance* _instance) {
+        explicit v_base(v_backend_instance* _instance) {
             m_instance = _instance;
         }
     };

@@ -9,6 +9,7 @@
 #include <MVRE/graphics/backend/vulkan/v_command_buffer.hpp>
 #include <MVRE/graphics/backend/vulkan/v_texture.hpp>
 #include <MVRE/graphics/backend/vulkan/v_shader_input.hpp>
+#include <MVRE/graphics/backend/vulkan/v_shader_data.hpp>
 
 namespace mvre_graphics {
 
@@ -18,6 +19,7 @@ namespace mvre_graphics {
     class v_command_pool;
     class v_framebuffer;
     class v_sync;
+    class v_depth;
 
     class v_backend_instance : public backend_instance {
     private:
@@ -28,6 +30,7 @@ namespace mvre_graphics {
         v_framebuffer* m_framebuffer = nullptr;
         v_render_pass* m_render_pass = nullptr;
         v_sync* m_sync = nullptr;
+        v_depth* m_depth = nullptr;
 
     protected:
         shader* generate_shader() override { return new v_shader(this); }
@@ -35,6 +38,8 @@ namespace mvre_graphics {
         render_pass* generate_render_pass() override { return new v_render_pass(this); }
         texture* generate_texture() override { return new v_texture(this); }
         shader_input * generate_shader_input() override { return new v_shader_input(this); }
+        shader_data * generate_shader_data() override { return new v_shader_data(this); }
+        buffer * generate_buffer() override { return new v_buffer(this); }
     public:
         inline v_render_pass* get_render_pass() const { return m_render_pass; }
         inline v_instance* instance() const { return m_instance; }
@@ -44,6 +49,7 @@ namespace mvre_graphics {
         inline v_command_pool* command_pool() const { return m_command_pool; }
         inline v_framebuffer* framebuffer() const { return m_framebuffer; }
         inline v_sync* sync() const { return m_sync; }
+        inline v_depth* depth() const { return m_depth; }
 
         inline VkCommandBuffer raw_command_buffer() const { return dynamic_cast<v_command_buffer*>(primary_buffer())->raw_command_buffer(); }
 

@@ -28,17 +28,14 @@ namespace mvre_graphics {
 
         inline shader_data* generate_shader_data() {
             auto data = m_instance->instance<shader_data>();
-            data->generate(m_shader);
+            data->set_textures(m_textures);
+            data->generate(m_pipeline, m_shader);
+
             return data;
         }
 
         template<typename T> inline void set_pipeline() {
             m_pipeline = pipeline_manager::load_pipeline(pipeline_manager::get_input<T>(), m_shader, m_instance);
-        }
-
-        inline void bind() {
-            for (auto& tex: m_textures)
-                tex.second->bind();
         }
 
         bool load_resource(const std::string &_path) override;

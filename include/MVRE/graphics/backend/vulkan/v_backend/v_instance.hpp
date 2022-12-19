@@ -13,7 +13,7 @@ namespace mvre_graphics {
         VkInstance m_instance = nullptr;
     public:
         const std::vector<const char*> validation_layers = {
-                "VK_LAYER_KHRONOS_validation"
+                "VK_LAYER_KHRONOS_validation",
         };
 
         const std::vector<const char*> device_extensions = {
@@ -22,11 +22,7 @@ namespace mvre_graphics {
 
         using v_base::v_base;
 
-        ~v_instance() {
-            destroy();
-        }
-
-        inline VkInstance raw_instance() { return m_instance;}
+        inline VkInstance raw_instance() const { return m_instance;}
 
         std::vector<const char*> get_required_extensions();
         bool check_validation_layer_support();

@@ -48,7 +48,9 @@ bool shader::load_shader_file(std::string _path, std::string _path_sufix) {
                 if (size == 0)
                     continue;
 
-                m_uniforms.push_back(new mvre_shader_uniform(data[0], uniform_tokens[data[1]], size));
+                size_t binding = std::strtoul(data[3].c_str(), nullptr, 10);
+
+                m_uniforms.push_back(new mvre_shader_uniform(data[0], uniform_tokens[data[1]], size, binding));
                 break;
         }
     }

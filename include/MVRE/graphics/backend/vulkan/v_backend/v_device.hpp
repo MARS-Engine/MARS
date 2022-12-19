@@ -52,10 +52,6 @@ namespace mvre_graphics {
             m_physical_device = _physical_device;
         }
 
-        ~v_device()  {
-            destroy();
-        }
-
         void create();
 
         inline void destroy()  {

@@ -21,3 +21,10 @@ pipeline* pipeline_manager::load_pipeline(mvre_shader_inputs* _input, shader* _s
 
     return result;
 }
+
+void pipeline_manager::destroy() {
+    for (auto& pipe : m_pipelines) {
+        pipe.second->destroy();
+        delete pipe.second;
+    }
+}

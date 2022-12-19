@@ -7,54 +7,22 @@
 
 using namespace mvre_graphics;
 
-void v_pipeline::create_descriptor_sets() {
-    std::vector<VkDescriptorSetLayout> layouts(instance()->max_frames(), ((v_shader*)m_shader)->raw_uniform_layout());
-    VkDescriptorSetAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = ((v_shader*)m_shader)->raw_descriptor_pool();
-    allocInfo.descriptorSetCount = static_cast<uint32_t>(instance()->max_frames());
-    allocInfo.pSetLayouts = layouts.data();
-
-    m_descriptor_set.resize(instance()->max_frames());
-    if (vkAllocateDescriptorSets(instance<v_backend_instance>()->device()->raw_device(), &allocInfo, m_descriptor_set.data()) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate descriptor sets!");
-    }
-
-    for (size_t i = 0; i < instance()->max_frames(); i++) {
-        VkDescriptorBufferInfo bufferInfo{};
-        //bufferInfo.buffer = uniformBuffers[i];
-        bufferInfo.offset = 0;
-        //bufferInfo.range = sizeof(UniformBufferObject);
-
-        VkWriteDescriptorSet descriptorWrite{};
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.dstSet = m_descriptor_set[i];
-        descriptorWrite.dstBinding = 0;
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pBufferInfo = &bufferInfo;
-
-        vkUpdateDescriptorSets(instance<v_backend_instance>()->device()->raw_device(), 1, &descriptorWrite, 0, nullptr);
-    }
-}
-
 void v_pipeline::bind() {
     auto command_buffer = instance<v_backend_instance>()->raw_command_buffer();
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
     VkViewport viewport{};
     viewport.x = (float)m_viewport.position.x();
-    viewport.y = (float)m_viewport.position.y();
+    viewport.y = (float)(m_viewport.position.y() + m_viewport.size.y());
     viewport.width = (float) m_viewport.size.x();
-    viewport.height = (float) m_viewport.size.y();
+    viewport.height = -(float) m_viewport.size.y();
     viewport.minDepth = m_viewport.depth.x();
     viewport.maxDepth = m_viewport.depth.y();
     vkCmdSetViewport(command_buffer, 0, 1, &viewport);
 
     vkCmdSetScissor(command_buffer, 0, 1, &m_scissor);
 
-    //vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+    //vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1, &m_descriptor_sets[currentFrame], 0, nullptr);
 }
 
 v_pipeline::v_pipeline(backend_instance* _instance) : pipeline(_instance) {
@@ -75,11 +43,20 @@ v_pipeline::v_pipeline(backend_instance* _instance) : pipeline(_instance) {
             .primitiveRestartEnable = VK_FALSE
     };
 
+    m_depth = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+        .depthTestEnable = VK_TRUE,
+        .depthWriteEnable = VK_TRUE,
+        .depthCompareOp = VK_COMPARE_OP_LESS,
+        .depthBoundsTestEnable = VK_FALSE,
+        .stencilTestEnable = VK_FALSE,
+    };
+
     VkViewport viewport = {
             .x = 0.0f,
-            .y = 0.0f,
+            .y = (float)instance()->get_window()->size().y(),
             .width = (float)instance()->get_window()->size().x(),
-            .height = (float)instance()->get_window()->size().y(),
+            .height = -(float)instance()->get_window()->size().y(),
             .minDepth = 0.0f,
             .maxDepth = 1.0f
     };
@@ -115,20 +92,17 @@ v_pipeline::v_pipeline(backend_instance* _instance) : pipeline(_instance) {
     };
 
     m_blend_attachments = {{
-            .blendEnable = VK_TRUE,
-            .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-            .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-            .colorBlendOp = VK_BLEND_OP_ADD,
-            .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-            .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-            .alphaBlendOp = VK_BLEND_OP_ADD
+        .blendEnable = VK_FALSE,
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
     }};
 
     m_color_blending = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
             .logicOpEnable = VK_FALSE,
+            .logicOp = VK_LOGIC_OP_COPY,
             .attachmentCount = static_cast<uint32_t>(m_blend_attachments.size()),
             .pAttachments = m_blend_attachments.data(),
+            .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f },
     };
 }
 
@@ -177,7 +151,9 @@ void v_pipeline::create() {
     };
 
     VkPipelineLayoutCreateInfo pipeline_layout_pipeline {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .setLayoutCount = 1,
+        .pSetLayouts = &((v_shader*)m_shader)->raw_uniform_layout()
     };
 
     if (vkCreatePipelineLayout(instance<v_backend_instance>()->device()->raw_device(), &pipeline_layout_pipeline, nullptr, &m_pipeline_layout) != VK_SUCCESS)
@@ -194,6 +170,7 @@ void v_pipeline::create() {
         .pViewportState = &m_viewport_state,
         .pRasterizationState = &m_rasterizer,
         .pMultisampleState = &m_multisampling,
+        .pDepthStencilState = &m_depth,
         .pColorBlendState = &m_color_blending,
         .pDynamicState = &m_dynamic_state,
         .layout = m_pipeline_layout,
@@ -207,6 +184,8 @@ void v_pipeline::create() {
 }
 
 void v_pipeline::destroy() {
+
+
     vkDestroyPipeline(instance<v_backend_instance>()->device()->raw_device(), m_pipeline, nullptr);
     vkDestroyPipelineLayout(instance<v_backend_instance>()->device()->raw_device(), m_pipeline_layout, nullptr);
 }

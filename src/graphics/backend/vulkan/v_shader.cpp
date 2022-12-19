@@ -64,11 +64,10 @@ bool v_shader::load_resource(const std::string &_path) {
     }
 
     std::vector<VkDescriptorSetLayoutBinding> m_descriptors;
-    std::vector<VkDescriptorPoolSize> m_pool_descriptors;
 
-    for (size_t i = 0; i < m_uniforms.size(); i++) {
+    for (auto & m_uniform : m_uniforms) {
         VkDescriptorSetLayoutBinding new_desc = {
-                .binding = static_cast<uint32_t>(i),
+                .binding = static_cast<uint32_t>(m_uniform->binding),
                 .descriptorCount = 1,
                 .pImmutableSamplers = nullptr,
         };
@@ -77,7 +76,7 @@ bool v_shader::load_resource(const std::string &_path) {
             .descriptorCount = static_cast<uint32_t>(instance()->max_frames())
         };
 
-        switch (m_uniforms[i]->type) {
+        switch (m_uniform->type) {
             case MVRE_UNIFORM_TYPE_SAMPLER:
                 new_desc.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
                 new_desc.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -86,7 +85,7 @@ bool v_shader::load_resource(const std::string &_path) {
             default:
                 new_desc.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
                 new_desc.stageFlags = VK_SHADER_STAGE_ALL;
-                new_pool_desc.descriptorCount = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                new_pool_desc.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
                 break;
         }
 
@@ -103,16 +102,14 @@ bool v_shader::load_resource(const std::string &_path) {
     if (vkCreateDescriptorSetLayout(instance<v_backend_instance>()->device()->raw_device(), &layoutInfo, nullptr, &m_uniform_layout) != VK_SUCCESS)
         mvre_debug::debug::error("MVRE - Vulkan - Shader - Failed to create descriptor set layout!");
 
-    VkDescriptorPoolCreateInfo poolInfo {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .maxSets = static_cast<uint32_t>(instance()->max_frames()),
-        .poolSizeCount = static_cast<uint32_t>(m_pool_descriptors.size()),
-        .pPoolSizes = m_pool_descriptors.data(),
-    };
-
-
-    if (vkCreateDescriptorPool(instance<v_backend_instance>()->device()->raw_device(), &poolInfo, nullptr, &m_descriptor_pool))
-        mvre_debug::debug::error("MVRE - Vulkan - Shader - Failed to create descriptor pool");
-
     return true;
+}
+
+void v_shader::clean() {
+    shader::clean();
+
+    vkDestroyDescriptorSetLayout(instance<v_backend_instance>()->device()->raw_device(), m_uniform_layout, nullptr);
+
+    for (auto& mod : m_v_modules)
+        vkDestroyShaderModule(instance<v_backend_instance>()->device()->raw_device(), mod.second, nullptr);
 }

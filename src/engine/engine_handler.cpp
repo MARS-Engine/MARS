@@ -11,10 +11,18 @@ void engine_handler::init() {
 
 void engine_handler::clean() {
 
+    pl::_for(0, m_workers.size(), [&](int _thread) {
+        for (auto& i : m_workers[_thread])
+            delete i;
+        m_workers[_thread].clear();
+        return true;
+    });
+
     m_workers.clear();
 
     for (auto& layer : layer_data)
             delete layer.second;
+
     layer_data.clear();
 }
 

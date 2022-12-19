@@ -13,13 +13,9 @@ namespace mvre_graphics {
     public:
         using v_base::v_base;
 
-        inline VkSemaphore image_available() { return  m_image_available[graphics_instance()->current_frame()]; }
-        inline VkSemaphore render_finished() { return  m_render_finished[graphics_instance()->current_frame()]; }
-        inline VkFence inflight_fence() { return  m_inflight_fence[graphics_instance()->current_frame()]; }
-
-        ~v_sync() {
-            destroy();
-        }
+        inline VkSemaphore& image_available() { return  m_image_available[graphics_instance()->current_frame()]; }
+        inline VkSemaphore& render_finished() { return  m_render_finished[graphics_instance()->current_frame()]; }
+        inline VkFence& inflight_fence() { return  m_inflight_fence[graphics_instance()->current_frame()]; }
 
         void create();
         void wait();
