@@ -1,0 +1,1 @@
+target_sources(MVRE PUBLIC wavefront_loader.cpp)

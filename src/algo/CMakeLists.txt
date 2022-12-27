@@ -1,0 +1,1 @@
+target_sources(MVRE PUBLIC string_helper.cpp)

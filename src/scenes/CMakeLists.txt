@@ -1,0 +1,1 @@
+target_sources(MVRE PUBLIC scene_manager.cpp)
