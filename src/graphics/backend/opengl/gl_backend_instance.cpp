@@ -12,7 +12,7 @@ void GLAPIENTRY MessageCallback( GLenum source, GLenum type, GLuint id, GLenum s
         fprintf( stderr, "GL ERROR CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ), type, severity, message );
 }
 
-void gl_backend_instance::create_with_window(const std::string& _title, mvre_math::vector2<int> _size) {
+void gl_backend_instance::create_with_window(const std::string& _title, const mvre_math::vector2<int>& _size) {
     raw_window = new gl_window();
     raw_window->initialize(_title, _size);
 
@@ -59,7 +59,7 @@ void gl_backend_instance::create_with_window(const std::string& _title, mvre_mat
 }
 
 void gl_backend_instance::update() {
-    raw_window->process();
+
 }
 
 void gl_backend_instance::prepare_render() {

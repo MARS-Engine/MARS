@@ -24,28 +24,35 @@ void executioner_worker::worker() {
         }
 
         while (!m_jobs[EXECUTIONER_JOB_PRIORITY_IN_FLIGHT].empty()) {
+            m_jobs.lock();
             auto job = m_jobs[EXECUTIONER_JOB_PRIORITY_IN_FLIGHT][0];
+            m_jobs[EXECUTIONER_JOB_PRIORITY_IN_FLIGHT].erase_at(0);
+            m_jobs.unlock();
+
             job->callback();
             {
                 std::lock_guard lk(job->mtx);
                 job->finished = true;
             }
             job->wait_room.notify_all();
-            m_jobs[EXECUTIONER_JOB_PRIORITY_IN_FLIGHT].erase_at(0);
         }
 
         if (m_execute) {
             while (!m_jobs[EXECUTIONER_JOB_PRIORITY_NORMAL].empty()) {
+                m_jobs.lock();
                 auto job = m_jobs[EXECUTIONER_JOB_PRIORITY_NORMAL][0];
+                m_jobs[EXECUTIONER_JOB_PRIORITY_NORMAL].erase_at(0);
+                m_jobs.unlock();
+
                 job->callback();
                 {
                     std::lock_guard lk(job->mtx);
                     job->finished = true;
                 }
                 job->wait_room.notify_all();
-                m_jobs[EXECUTIONER_JOB_PRIORITY_NORMAL].erase_at(0);
             }
 
+            render_jobs.lock();
             for (auto& pair : render_jobs) {
                 pair.first->bind();
                 while (!render_jobs[pair.first].empty()) {
@@ -59,6 +66,7 @@ void executioner_worker::worker() {
                     render_jobs[pair.first].erase_at(0);
                 }
             }
+            render_jobs.unlock();
         }
 
         {

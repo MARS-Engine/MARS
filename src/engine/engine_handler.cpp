@@ -29,8 +29,10 @@ void engine_handler::clean() {
 void engine_handler::process_layers(engine_object* _obj) {
     for (auto& layer : layer_data) {
         auto valid_layers = layer.second->validator(_obj);
+        layer.second->valid_components[next_code].lock();
         for (auto component: valid_layers)
             layer.second->valid_components[next_code].push_back(component);
+        layer.second->valid_components[next_code].unlock();
     }
 }
 
@@ -55,7 +57,10 @@ engine_object* engine_handler::instance(engine_object *_obj, graphics_instance *
         return _obj;
     }
 
+    m_workers[next_code].lock();
     m_workers[next_code].push_back(_obj);
+    m_workers[next_code].unlock();
+
     if (++next_code >= m_workers.size())
         next_code = 0;
     return _obj;

@@ -29,6 +29,7 @@ namespace mvre_engine {
             static_assert(std::is_base_of<component, derived>::value, "derived must be derived of component");
         }
 
+        inline mvre_input::input* get_input() { return mvre_input::input_manager::get_input(g_instance()->backend()->get_window()); }
         inline transform_3d* transform() { return m_object->transform(); }
         inline engine_object* object() { return m_object; }
         inline mvre_graphics::graphics_instance* g_instance() { return m_object->instance(); }

@@ -45,7 +45,7 @@ void v_backend_instance::end_single_time_command(VkCommandBuffer _command) {
     vkFreeCommandBuffers(device()->raw_device(), command_pool()->raw_command_pool(), 1, &_command);
 }
 
-void v_backend_instance::create_with_window(const std::string &_title, mvre_math::vector2<int> _size) {
+void v_backend_instance::create_with_window(const std::string &_title, const mvre_math::vector2<int>& _size) {
     raw_window = new v_window();
     raw_window->initialize(_title, _size);
     raw_window->create();
@@ -88,7 +88,7 @@ void v_backend_instance::create_with_window(const std::string &_title, mvre_math
 }
 
 void v_backend_instance::update() {
-    raw_window->process();
+
 }
 
 void v_backend_instance::prepare_render() {

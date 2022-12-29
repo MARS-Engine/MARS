@@ -29,7 +29,7 @@ namespace mvre_resources {
         * @return pointer to resource or nullptr
         */
         template<typename T> static T* get_cached_resource(const std::string& _path) {
-            if (!resources.has(_path))
+            if (!resources.contains(_path))
                 return nullptr;
             return dynamic_cast<T*>(resources[_path]);
         }

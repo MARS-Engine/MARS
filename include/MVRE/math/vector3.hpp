@@ -11,9 +11,9 @@ namespace mvre_math {
         inline T y() { return this->get(1); }
         inline T z() { return this->get(2); }
 
-        inline void x(T value) { this[0] = value; }
-        inline void y(T value) { this[1] = value; }
-        inline void z(T value) { this[2] = value; }
+        inline void x(T value) { this->set(0, value); }
+        inline void y(T value) { this->set(1, value); }
+        inline void z(T value) { this->set(2, value); }
 
         vector3(const vector_base<T, 3>& _val) : vector_base<T, 3>(_val) { }
 
@@ -21,6 +21,9 @@ namespace mvre_math {
         vector3(T _val) { this->set(0, _val); this->set(1, _val); this->set(2, _val); }
         vector3(T _x, T _y) { this->set(0, _x); this->set(1, _y); this->set(2, 0); }
         vector3(T _x, T _y, T _z) { this->set(0, _x); this->set(1, _y); this->set(2, _z); }
+
+        static inline vector3<T> forward() { return { 0, 0, 1}; }
+        static inline vector3<T> up() { return { 0, 1, 0}; }
 
         inline float length() {
             return sqrt(x() * x() + y() * y() + z() * z());

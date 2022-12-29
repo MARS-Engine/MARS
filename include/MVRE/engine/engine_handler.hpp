@@ -19,9 +19,10 @@ namespace mvre_engine {
     class engine_handler {
     private:
         int next_code;
-        pl::safe_map<size_t, pl::pl_job*> layer_jobs;
+        pl::pl_job* job = nullptr;
         pl::safe_map<int, pl::safe_vector<engine_object*>> m_workers;
         pl::safe_map<size_t, engine_layers*> layer_data;
+        size_t m_current_hash;
 
         template<typename T> static std::vector<void*> validate_object(engine_object* _target) {
             std::vector<void*> result;
@@ -36,26 +37,25 @@ namespace mvre_engine {
 
         void process_layers(engine_object* _obj);
     public:
-        pl::safe_map<int, pl::safe_vector<engine_object*>>& workers() { return m_workers; };
 
         template<typename T> inline void add_layer(const std::function<void(engine_layers*, int)>& _callback) {
-            layer_data.insert(typeid(T).hash_code(), new engine_layers{ .validator = validate_object<T>, .callback = _callback });
+            auto val = layer_data.insert(std::make_pair(typeid(T).hash_code(), new engine_layers{ .validator = validate_object<T>, .callback = _callback }));
+            for (size_t worker = 0; worker < m_workers.size(); worker++)
+                val.first->second->valid_components.insert(std::make_pair(worker, pl::safe_vector<void*>()));
         }
 
         void init();
 
-        template<typename T> void process_layer() {
-            auto hash = typeid(T).hash_code();
-
-            ///Saving jobs increases FPS by x10
-            if (layer_jobs[hash] == nullptr) {
-                layer_jobs[hash] = pl::async_for(0, m_workers.size(), [&](int _thread_idx) {
-                    layer_data[hash]->callback(layer_data[hash], _thread_idx);
+        template<typename T> inline void process_layer() {
+            m_current_hash = typeid(T).hash_code();
+            if (job == nullptr) {
+                job = pl::async_for(0, m_workers.size(), [&](int _thread_idx) {
+                    layer_data[m_current_hash]->callback(layer_data[m_current_hash], _thread_idx);
                     return true;
                 });
             }
-            layer_jobs[hash]->start();
-            layer_jobs[hash]->wait();
+            job->start();
+            job->wait();
         }
 
         void clean();

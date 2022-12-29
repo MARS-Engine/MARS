@@ -3,6 +3,7 @@
 
 #include "backend/template/backend_instance.hpp"
 #include <MVRE/math/matrix4.hpp>
+#include <MVRE/input/input_manager.hpp>
 
 namespace mvre_graphics {
 
@@ -26,6 +27,8 @@ namespace mvre_graphics {
     private:
         backend_instance* m_instance = nullptr;
         camera m_camera;
+        mvre_input::input* m_input = nullptr;
+
     public:
         inline camera& get_camera() { return m_camera; }
         inline bool is_running() { return !m_instance->get_window()->should_close(); }
@@ -36,16 +39,26 @@ namespace mvre_graphics {
 
         inline mvre_graphics::command_buffer* primary_buffer() { return  m_instance->primary_buffer(); }
 
+        inline void window_update() {
+            m_instance->get_window()->process(m_input);
+        }
+
         explicit graphics_instance(backend_instance* _instance) {
             m_instance = _instance;
         }
 
         void create_with_window(const std::string& _title, mvre_math::vector2<int> _size) {
             m_instance->create_with_window(_title, _size);
+            m_input = mvre_input::input_manager::create_input(m_instance->get_window());
         }
 
         void update() {
             m_instance->update();
+            m_input->update();
+        }
+
+        void finish_update() {
+            m_input->finish_update();
         }
 
         void prepare_render() {

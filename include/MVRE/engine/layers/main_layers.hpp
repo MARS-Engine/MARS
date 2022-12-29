@@ -32,6 +32,7 @@ namespace mvre_layers {
             delete render_job;
         }
 
+        virtual void prepare_render() { }
         virtual void pre_render() { }
         virtual void post_render() { }
     };

@@ -19,6 +19,8 @@ void mvre_layers::update_layer_callback(mvre_engine::engine_layers* _layer, int 
 
 void mvre_layers::render_layer_callback(mvre_engine::engine_layers* _layer, int _thread) {
     for (auto& component : _layer->valid_components[_thread])
+        ((render_layer*)component)->prepare_render();
+    for (auto& component : _layer->valid_components[_thread])
         ((render_layer*)component)->pre_render();
     for (auto& component : _layer->valid_components[_thread])
         mvre_executioner::executioner::add_job(mvre_executioner::EXECUTIONER_JOB_PRIORITY_NORMAL, ((render_layer*)component)->render_job);

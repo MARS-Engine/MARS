@@ -25,7 +25,7 @@ namespace mvre_graphics {
     public:
         using backend_instance::backend_instance;
 
-        void create_with_window(const std::string& _title, mvre_math::vector2<int> _size) override;
+        void create_with_window(const std::string& _title, const mvre_math::vector2<int>& _size) override;
 
         void update() override;
         void prepare_render() override;

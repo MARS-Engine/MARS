@@ -50,7 +50,7 @@ namespace mvre_graphics {
 
         template<typename T> T* instance() { mvre_debug::debug::error((std::string)" T - type - " + typeid(T).name() + " - is not a valid graphic type"); return nullptr; }
 
-        virtual void create_with_window(const std::string& _title, mvre_math::vector2<int> _size) { }
+        virtual void create_with_window(const std::string& _title, const mvre_math::vector2<int>& _size) { }
 
         virtual void update() { }
         virtual void prepare_render() { }

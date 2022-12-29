@@ -58,7 +58,7 @@ namespace mvre_graphics {
         VkCommandBuffer get_single_time_command();
         void end_single_time_command(VkCommandBuffer _command);
 
-        void create_with_window(const std::string& _title, mvre_math::vector2<int> _size) override;
+        void create_with_window(const std::string& _title, const mvre_math::vector2<int>& _size) override;
 
         void update() override;
         void prepare_render() override;

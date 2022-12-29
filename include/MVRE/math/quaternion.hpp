@@ -55,17 +55,23 @@ namespace mvre_math {
         }
 
         quaternion<T> operator*(quaternion right) {
-
             return quaternion(vector4(
-                m_data.w() * right.m_data.x() + m_data.x() * right.m_data.w() + m_data.y() * right.m_data.z() - m_data.z() * right.m_data.y(),
-                m_data.w() * right.m_data.y() + m_data.y() * right.m_data.w() + m_data.z() * right.m_data.x() - m_data.x() * right.m_data.z(),
-                m_data.w() * right.m_data.z() + m_data.z() * right.m_data.w() + m_data.x() * right.m_data.y() - m_data.y() * right.m_data.x(),
-                m_data.w() * right.m_data.w() - m_data.x() * right.m_data.x() - m_data.y() * right.m_data.y() - m_data.z() * right.m_data.z()
+                    m_data.w() * right.m_data.x() + m_data.x() * right.m_data.w() + m_data.y() * right.m_data.z() - m_data.z() * right.m_data.y(),
+                    m_data.w() * right.m_data.y() + m_data.y() * right.m_data.w() + m_data.z() * right.m_data.x() - m_data.x() * right.m_data.z(),
+                    m_data.w() * right.m_data.z() + m_data.z() * right.m_data.w() + m_data.x() * right.m_data.y() - m_data.y() * right.m_data.x(),
+                    m_data.w() * right.m_data.w() - m_data.x() * right.m_data.x() - m_data.y() * right.m_data.y() - m_data.z() * right.m_data.z()
             ));
         }
 
-        void operator*=(quaternion right) {
+        vector3<T> operator*(vector3<T> right) {
+            vector3 Xyz = m_data.xyz();
+            vector3 Uv =  vector3<T>::cross(Xyz, right);
+            vector3 Uuv = vector3<T>::cross(Xyz, Uv);
 
+            return right + ((Uv * m_data.w()) + Uuv) * 2.0f;
+        }
+
+        void operator*=(quaternion right) {
             m_data = vector4(
                 m_data.w() * right.m_data.x() + m_data.x() * right.m_data.w() + m_data.y() * right.m_data.z() - m_data.z() * right.m_data.y(),
                 m_data.w() * right.m_data.y() + m_data.y() * right.m_data.w() + m_data.z() * right.m_data.x() - m_data.x() * right.m_data.z(),

@@ -80,13 +80,17 @@ namespace mvre_executioner {
             if (_priority == EXECUTIONER_JOB_PRIORITY_NORMAL && _job->get_pipeline() != nullptr) {
                 {
                     std::unique_lock lk(render_mtx);
+                    render_jobs.lock();
                     render_jobs[_job->get_pipeline()].push_back(_job);
+                    render_jobs.unlock();
                 }
             }
             else {
                 {
                     std::unique_lock lk(job_mtx);
+                    m_jobs.lock();
                     m_jobs[_priority].push_back(_job);
+                    m_jobs.unlock();
                 }
 
                 if (_priority == EXECUTIONER_JOB_PRIORITY_IN_FLIGHT)

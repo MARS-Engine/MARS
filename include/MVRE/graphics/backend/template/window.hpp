@@ -5,7 +5,9 @@
 #include <SDL2/SDL.h>
 #include <string>
 #include <MVRE/debug/debug.hpp>
-#include "MVRE/math/vector2.hpp"
+#include <MVRE/math/vector2.hpp>
+#include <MVRE/math/vector3.hpp>
+#include <MVRE/input/input_manager.hpp>
 
 namespace mvre_graphics {
 
@@ -50,6 +52,7 @@ namespace mvre_graphics {
         virtual void initialize(const std::string& _title, mvre_math::vector2<int> _size) {
             SDL_Init(SDL_INIT_VIDEO);
             SDL_SetHint(SDL_HINT_GRAB_KEYBOARD, "1");
+            SDL_SetRelativeMouseMode(SDL_TRUE);
 
             m_size = _size;
             m_title = _title;
@@ -65,12 +68,19 @@ namespace mvre_graphics {
         /**
          * Process Window PoolEvents
          */
-        virtual void process() {
+        virtual void process(mvre_input::input* _input) {
             SDL_Event e;
             while (SDL_PollEvent(&e) != 0) {
                 switch (e.type) {
                     case SDL_QUIT:
                         m_should_close = true;
+                        break;
+                    case SDL_KEYDOWN:
+                    case SDL_KEYUP:
+                        _input->handle_input(e.key);
+                        break;
+                    case SDL_MOUSEMOTION:
+                        _input->move_mouse({ (float)e.motion.xrel, (float)e.motion.yrel });
                         break;
                 }
             }
