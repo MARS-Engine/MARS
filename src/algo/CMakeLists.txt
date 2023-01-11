@@ -1,1 +1,1 @@
-target_sources(MVRE PUBLIC string_helper.cpp)
+target_sources(MARS PUBLIC string_helper.cpp)

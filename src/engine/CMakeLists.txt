@@ -1,5 +1,5 @@
 add_subdirectory(layers)
-target_sources(MVRE PUBLIC
+target_sources(MARS PUBLIC
         component.cpp
         engine_object.cpp
         engine_handler.cpp

@@ -39,7 +39,7 @@
  *
  *
  * See the Implementer's Guidelines for information about where this file
- * should be located on your system and for more details of its use:
+ * should be located on your system and for mars details of its use:
  *    http://www.khronos.org/registry/implementers_guide.pdf
  *
  * This file should be included as

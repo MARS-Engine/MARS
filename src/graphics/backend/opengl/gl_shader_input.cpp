@@ -1,13 +1,13 @@
-#include <MVRE/graphics/backend/opengl/gl_shader_input.hpp>
-#include <MVRE/graphics/backend/opengl/gl_buffer.hpp>
+#include <MARS/graphics/backend/opengl/gl_shader_input.hpp>
+#include <MARS/graphics/backend/opengl/gl_buffer.hpp>
 
-using namespace mvre_graphics;
+using namespace mars_graphics;
 
 void gl_shader_input::create() {
     glGenVertexArrays(1, &m_id);
 }
 
-buffer* gl_shader_input::add_buffer(size_t _input_size, MVRE_MEMORY_TYPE _input_type) {
+buffer* gl_shader_input::add_buffer(size_t _input_size, MARS_MEMORY_TYPE _input_type) {
     auto new_buffer = new gl_buffer(instance());
     new_buffer->create(_input_size, _input_type);
     new_buffer->bind();
@@ -15,7 +15,7 @@ buffer* gl_shader_input::add_buffer(size_t _input_size, MVRE_MEMORY_TYPE _input_
     return new_buffer;
 }
 
-void gl_shader_input::load_input(mvre_shader_inputs _inputs) {
+void gl_shader_input::load_input(mars_shader_inputs _inputs) {
     int stride = 0;
     for (auto i = 0; i < _inputs.length; i++)
         stride += _inputs.input_data[i].stride;
@@ -24,9 +24,9 @@ void gl_shader_input::load_input(mvre_shader_inputs _inputs) {
     for (auto i = 0; i < _inputs.length; i++) {
         GLenum type;
         switch (_inputs.input_data[i].type) {
-            case MVRE_SHADER_INPUT_TYPE_SF_RG:
-            case MVRE_SHADER_INPUT_TYPE_SF_RGB:
-            case MVRE_SHADER_INPUT_TYPE_SF_RGBA:
+            case MARS_SHADER_INPUT_TYPE_SF_RG:
+            case MARS_SHADER_INPUT_TYPE_SF_RGB:
+            case MARS_SHADER_INPUT_TYPE_SF_RGBA:
                 type = GL_FLOAT;
                 break;
         }

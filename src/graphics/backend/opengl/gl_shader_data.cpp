@@ -1,6 +1,6 @@
-#include <MVRE/graphics/backend/opengl/gl_shader_data.hpp>
+#include <MARS/graphics/backend/opengl/gl_shader_data.hpp>
 
-using namespace mvre_graphics;
+using namespace mars_graphics;
 
 void gl_shader_data::generate(pipeline* _pipeline, shader* _shader) {
     m_pipeline = _pipeline;
@@ -9,17 +9,13 @@ void gl_shader_data::generate(pipeline* _pipeline, shader* _shader) {
     auto uniforms = _shader->get_uniforms();
 
     for (size_t i = 0; i < uniforms.size(); i++) {
-        if (uniforms[i]->type == MVRE_UNIFORM_TYPE_SAMPLER)
+        if (uniforms[i]->type == MARS_UNIFORM_TYPE_SAMPLER)
             continue;
 
-        std::vector<buffer*> m_buffers(instance()->max_frames());
+        auto new_buffer = instance()->instance<buffer>();
+        new_buffer->create(uniforms[i]->size * sizeof(float), MARS_MEMORY_TYPE_UNIFORM);
 
-        for (auto& new_buffer : m_buffers) {
-            new_buffer = instance()->instance<buffer>();
-            new_buffer->create(uniforms[i]->size * sizeof(float), MVRE_MEMORY_TYPE_UNIFORM);
-        }
-
-        auto uni = new gl_uniform(uniforms[i], i, _shader, m_buffers);
+        auto uni = new gl_uniform(uniforms[i], i, _shader, new_buffer);
         m_uniforms.insert(std::make_pair(uniforms[i]->name, (uniform*)uni));
     }
 

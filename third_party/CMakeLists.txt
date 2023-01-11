@@ -1,2 +1,2 @@
 add_subdirectory(glad)
-target_include_directories(MVRE PUBLIC include)
+target_include_directories(MARS PUBLIC include)

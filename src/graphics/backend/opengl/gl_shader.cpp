@@ -1,16 +1,16 @@
-#include <MVRE/graphics/backend/opengl/gl_shader.hpp>
-#include <MVRE/executioner/executioner.hpp>
+#include <MARS/graphics/backend/opengl/gl_shader.hpp>
+#include <MARS/executioner/executioner.hpp>
 
-using namespace mvre_graphics;
-using namespace mvre_executioner;
+using namespace mars_graphics;
+using namespace mars_executioner;
 
-void gl_shader::generate_shader(MVRE_SHADER_TYPE _type, const std::string& _data) {
+void gl_shader::generate_shader(MARS_SHADER_TYPE _type, const std::string& _data) {
     unsigned int module_id;
     switch (_type) {
-        case MVRE_SHADER_TYPE_VERTEX:
+        case MARS_SHADER_TYPE_VERTEX:
             module_id = m_shaders_modules[_type] = glCreateShader(GL_VERTEX_SHADER);
             break;
-        case MVRE_SHADER_TYPE_FRAGMENT:
+        case MARS_SHADER_TYPE_FRAGMENT:
             module_id = m_shaders_modules[_type] = glCreateShader(GL_FRAGMENT_SHADER);
             break;
     }
@@ -25,7 +25,7 @@ void gl_shader::generate_shader(MVRE_SHADER_TYPE _type, const std::string& _data
     if(!success) {
         char infoLog[512];
         glGetShaderInfoLog(module_id, 512, nullptr, infoLog);
-        mvre_debug::debug::error("MVRE - openGL - shader - failed to compile\n " + (std::string)infoLog);
+        mars_debug::debug::error("MARS - openGL - shader - failed to compile\n " + (std::string)infoLog);
     }
 
     glAttachShader(id, module_id);
@@ -40,13 +40,23 @@ bool gl_shader::load_resource(const std::string &_path) {
 
     for (auto &m: m_modules) {
         switch (m.first) {
-            case MVRE_SHADER_TYPE_VERTEX:
-            case MVRE_SHADER_TYPE_FRAGMENT:
+            case MARS_SHADER_TYPE_VERTEX:
+            case MARS_SHADER_TYPE_FRAGMENT:
                 generate_shader(m.first, m.second);
                 break;
         }
     }
+
     glLinkProgram(id);
+
+    int success;
+    char infoLog[1024];
+    glGetProgramiv(id, GL_LINK_STATUS, &success);
+    if(!success){
+        glGetProgramInfoLog(id, 1024, nullptr, infoLog);
+        mars_debug::debug::error((std::string)"MARS - OpenGL - Shader - Failed to link " + infoLog);
+    }
+
     glUseProgram(id);
 
     return true;

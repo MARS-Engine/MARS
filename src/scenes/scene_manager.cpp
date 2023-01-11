@@ -1,8 +1,8 @@
-#include <MVRE/scenes/scene_manager.hpp>
-#include "MVRE/debug/debug.hpp"
+#include <MARS/scenes/scene_manager.hpp>
+#include "MARS/debug/debug.hpp"
 
-using namespace mvre_debug;
-using namespace mvre_scenes;
+using namespace mars_debug;
+using namespace mars_scenes;
 using namespace pl;
 
 safe_map<std::string, scene*> scene_manager::m_scenes;

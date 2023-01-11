@@ -1,1 +1,1 @@
-target_sources(MVRE PUBLIC scene_manager.cpp)
+target_sources(MARS PUBLIC scene_manager.cpp)

@@ -1,22 +1,22 @@
-#include <MVRE/loaders/wavefront_loader.hpp>
-#include <MVRE/debug/debug.hpp>
+#include <MARS/loaders/wavefront_loader.hpp>
+#include <MARS/debug/debug.hpp>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 #include <unordered_map>
 
-bool mvre_loader::wave_vertex::operator==(const mvre_loader::wave_vertex& _right) const {
+bool mars_loader::wave_vertex::operator==(const mars_loader::wave_vertex& _right) const {
     return vertex == _right.vertex && uv == _right.uv;
 }
 
-bool mvre_loader::wavefront_mesh::load_resource(const std::string &_path) {
+bool mars_loader::wavefront_mesh::load_resource(const std::string &_path) {
     return wavefront_load(_path, this);
 }
 
-void mvre_loader::wavefront_mesh::clean() {
+void mars_loader::wavefront_mesh::clean() {
 
 }
 
-bool mvre_loader::wavefront_load(const std::string& _path, wavefront_mesh* _mesh) {
+bool mars_loader::wavefront_load(const std::string& _path, wavefront_mesh* _mesh) {
     tinyobj::attrib_t attrib;
 
     std::vector<tinyobj::shape_t> shapes;
@@ -24,7 +24,7 @@ bool mvre_loader::wavefront_load(const std::string& _path, wavefront_mesh* _mesh
     std::string err;
 
     if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, _path.c_str(), "./", true)) {
-        mvre_debug::debug::error("MVRE - Wavefront Loader - Failed to load object, path - " + _path);
+        mars_debug::debug::error("MARS - Wavefront Loader - Failed to load object, path - " + _path);
         return false;
     }
 
@@ -32,9 +32,14 @@ bool mvre_loader::wavefront_load(const std::string& _path, wavefront_mesh* _mesh
         for (auto index : shape.mesh.indices) {
             wave_vertex vertex{
                 {
-                    attrib.vertices[3 * index.vertex_index + 0],
-                    attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2]
+                        attrib.vertices[3 * index.vertex_index + 0],
+                        attrib.vertices[3 * index.vertex_index + 1],
+                        attrib.vertices[3 * index.vertex_index + 2]
+                },
+                {
+                        attrib.normals[3 * index.normal_index + 0],
+                        attrib.normals[3 * index.normal_index + 1],
+                        attrib.normals[3 * index.normal_index + 2]
                 },
                 {
                             attrib.texcoords[2 * index.texcoord_index + 0],

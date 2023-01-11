@@ -1,8 +1,8 @@
-#include <MVRE/executioner/executioner_worker.hpp>
-#include <MVRE/graphics/backend/template/pipeline.hpp>
+#include <MARS/executioner/executioner_worker.hpp>
+#include <MARS/graphics/backend/template/pipeline.hpp>
 #include <mutex>
 
-using namespace mvre_executioner;
+using namespace mars_executioner;
 
 executioner_worker::executioner_worker() {
     m_running = true;
@@ -29,10 +29,11 @@ void executioner_worker::worker() {
             m_jobs[EXECUTIONER_JOB_PRIORITY_IN_FLIGHT].erase_at(0);
             m_jobs.unlock();
 
+            job->started = true;
             job->callback();
             {
                 std::lock_guard lk(job->mtx);
-                job->finished = true;
+                job->finish();
             }
             job->wait_room.notify_all();
         }
@@ -44,10 +45,11 @@ void executioner_worker::worker() {
                 m_jobs[EXECUTIONER_JOB_PRIORITY_NORMAL].erase_at(0);
                 m_jobs.unlock();
 
+                job->started = true;
                 job->callback();
                 {
                     std::lock_guard lk(job->mtx);
-                    job->finished = true;
+                    job->finish();
                 }
                 job->wait_room.notify_all();
             }
@@ -57,10 +59,11 @@ void executioner_worker::worker() {
                 pair.first->bind();
                 while (!render_jobs[pair.first].empty()) {
                     auto job = render_jobs[pair.first][0];
+                    job->started = true;
                     job->callback();
                     {
                         std::lock_guard lk(job->mtx);
-                        job->finished = true;
+                        job->finish();
                     }
                     job->wait_room.notify_all();
                     render_jobs[pair.first].erase_at(0);

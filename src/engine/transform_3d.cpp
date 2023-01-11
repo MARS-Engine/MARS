@@ -1,16 +1,16 @@
-#include <MVRE/engine/transform_3d.hpp>
+#include <MARS/engine/transform_3d.hpp>
 
-using namespace mvre_engine;
+using namespace mars_engine;
 
 void transform_3d::update() {
     if (!m_need_update)
         return;
 
-    m_transform_mat = mvre_math::matrix4<float>(1);
+    m_transform_mat = mars_math::matrix4<float>(1);
     m_transform_mat.translate(position());
 
     if (m_enable_rotation)
-        m_transform_mat *= mvre_math::matrix4<float>::from_quaternion(rotation());
+        m_transform_mat *= mars_math::matrix4<float>::from_quaternion(rotation());
 
     if (m_enable_scale)
         m_transform_mat.scale(scale());

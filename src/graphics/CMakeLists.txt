@@ -1,5 +1,6 @@
 add_subdirectory(backend)
 add_subdirectory(attribute)
-target_sources(MVRE PUBLIC
+target_sources(MARS PUBLIC
         material.cpp
-        pipeline_manager.cpp)
+        pipeline_manager.cpp
+        light_manager.cpp)

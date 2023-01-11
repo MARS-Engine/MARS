@@ -1,6 +1,6 @@
-#include <MVRE/graphics/backend/opengl/gl_texture.hpp>
+#include <MARS/graphics/backend/opengl/gl_texture.hpp>
 
-using namespace mvre_graphics;
+using namespace mars_graphics;
 
 bool gl_texture::load_resource(const std::string& _texture_path) {
     if (!load_texture(_texture_path)) {

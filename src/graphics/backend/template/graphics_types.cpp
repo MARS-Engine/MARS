@@ -1,14 +1,14 @@
-#include <MVRE/graphics/backend/template/graphics_types.hpp>
+#include <MARS/graphics/backend/template/graphics_types.hpp>
 
-using namespace mvre_graphics;
+using namespace mars_graphics;
 
-MVRE_SHADER_TYPE graphics_types::token_to_type(MVRE_SHADER_TOKEN _token) {
+MARS_SHADER_TYPE graphics_types::token_to_type(MARS_SHADER_TOKEN _token) {
     switch (_token) {
-        case MVRE_SHADER_TOKEN_VERTEX:
-            return MVRE_SHADER_TYPE_VERTEX;
-        case MVRE_SHADER_TOKEN_FRAGMENT:
-            return MVRE_SHADER_TYPE_FRAGMENT;
+        case MARS_SHADER_TOKEN_VERTEX:
+            return MARS_SHADER_TYPE_VERTEX;
+        case MARS_SHADER_TOKEN_FRAGMENT:
+            return MARS_SHADER_TYPE_FRAGMENT;
         default:
-            return MVRE_SHADER_TYPE_UNDEFINED;
+            return MARS_SHADER_TYPE_UNDEFINED;
     }
 }

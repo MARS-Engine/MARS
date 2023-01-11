@@ -757,7 +757,7 @@ static vertex_index parseRawTriple(const char **token) {
 static bool ParseTextureNameAndOption(std::string *texname,
                                       texture_option_t *texopt,
                                       const char *linebuf, const bool is_bump) {
-  // @todo { write more robust lexer and parser. }
+  // @todo { write mars robust lexer and parser. }
   bool found_texname = false;
   std::string texture_name;
 

@@ -1,0 +1,74 @@
+#include <MARS/graphics/light_manager.hpp>
+#include <MARS/graphics/backend/template/command_buffer.hpp>
+#include <MARS/graphics/attribute/vertex2.hpp>
+#include <glad/glad.h>
+
+using namespace mars_graphics;
+
+
+float quadVertices[] = {
+        // positions        // texture Coords
+        -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+        1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+};
+
+
+void light_manager::load(graphics_instance* _instance) {
+    m_instance = _instance;
+
+    if (!mars_resources::resource_manager::load_graphical_resource(mars_resources::resource_manager::find_path("deferred_light.mshader", MARS_RESOURCE_TYPE_SHADER),light_shader, m_instance))
+        mars_debug::debug::error("MARS - OpenGL - Backend - Failed to find defferd_light shader");
+
+    m_pipeline = pipeline_manager::load_pipeline(pipeline_manager::get_input<vertex2>(), light_shader, m_instance);
+    m_pipeline->set_viewport({ 0, 0 }, {1920, 1080 }, {0, 1 });
+
+    m_data = m_instance->instance<shader_data>();
+    m_data->generate(m_pipeline, light_shader);
+
+    m_input = m_instance->instance<shader_input>();
+    m_input->create();
+    m_input->bind();
+
+    auto vertex = m_input->add_buffer(sizeof(quadVertices), MARS_MEMORY_TYPE_VERTEX);
+    vertex->copy_data(&quadVertices);
+
+    m_input->load_input(vertex2::get_description());
+
+    m_input->unbind();
+}
+
+void light_manager::draw_lights() {
+    light_shader->bind();
+    update_buffer.lock();
+    lights.insert(lights.end(), update_buffer.begin(), update_buffer.end());
+    update_buffer.clear();
+    update_buffer.unlock();
+
+    mars_math::vector4<float> pos = { m_instance->get_camera().position().x(), m_instance->get_camera().position().y(), m_instance->get_camera().position().z(), 0 };
+
+    auto camera_uni =  m_data->get_uniform("camera");
+
+    camera_uni->bind(m_instance->current_frame());
+    camera_uni->update(&pos);
+    camera_uni->copy_data();
+    auto light_uniform = m_data->get_uniform("lights");
+    light_uniform->bind(m_instance->current_frame());
+    light_uniform->update(&scene);
+    m_data->bind(m_instance->current_frame());
+    m_input->bind();
+
+    //dwqd
+    int active_lights = 0;
+    for (size_t i = 0; i < lights.size(); i++) {
+        scene.lights[active_lights++] = *lights[i];
+        scene.active_lights = active_lights;
+
+        if (active_lights == 32 || lights.size() == i + 1) {
+            active_lights = 0;
+            light_uniform->copy_data();
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        }
+    }
+}

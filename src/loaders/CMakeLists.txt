@@ -1,1 +1,1 @@
-target_sources(MVRE PUBLIC wavefront_loader.cpp)
+target_sources(MARS PUBLIC wavefront_loader.cpp)

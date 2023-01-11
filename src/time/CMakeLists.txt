@@ -1,1 +1,1 @@
-target_sources(MVRE PUBLIC time_helper.cpp)
+target_sources(MARS PUBLIC time_helper.cpp)

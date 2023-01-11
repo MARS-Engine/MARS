@@ -1,20 +1,21 @@
-#include <MVRE/graphics/backend/template/shader.hpp>
-#include <MVRE/algo/string_helper.hpp>
+#include <MARS/graphics/backend/template/shader.hpp>
+#include <MARS/algo/string_helper.hpp>
 
-using namespace mvre_graphics;
-using namespace mvre_resources;
+using namespace mars_graphics;
+using namespace mars_resources;
 
-std::map<std::string, MVRE_SHADER_TOKEN> shader::module_tokens = {
-        { "#vertex", MVRE_SHADER_TOKEN_VERTEX },
-        { "#fragment", MVRE_SHADER_TOKEN_FRAGMENT },
-        { "#attribute", MVRE_SHADER_TOKEN_ATTRIBUTE },
-        { "#uniform", MVRE_SHADER_TOKEN_UNIFORM }
+std::map<std::string, MARS_SHADER_TOKEN> shader::module_tokens = {
+        { "#vertex", MARS_SHADER_TOKEN_VERTEX },
+        { "#fragment", MARS_SHADER_TOKEN_FRAGMENT },
+        { "#attribute", MARS_SHADER_TOKEN_ATTRIBUTE },
+        { "#uniform", MARS_SHADER_TOKEN_UNIFORM }
 };
 
-std::map<std::string, MVRE_UNIFORM_TYPE> shader::uniform_tokens = {
-        { "float", MVRE_UNIFORM_TYPE_FLOAT },
-        { "matrix", MVRE_UNIFORM_TYPE_MATRIX },
-        { "sampler", MVRE_UNIFORM_TYPE_SAMPLER }
+std::map<std::string, MARS_UNIFORM_TYPE> shader::uniform_tokens = {
+        { "float", MARS_UNIFORM_TYPE_FLOAT },
+        { "matrix", MARS_UNIFORM_TYPE_MATRIX },
+        { "buffer", MARS_UNIFORM_TYPE_BUFFER },
+        { "sampler", MARS_UNIFORM_TYPE_SAMPLER }
 };
 
 bool shader::load_shader_file(std::string _path, std::string _path_sufix) {
@@ -22,7 +23,7 @@ bool shader::load_shader_file(std::string _path, std::string _path_sufix) {
     if (!resource_manager::read_file(_path, lines))
         return false;
 
-    auto reading_mode = MVRE_SHADER_TOKEN_VERTEX;
+    auto reading_mode = MARS_SHADER_TOKEN_VERTEX;
 
     for (auto line : lines) {
         if (line.empty())
@@ -37,12 +38,12 @@ bool shader::load_shader_file(std::string _path, std::string _path_sufix) {
         }
 
         switch (reading_mode) {
-            case MVRE_SHADER_TOKEN_VERTEX:
-            case MVRE_SHADER_TOKEN_FRAGMENT:
+            case MARS_SHADER_TOKEN_VERTEX:
+            case MARS_SHADER_TOKEN_FRAGMENT:
                 m_modules[graphics_types::token_to_type(reading_mode)] += line;
                 break;
-            case MVRE_SHADER_TOKEN_UNIFORM:
-                std::vector<std::string> data = mvre_string::explode(line, ' ');
+            case MARS_SHADER_TOKEN_UNIFORM:
+                std::vector<std::string> data = mars_string::explode(line, ' ');
 
                 size_t size = std::strtoul(data[2].c_str(), nullptr, 10);
                 if (size == 0)
@@ -50,7 +51,7 @@ bool shader::load_shader_file(std::string _path, std::string _path_sufix) {
 
                 size_t binding = std::strtoul(data[3].c_str(), nullptr, 10);
 
-                m_uniforms.push_back(new mvre_shader_uniform(data[0], uniform_tokens[data[1]], size, binding));
+                m_uniforms.push_back(new mars_shader_uniform(data[0], uniform_tokens[data[1]], size, binding));
                 break;
         }
     }
@@ -59,10 +60,11 @@ bool shader::load_shader_file(std::string _path, std::string _path_sufix) {
 
     for (auto& module : m_modules) {
         switch (module.first) {
-            case MVRE_SHADER_TYPE_VERTEX:
-            case MVRE_SHADER_TYPE_FRAGMENT:
+            case MARS_SHADER_TYPE_VERTEX:
+            case MARS_SHADER_TYPE_FRAGMENT:
                 mod_data.resize(0);
-                resource_manager::read_binary(resource_manager::resources_locations[MVRE_RESOURCE_TYPE_SHADER] + module.second + _path_sufix, mod_data);
+                if (!resource_manager::read_binary(resource_manager::resources_locations[MARS_RESOURCE_TYPE_SHADER] + module.second + _path_sufix, mod_data))
+                    return false;
                 module.second = std::string(mod_data.begin(), mod_data.end());
                 break;
         }
@@ -80,7 +82,7 @@ void shader::clean() {
         delete uni;
 }
 
-mvre_shader_uniform* shader::get_uniform(const std::string& _name) {
+mars_shader_uniform* shader::get_uniform(const std::string& _name) {
     for (auto uni : m_uniforms)
         if (uni->name == _name)
             return uni;

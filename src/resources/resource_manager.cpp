@@ -1,15 +1,15 @@
-#include <MVRE/resources/resource_manager.hpp>
+#include <MARS/resources/resource_manager.hpp>
 #include <fstream>
 
-using namespace mvre_resources;
-using namespace mvre_graphics;
+using namespace mars_resources;
+using namespace mars_graphics;
 using namespace pl;
 
 safe_map<std::string, resource_base*> resource_manager::resources;
 
-std::map<MVRE_RESOURCE_TYPE, std::string> resource_manager::resources_locations = {
-        { MVRE_RESOURCE_TYPE_SHADER, "engine/assets/shaders/" },
-        { MVRE_RESOURCE_TYPE_TEXTURE, "engine/assets/textures/" }
+std::map<MARS_RESOURCE_TYPE, std::string> resource_manager::resources_locations = {
+        { MARS_RESOURCE_TYPE_SHADER, "engine/assets/shaders/" },
+        { MARS_RESOURCE_TYPE_TEXTURE, "engine/assets/textures/" }
 };
 
 bool resource_manager::read_file(const std::string& _path, std::vector<std::string>& data) {
@@ -44,7 +44,7 @@ bool resource_manager::read_binary(const std::string& _path, std::vector<char>& 
     return true;
 }
 
-std::string resource_manager::find_path(const std::string& _file, mvre_graphics::MVRE_RESOURCE_TYPE _type) {
+std::string resource_manager::find_path(const std::string& _file, mars_graphics::MARS_RESOURCE_TYPE _type) {
     return resources_locations[_type] + _file;
 }
 

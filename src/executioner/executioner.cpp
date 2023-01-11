@@ -1,6 +1,6 @@
-#include "MVRE/executioner/executioner.hpp"
+#include "MARS/executioner/executioner.hpp"
 
-using namespace mvre_executioner;
+using namespace mars_executioner;
 
 executioner_worker* executioner::worker = nullptr;
 
@@ -13,9 +13,6 @@ void executioner::execute() {
         return;
 
     worker->execute();
-
-    std::unique_lock<std::mutex> l(worker->job_mtx);
-    worker->wait_room.wait(l, [&] { return !worker->executing(); });
 }
 
 void executioner::clean() {

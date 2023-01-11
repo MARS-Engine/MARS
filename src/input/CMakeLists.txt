@@ -1,2 +1,2 @@
-target_sources(MVRE PUBLIC
+target_sources(MARS PUBLIC
         input_manager.cpp)

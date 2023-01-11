@@ -1,10 +1,10 @@
-#include <MVRE/graphics/backend/template/texture.hpp>
+#include <MARS/graphics/backend/template/texture.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-using namespace mvre_graphics;
-using namespace mvre_math;
+using namespace mars_graphics;
+using namespace mars_math;
 
 bool texture::load_texture(const std::string& _img_path) {
     int width, height;
@@ -12,7 +12,7 @@ bool texture::load_texture(const std::string& _img_path) {
     m_channels = 4;
 
     if (m_data == nullptr) {
-        mvre_debug::debug::error("MVRE - Texture - Failed to load image " + _img_path);
+        mars_debug::debug::error("MARS - Texture - Failed to load image " + _img_path);
         return false;
     }
 

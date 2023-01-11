@@ -1,7 +1,7 @@
-#include "MVRE/algo/string_helper.hpp"
+#include "MARS/algo/string_helper.hpp"
 #include <sstream>
 
-std::vector<std::string> mvre_string::explode(const std::string& _value, char _delimeter) {
+std::vector<std::string> mars_string::explode(const std::string& _value, char _delimeter) {
     std::vector<std::string> result;
     std::istringstream iss(_value);
 

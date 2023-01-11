@@ -1,3 +1,3 @@
-#include "MVRE/engine/component.hpp"
+#include "MARS/engine/component.hpp"
 
-using namespace mvre_engine;
+using namespace mars_engine;

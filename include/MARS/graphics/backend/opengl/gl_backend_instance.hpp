@@ -1,0 +1,43 @@
+#ifndef MARS_GL_BACKEND_INSTANCE_
+#define MARS_GL_BACKEND_INSTANCE_
+
+#include <MARS/graphics/backend/template/backend_instance.hpp>
+#include "gl_buffer.hpp"
+#include "gl_shader.hpp"
+#include "gl_shader_input.hpp"
+#include "gl_texture.hpp"
+#include "gl_pipeline.hpp"
+#include "gl_shader_data.hpp"
+#include "gl_framebuffer.hpp"
+#include <MARS/graphics/light_manager.hpp>
+
+namespace mars_graphics {
+
+    class gl_backend_instance : public backend_instance {
+    protected:
+        SDL_GLContext m_gl_context = nullptr;
+        gl_framebuffer* m_framebuffer = nullptr;
+
+        buffer* generate_buffer() override { return new gl_buffer(this); }
+        shader* generate_shader() override { return new gl_shader(this); }
+        shader_input* generate_shader_input() override { return new gl_shader_input(this); }
+        texture* generate_texture() override { return new gl_texture(this); }
+        pipeline* generate_pipeline() override { return new gl_pipeline(this); }
+        shader_data* generate_shader_data() override { return new gl_shader_data(this); }
+
+        bool m_is_deferred_renderer_enabled = false;
+    public:
+        using backend_instance::backend_instance;
+
+        void create_with_window(const std::string& _title, const mars_math::vector2<int>& _size) override;
+
+        void set_deferred_renderer(bool _enabled) { m_is_deferred_renderer_enabled = _enabled; }
+
+        void update() override;
+        void prepare_render() override;
+        void draw() override;
+        void destroy() override;
+    };
+}
+
+#endif

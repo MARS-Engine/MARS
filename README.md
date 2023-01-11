@@ -1,9 +1,9 @@
-# MVRE
-MVRE (multithreaded Vulkan Rendering Engine) is a multithreaded optimized c++ rendering engine.
+# MARS
+MARS (multithreaded Vulkan Rendering Engine) is a multithreaded optimized c++ rendering engine.
 
-Feel free to join MVRE [Discord Server](https://discord.gg/VHEP99VShx) if you wish to help or talk
+Feel free to join MARS [Discord Server](https://discord.gg/VHEP99VShx) if you wish to help or talk
 
-For a test sample, you can go [here](https://github.com/MVREngine/MVRE-Samples)
+For a test sample, you can go [here](https://github.com/MARSngine/MARS-Samples)
 
 ## Building
 To build you need the base-devel, cmake, vulkan and sdl2
@@ -12,9 +12,9 @@ You also need to manually compile and install [Parallel](https://github.com/Pedr
 
 For Windows use MinGW, [MSYS2](https://www.msys2.org/) should help a lot
 
-## MVRE Structure
+## MARS Structure
 
-MVRE is separated into multiples folders, each folder acts like a module by being separated into its own namespace
+MARS is separated into multiples folders, each folder acts like a module by being separated into its own namespace
 
 ```bash
 .
@@ -28,7 +28,7 @@ MVRE is separated into multiples folders, each folder acts like a module by bein
 │   └── backend - This contains the main backends to the graphical interfaces
 ├── loaders     - This contains basic loaders, exp. waveformat
 ├── math        - This contains the basic math classes, exp. vector 2-4, matrix4
-├── resources   - This contains the main resource handler, which handles all resources of MVRE
+├── resources   - This contains the main resource handler, which handles all resources of MARS
 ├── scenes      - This contains the basics to create a scene
 └── time        - This contains the basic to update time delta
 ```
