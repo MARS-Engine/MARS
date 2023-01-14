@@ -1,9 +1,22 @@
 # MARS
-MARS (multithreaded Vulkan Rendering Engine) is a multithreaded optimized c++ rendering engine.
+MARS (Modular Asynchronous Rendering System) is a multithreaded optimized c++ rendering engine.
+
+MARS is a set of multiple modules that have as a goal help developers to easily create their high performance rendering engines.
 
 Feel free to join MARS [Discord Server](https://discord.gg/VHEP99VShx) if you wish to help or talk
 
 For a test sample, you can go [here](https://github.com/MARSngine/MARS-Samples)
+
+## Main Modules Status
+
+- Math - Partially complete
+- Processing - Complete
+- Input - Complete but needs an overhaul
+- Rendering Thread - Complete but needs an overhaul
+- Physics - In development
+
+## Vulkan
+Originally this project was ment to use Vulkan but due to the project being "early" in devlopment and being constantly changing the headches of Vulkan due to all it's necessary boilerplate have become too much, in the future when everthing becomes more stable OpenGL will likelly be removed in favor of Vulkan as a main renderer followed by support for DirectX
 
 ## Building
 To build you need the base-devel, cmake, vulkan and sdl2
