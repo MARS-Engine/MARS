@@ -18,6 +18,10 @@ float quadVertices[] = {
 void light_manager::load(graphics_instance* _instance) {
     m_instance = _instance;
 
+    //NOTE: temp
+    if (m_instance->render_type() != "deferred")
+        return;
+
     if (!mars_resources::resource_manager::load_graphical_resource(mars_resources::resource_manager::find_path("deferred_light.mshader", MARS_RESOURCE_TYPE_SHADER),light_shader, m_instance))
         mars_debug::debug::error("MARS - OpenGL - Backend - Failed to find defferd_light shader");
 

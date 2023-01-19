@@ -24,14 +24,10 @@ namespace mars_graphics {
         texture* generate_texture() override { return new gl_texture(this); }
         pipeline* generate_pipeline() override { return new gl_pipeline(this); }
         shader_data* generate_shader_data() override { return new gl_shader_data(this); }
-
-        bool m_is_deferred_renderer_enabled = false;
     public:
         using backend_instance::backend_instance;
 
         void create_with_window(const std::string& _title, const mars_math::vector2<int>& _size) override;
-
-        void set_deferred_renderer(bool _enabled) { m_is_deferred_renderer_enabled = _enabled; }
 
         void update() override;
         void prepare_render() override;

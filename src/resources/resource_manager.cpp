@@ -44,8 +44,8 @@ bool resource_manager::read_binary(const std::string& _path, std::vector<char>& 
     return true;
 }
 
-std::string resource_manager::find_path(const std::string& _file, mars_graphics::MARS_RESOURCE_TYPE _type) {
-    return resources_locations[_type] + _file;
+std::string resource_manager::find_path(const std::string& _file, mars_graphics::MARS_RESOURCE_TYPE _type, const std::string& _path_suffix) {
+    return resources_locations[_type] + ( _path_suffix.empty() ? "" :  _path_suffix + "/") + _file;
 }
 
 void resource_manager::clean() {

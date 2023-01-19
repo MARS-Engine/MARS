@@ -8,8 +8,7 @@
 namespace mars_engine {
 
     class transform_3d;
-    template<class T> class component;
-    class component_interface;
+    class component;
 
     class engine_object {
     private:
@@ -17,12 +16,12 @@ namespace mars_engine {
         mars_graphics::graphics_instance* m_instance = nullptr;
         transform_3d* m_transform;
         pl::safe_vector<engine_object*> m_children;
-        pl::safe_vector<component_interface*> m_components;
+        pl::safe_vector<component*> m_components;
     public:
         inline engine_object* parent() const { return m_parent; }
         inline transform_3d* transform() const { return m_transform; }
         inline pl::safe_vector<engine_object*>& children() { return m_children; }
-        inline pl::safe_vector<component_interface*>& components() { return m_components; }
+        inline pl::safe_vector<component*>& components() { return m_components; }
 
 
         void set_instance(mars_graphics::graphics_instance* _new_instance) {
@@ -42,7 +41,7 @@ namespace mars_engine {
         ~engine_object();
 
         template<class T> T* get_component() const {
-            static_assert(std::is_base_of<component<T>, T>::value, "invalid component - component must have type mars_engine::component has a base");
+            static_assert(std::is_base_of<component, T>::value, "invalid component - component must have type mars_engine::component has a base");
             for (auto c : m_components) {
                 auto cast = dynamic_cast<T*>(c);
                 if (cast != nullptr)
@@ -51,7 +50,7 @@ namespace mars_engine {
         }
 
         template<class T> T* add_component(T* _new_component) {
-            static_assert(std::is_base_of<component<T>, T>::value, "invalid component - component must have type mars_engine::component has a base");
+            static_assert(std::is_base_of<component, T>::value, "invalid component - component must have type mars_engine::component has a base");
             m_components.push_back(_new_component);
             _new_component->set_object(this);
             return _new_component;

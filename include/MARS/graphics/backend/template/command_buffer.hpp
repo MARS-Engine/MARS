@@ -15,6 +15,7 @@ namespace mars_graphics {
 
         virtual void draw(int first, size_t _count) { }
         virtual void draw_indexed(size_t _indices) { }
+        virtual void draw_instanced(size_t _indices, size_t _instances) { }
     };
 }
 

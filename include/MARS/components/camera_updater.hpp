@@ -11,7 +11,7 @@ namespace mars_component {
         MARS_CAMERA_MODE_ORTHOGRAPHIC
     };
 
-    class camera_updater : public mars_engine::component<camera_updater>, public mars_layers::update_layer {
+    class camera_updater : public mars_engine::component, public mars_layers::update_layer {
     private:
         MARS_CAMERA_MODE m_camera_mode = MARS_CAMERA_MODE_PERSPECTIVE;
         float m_fov = 90;

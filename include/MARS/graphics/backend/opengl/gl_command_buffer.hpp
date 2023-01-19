@@ -12,6 +12,7 @@ namespace mars_graphics {
 
         void draw(int first, size_t _count) override { glDrawArrays(GL_TRIANGLES, first, _count); }
         void draw_indexed(size_t _indices) override { glDrawElements(GL_TRIANGLES, _indices, GL_UNSIGNED_INT, nullptr); }
+        void draw_instanced(size_t _indices, size_t _instances) override { glDrawElementsInstanced(GL_TRIANGLES, _indices, GL_UNSIGNED_INT, 0, _instances); }
     };
 }
 

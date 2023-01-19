@@ -22,9 +22,9 @@ namespace mars_graphics {
         inline void set_projection(const mars_math::matrix4<float>& _val) { projection = _val; }
         inline void set_view_proj(const mars_math::matrix4<float>& _val) { view_proj = _val; }
 
-        inline mars_math::matrix4<float> get_view() { return view; }
-        inline mars_math::matrix4<float> get_projection() { return projection; }
-        inline mars_math::matrix4<float> get_proj_view() { return view_proj; }
+        inline mars_math::matrix4<float> get_view() const { return view; }
+        inline mars_math::matrix4<float> get_projection() const { return projection; }
+        inline mars_math::matrix4<float> get_proj_view() const { return view_proj; }
     };
 
     class graphics_instance {
@@ -34,15 +34,17 @@ namespace mars_graphics {
         mars_input::input* m_input = nullptr;
 
     public:
-        inline camera& get_camera() { return m_camera; }
-        inline bool is_running() { return !m_instance->get_window()->should_close(); }
-        inline size_t current_frame() { return m_instance->current_frame(); }
+        [[nodiscard]] inline camera& get_camera() { return m_camera; }
+        [[nodiscard]] inline bool is_running() const { return !m_instance->get_window()->should_close(); }
+        [[nodiscard]] inline size_t current_frame() const { return m_instance->current_frame(); }
 
-        template<typename T> inline T* instance() { return m_instance->instance<T>(); }
+        template<typename T> [[nodiscard]] inline T* instance() const { return m_instance->instance<T>(); }
 
-        inline backend_instance* backend() { return m_instance; }
+        [[nodiscard]] inline backend_instance* backend() const { return m_instance; }
 
-        inline mars_graphics::command_buffer* primary_buffer() { return  m_instance->primary_buffer(); }
+        [[nodiscard]] inline mars_graphics::command_buffer* primary_buffer() const { return  m_instance->primary_buffer(); }
+
+        [[nodiscard]] inline std::string render_type() const { return m_instance->render_type(); }
 
         inline void window_update() {
             m_instance->get_window()->process(m_input);

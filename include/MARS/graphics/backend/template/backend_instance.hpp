@@ -40,6 +40,8 @@ namespace mars_graphics {
         const int MAX_FRAMES_IN_FLIGHT = 2;
 
         light_manager* m_light;
+
+        bool m_is_deferred_renderer_enabled = false;
     public:
         [[nodiscard]] inline uint32_t current_frame() const { return m_current_frame; }
         [[nodiscard]] inline uint32_t max_frames() const { return MAX_FRAMES_IN_FLIGHT; }
@@ -47,9 +49,16 @@ namespace mars_graphics {
         [[nodiscard]] inline command_buffer* primary_buffer() const { return m_primary_buffer; }
         [[nodiscard]] inline window* get_window() const { return raw_window; }
         [[nodiscard]] inline bool enable_validation_layer() const { return m_enable_validation; }
+
         inline void set_instance(graphics_instance* _instance) { m_instance = _instance; }
 
+        inline void set_deferred_renderer(bool _enabled) { m_is_deferred_renderer_enabled = _enabled; }
+
         [[nodiscard]] inline light_manager* lights() const { return m_light; }
+
+        [[nodiscard]] inline std::string render_type() const {
+            return m_is_deferred_renderer_enabled ? "deferred" : "forward";
+        }
 
         explicit backend_instance(bool _enable_validation) { m_enable_validation = _enable_validation; }
 

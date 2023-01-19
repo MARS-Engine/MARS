@@ -18,8 +18,8 @@ void mars_layers::update_layer_callback(mars_engine::engine_layers* _layer, int 
 }
 
 void mars_layers::render_update_layer_callback(mars_engine::engine_layers* _layer, int _thread) {
-for (auto& component : _layer->valid_components[_thread])
-    ((render_update_layer*)component)->prepare_gpu();
+    for (auto& component : _layer->valid_components[_thread])
+        ((render_update_layer*)component)->prepare_gpu();
 }
 
 void mars_layers::render_layer_callback(mars_engine::engine_layers* _layer, int _thread) {

@@ -145,7 +145,7 @@ namespace mars_resources {
         */
         static bool read_binary(const std::string& _path, std::vector<char>& data);
 
-        static std::string find_path(const std::string& _file, mars_graphics::MARS_RESOURCE_TYPE _type);
+        static std::string find_path(const std::string& _file, mars_graphics::MARS_RESOURCE_TYPE _type, const std::string& _path_suffix = "");
 
         static void clean();
     };
