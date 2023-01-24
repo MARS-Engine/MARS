@@ -15,8 +15,10 @@ For a test sample, you can go [here](https://github.com/MARSngine/MARS-Samples)
 - Rendering Thread - Complete but needs an overhaul
 - Physics - In development
 
-## Vulkan
-Originally this project was ment to use Vulkan but due to the project being "early" in devlopment and being constantly changing the headches of Vulkan due to all it's necessary boilerplate have become too much, in the future when everthing becomes more stable OpenGL will likelly be removed in favor of Vulkan as a main renderer followed by support for DirectX
+## OpenGL/DirectX/Metal
+OpenGL has started to become a bigger pain then excepted (due to multithreading) has the project is growing, therefor Vulkan is coming back as the main backend, OpenGL will probably never comeback, I have a idea of wrapping all function so that they are sent as commands to the graphics thread but honastly it's too much work, maybe in the future.
+
+In regards to DirectX and Metal both should be added in the future as modules
 
 ## Building
 To build you need the base-devel, cmake, vulkan and sdl2
