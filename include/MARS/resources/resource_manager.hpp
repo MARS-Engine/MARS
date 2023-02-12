@@ -29,9 +29,7 @@ namespace mars_resources {
         * @return pointer to resource or nullptr
         */
         template<typename T> static T* get_cached_resource(const std::string& _path) {
-            if (!resources.contains(_path))
-                return nullptr;
-            return dynamic_cast<T*>(resources[_path]);
+            return resources.contains(_path) ? dynamic_cast<T*>(resources[_path]) : nullptr;
         }
     public:
         static std::map<mars_graphics::MARS_RESOURCE_TYPE, std::string> resources_locations;
@@ -47,20 +45,26 @@ namespace mars_resources {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base and graphics_base");
             static_assert(std::is_base_of<mars_graphics::graphics_component, T>::value, "invalid resource type, T must be derived from backend_base");
 
+            resources.lock();
+
             auto temp_resource = get_cached_resource<T>(_path);
 
             if (temp_resource != nullptr) {
                 _resource = (T*)resources[_path];
+                resources.unlock();
                 return true;
             }
 
             temp_resource = _instance->instance<T>();
             if (!temp_resource->load_resource(_path)) {
                 delete temp_resource;
+                resources.unlock();
                 return false;
             }
 
             resources[_path] = temp_resource;
+            resources.unlock();
+
             _resource = temp_resource;
             return true;
         }

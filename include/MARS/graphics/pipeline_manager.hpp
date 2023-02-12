@@ -26,7 +26,8 @@ namespace mars_graphics {
             return result;
         }
 
-        static pipeline* load_pipeline(mars_shader_inputs* _input, shader* _shader, graphics_instance* _graphics_instance);
+        static pipeline* load_pipeline(mars_shader_inputs* _input, shader* _shader, graphics_instance* _graphics_instance, render_pass* _render_pass = nullptr);
+        static pipeline* prepare_pipeline(mars_shader_inputs* _input, shader* _shader, graphics_instance* _graphics_instance, render_pass* _render_pass = nullptr);
 
         static void destroy();
     };

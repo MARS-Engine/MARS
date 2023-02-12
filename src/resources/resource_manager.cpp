@@ -9,7 +9,9 @@ safe_map<std::string, resource_base*> resource_manager::resources;
 
 std::map<MARS_RESOURCE_TYPE, std::string> resource_manager::resources_locations = {
         { MARS_RESOURCE_TYPE_SHADER, "engine/assets/shaders/" },
-        { MARS_RESOURCE_TYPE_TEXTURE, "engine/assets/textures/" }
+        { MARS_RESOURCE_TYPE_TEXTURE, "engine/assets/textures/" },
+        { MARS_RESOURCE_TYPE_MATERIAL, "engine/assets/materials/" },
+        { MARS_RESOURCE_TYPE_RENDERER, "engine/assets/renderer/" }
 };
 
 bool resource_manager::read_file(const std::string& _path, std::vector<std::string>& data) {

@@ -57,6 +57,7 @@ namespace mars_graphics {
 
         void load(graphics_instance* _instance);
         void draw_lights();
+        void destroy();
     };
 }
 

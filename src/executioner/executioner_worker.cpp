@@ -1,6 +1,5 @@
 #include <MARS/executioner/executioner_worker.hpp>
 #include <MARS/graphics/backend/template/pipeline.hpp>
-#include <mutex>
 
 using namespace mars_executioner;
 

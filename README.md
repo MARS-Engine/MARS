@@ -18,7 +18,7 @@ For a test sample, you can go [here](https://github.com/MARSngine/MARS-Samples)
 ## OpenGL/DirectX/Metal
 OpenGL has started to become a bigger pain then excepted (due to multithreading) has the project is growing, therefor Vulkan is coming back as the main backend, OpenGL will probably never comeback, I have a idea of wrapping all function so that they are sent as commands to the graphics thread but honastly it's too much work, maybe in the future.
 
-In regards to DirectX and Metal both should be added in the future as modules
+In regard to DirectX and Metal both should be added in the future as separate modules
 
 ## Building
 To build you need the base-devel, cmake, vulkan and sdl2
@@ -26,6 +26,9 @@ To build you need the base-devel, cmake, vulkan and sdl2
 You also need to manually compile and install [Parallel](https://github.com/PedroSilva8/parallel)
 
 For Windows use MinGW, [MSYS2](https://www.msys2.org/) should help a lot
+
+## Debugging
+When debugging Vulkan it's highly recommended to use LLDB
 
 ## MARS Structure
 

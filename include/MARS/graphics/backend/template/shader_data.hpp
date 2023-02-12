@@ -10,18 +10,29 @@ namespace mars_graphics {
 
     class uniform {
     protected:
-        buffer* m_buffer;
+        buffer* m_buffer = nullptr;
         shader* m_shader = nullptr;
         size_t m_index = 0;
-        mars_shader_uniform* m_uni_data;
+        mars_shader_uniform* m_uni_data = nullptr;
     public:
         mars_shader_uniform* get_data() { return m_uni_data; }
 
-        explicit uniform(mars_shader_uniform* _uni_data, size_t _index, shader* _shader, buffer* _buffer) { m_uni_data = _uni_data; m_index = _index; m_shader = _shader; m_buffer = _buffer; }
-        explicit uniform(mars_shader_uniform* _uni_data, size_t _index, shader* _shader) { m_uni_data = _uni_data; m_index = _index; m_shader = _shader; }
+        [[nodiscard]] size_t get_buffer_size() const { return m_buffer->size(); }
 
-        inline void copy_data() { m_buffer->copy_data(); }
-        inline void update(void* _data) { m_buffer->update(_data); }
+        explicit uniform(mars_shader_uniform* _uni_data, size_t _index, shader* _shader, buffer* _buffer = nullptr) { m_uni_data = _uni_data; m_index = _index; m_shader = _shader; m_buffer = _buffer; }
+
+        inline void copy_offset(size_t _index, size_t _offset, size_t _size, void* _data) { m_buffer->copy_offset(_offset, _size, _data); }
+
+        inline void copy_offset(size_t _offset, size_t _size, void* _data) {
+            m_buffer->copy_offset(_offset, _size, _data);
+        }
+
+        inline void copy_data(size_t _index) { m_buffer->copy_data(_index); }
+
+        inline void update(void* _data) {
+            m_buffer->update(_data);
+        }
+
         virtual void bind(size_t _index) { }
         virtual void destroy() { }
     };
@@ -46,7 +57,7 @@ namespace mars_graphics {
         }
 
         virtual void bind_textures() { }
-        virtual void bind(size_t _frame) { }
+        virtual void bind() { }
         virtual void destroy() { }
 
         void update(const std::string& _uniform, void* _data) { m_uniforms[_uniform]->update(_data); }

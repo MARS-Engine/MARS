@@ -65,11 +65,20 @@ namespace mars_executioner {
         pl::safe_map<mars_graphics::pipeline*, pl::safe_vector<executioner_job*>> render_jobs;
 
         std::thread _thread;
+        std::mutex gpu_lock;
 
     public:
         std::mutex job_mtx;
         std::mutex render_mtx;
         std::condition_variable wait_room;
+
+        inline void lock_gpu() {
+            gpu_lock.lock();
+        }
+
+        inline void unlock_gpu() {
+            gpu_lock.unlock();
+        }
 
         inline void stop() { m_running = false; m_worker_cv.notify_all(); }
 

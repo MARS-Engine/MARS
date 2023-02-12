@@ -55,29 +55,29 @@ namespace mars_graphics {
             m_instance->set_instance(this);
         }
 
-        void create_with_window(const std::string& _title, mars_math::vector2<int> _size) {
-            m_instance->create_with_window(_title, _size);
+        inline void create_with_window(const std::string& _title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) {
+            m_instance->create_with_window(_title, _size, _renderer);
             m_input = mars_input::input_manager::create_input(m_instance->get_window());
         }
 
-        void update() {
+        inline void update() {
             m_instance->update();
             m_input->update();
         }
 
-        void finish_update() {
+        inline void finish_update() {
             m_input->finish_update();
         }
 
-        void prepare_render() {
+        inline void prepare_render() {
             m_instance->prepare_render();
         }
 
-        void draw() {
+        inline void draw() {
             m_instance->draw();
         }
 
-        void destroy() {
+        inline void destroy() {
             m_instance->destroy();
         }
     };

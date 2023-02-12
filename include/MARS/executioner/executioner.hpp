@@ -10,11 +10,19 @@ namespace mars_executioner {
     private:
         static executioner_worker* worker;
     public:
+        static inline void lock_gpu() {
+            worker->lock_gpu();
+        }
+
+        static inline void unlock_gpu() {
+            worker->unlock_gpu();
+        }
+
         static inline void add_job(EXECUTIONER_JOB_PRIORITY _priority, executioner_job* _job) { _job->reset();  worker->add_job(_priority, _job); }
 
-        inline static bool finished() { return !worker->executing(); }
+        static inline bool finished() { return !worker->executing(); }
 
-        inline static void stop() { worker->stop(); }
+        static inline void stop() { worker->stop(); }
 
         static void init();
         static void execute();

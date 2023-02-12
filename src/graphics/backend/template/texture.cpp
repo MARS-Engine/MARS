@@ -16,7 +16,7 @@ bool texture::load_texture(const std::string& _img_path) {
         return false;
     }
 
-    m_size = vector2(width, height);
+    m_size = vector2(static_cast<size_t>(width), static_cast<size_t>(height));
     return true;
 }
 

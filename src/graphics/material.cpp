@@ -28,7 +28,8 @@ bool material::load_resource(const std::string &_path) {
 
         switch (mat_input_tokens[data[1]]) {
             case MARS_MATERIAL_INPUT_SHADER:
-                resource_manager::load_graphical_resource<shader>(resource_manager::find_path(data[0], MARS_RESOURCE_TYPE_SHADER, m_instance->render_type()), m_shader, m_instance);
+                if (!resource_manager::load_graphical_resource<shader>(resource_manager::find_path(data[0], MARS_RESOURCE_TYPE_SHADER, m_instance->render_type()), m_shader, m_instance))
+                    mars_debug::debug::error("MARS - Failed to load shader - " + resource_manager::find_path(data[0], MARS_RESOURCE_TYPE_SHADER, m_instance->render_type()));
                 break;
             case MARS_MATERIAL_INPUT_TEXTURE:
                 texture* new_texture;

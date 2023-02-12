@@ -2,12 +2,15 @@
 #define MARS_COMMAND_BUFFER_
 
 #include "graphics_component.hpp"
+#include "command_pool.hpp"
 
 namespace mars_graphics {
 
     class command_buffer : public graphics_component {
     public:
         using graphics_component::graphics_component;
+
+        virtual void create(command_pool* _pool) { }
 
         virtual void begin() { }
         virtual void end() { }
