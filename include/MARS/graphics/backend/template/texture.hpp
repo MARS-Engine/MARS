@@ -8,6 +8,7 @@ namespace mars_graphics {
 
     class texture : public mars_resources::resource_base, public graphics_component {
     protected:
+        std::string _path;
         mars_math::vector2<size_t> m_size {};
         int m_channels = -1;
         unsigned char* m_data = nullptr;

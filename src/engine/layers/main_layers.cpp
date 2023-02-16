@@ -3,33 +3,57 @@
 
 using namespace mars_layers;
 
-void mars_layers::load_layer_callback(mars_engine::engine_layers* _layer, int _thread) {
-    for (auto component : _layer->valid_components[_thread])
-        ((load_layer*)component)->load();
+std::vector<std::function<void(void)>> mars_layers::load_layer_callback(mars_engine::engine_object* _target) {
+    std::vector<std::function<void(void)>> result;
+    for (auto& comp : _target->components()) {
+        auto target = dynamic_cast<load_layer*>(comp);
+        if (target != nullptr)
+            result.emplace_back([target] { target->load(); });
+    }
+
+    return result;
 }
 
-void mars_layers::update_layer_callback(mars_engine::engine_layers* _layer, int _thread) {
-    for (auto& component : _layer->valid_components[_thread])
-        ((update_layer*)component)->pre_update();
-    for (auto& component : _layer->valid_components[_thread])
-        ((update_layer*)component)->update();
-    for (auto& component : _layer->valid_components[_thread])
-        ((update_layer*)component)->post_update();
+std::vector<std::function<void(void)>> mars_layers::update_layer_callback(mars_engine::engine_object* _target) {
+    std::vector<std::function<void(void)>> result;
+    for (auto& comp : _target->components()) {
+        auto target = dynamic_cast<update_layer*>(comp);
+        if (target != nullptr)
+            result.emplace_back([target] { target->update(); });
+    }
+
+    return result;
 }
 
-void mars_layers::render_update_layer_callback(mars_engine::engine_layers* _layer, int _thread) {
-    for (auto& component : _layer->valid_components[_thread])
-        ((render_update_layer*)component)->prepare_gpu();
+std::vector<std::function<void(void)>> mars_layers::post_update_layer_callback(mars_engine::engine_object* _target) {
+    std::vector<std::function<void(void)>> result;
+    for (auto& comp : _target->components()) {
+        auto target = dynamic_cast<post_update_layer*>(comp);
+        if (target != nullptr)
+            result.emplace_back([target] { target->post_update(); });
+    }
+
+    return result;
 }
 
-void mars_layers::render_layer_callback(mars_engine::engine_layers* _layer, int _thread) {
-    for (auto& component : _layer->valid_components[_thread])
-        ((render_layer*)component)->send_to_gpu();
-    for (auto& component : _layer->valid_components[_thread])
-        ((render_layer*)component)->pre_render();
-    for (auto& component : _layer->valid_components[_thread])
-        if (((render_layer*)component)->render_job != nullptr)
-            mars_executioner::executioner::add_job(mars_executioner::EXECUTIONER_JOB_PRIORITY_NORMAL, ((render_layer*)component)->render_job);
-    for (auto& component : _layer->valid_components[_thread])
-        ((render_layer*)component)->post_render();
+std::vector<std::function<void(void)>> mars_layers::render_layer_callback(mars_engine::engine_object* _target) {
+    std::vector<std::function<void(void)>> result;
+    for (auto& comp : _target->components()) {
+        auto target = dynamic_cast<render_layer*>(comp);
+        if (target != nullptr)
+            result.emplace_back([target] { target->send_to_gpu(); mars_executioner::executioner::add_job(target->render_job); });
+    }
+
+    return result;
+}
+
+std::vector<std::function<void(void)>> mars_layers::post_render_layer_callback(mars_engine::engine_object* _target) {
+    std::vector<std::function<void(void)>> result;
+    for (auto& comp : _target->components()) {
+        auto target = dynamic_cast<post_render_layer*>(comp);
+        if (target != nullptr)
+            result.emplace_back([target] { target->post_render(); });
+    }
+
+    return result;
 }

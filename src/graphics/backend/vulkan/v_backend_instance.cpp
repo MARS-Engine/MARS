@@ -134,7 +134,6 @@ void v_backend_instance::draw() {
 
     if (vkQueuePresentKHR(device()->raw_present_queue(), &presentInfo) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Present Failed");
-    vkQueueWaitIdle(device()->raw_present_queue());
     m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
@@ -166,4 +165,8 @@ void v_backend_instance::destroy() {
 
     raw_window->destroy();
     delete raw_window;
+}
+
+void v_backend_instance::wait_idle() {
+    vkDeviceWaitIdle(m_device->raw_device());
 }

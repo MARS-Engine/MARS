@@ -80,6 +80,10 @@ namespace mars_graphics {
         inline void destroy() {
             m_instance->destroy();
         }
+
+        inline void wait_idle() {
+            m_instance->wait_idle();
+        }
     };
 }
 

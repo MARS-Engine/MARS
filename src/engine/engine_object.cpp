@@ -10,12 +10,23 @@ engine_object::engine_object() {
 }
 
 engine_object::~engine_object() {
+    if (m_prev != nullptr)
+        m_prev->set_next(m_next);
+
+    if (m_next != nullptr)
+        m_next->set_previous(m_prev);
+
     for (auto c : m_components) {
         c->destroy();
         delete c;
     }
     delete m_transform;
 
-    for (auto& c : m_children)
-        delete c;
+    auto children = m_children.lock_get();
+
+    while (children != nullptr) {
+        auto next = children->next();
+        delete children;
+        children = next;
+    }
 }

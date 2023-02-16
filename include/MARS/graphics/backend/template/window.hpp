@@ -25,13 +25,13 @@ namespace mars_graphics {
         struct SDL_Window* m_window = nullptr;
     public:
 
-        inline struct SDL_Window* raw_window() { return m_window; }
+        [[nodiscard]] inline struct SDL_Window* raw_window() const { return m_window; }
 
-        inline mars_math::vector2<size_t> size() const { return m_size; }
+        [[nodiscard]] inline mars_math::vector2<size_t> size() const { return m_size; }
 
-        inline bool should_close() const { return m_should_close; }
+        [[nodiscard]] inline bool should_close() const { return m_should_close; }
 
-        virtual void initialize(const std::string& _title, mars_math::vector2<size_t> _size) {
+        virtual void initialize(const std::string& _title, mars_math::vector2<size_t> _size) {\
             SDL_Init(SDL_INIT_VIDEO);
             SDL_SetHint(SDL_HINT_GRAB_KEYBOARD, "1");
             SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -43,8 +43,6 @@ namespace mars_graphics {
         virtual void create() {
             m_window = SDL_CreateWindow(m_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, m_size.x(), m_size.y(), m_flags);
         }
-
-        virtual void create_surface() { }
 
         virtual void destroy() {
             if (m_window != nullptr)

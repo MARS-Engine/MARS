@@ -22,7 +22,9 @@ void v_buffer::copy_buffer(v_buffer *_src) {
 }
 
 void v_buffer::copy_data(size_t _index) {
+    vkMapMemory(instance<v_backend_instance>()->device()->raw_device(), m_memory, 0, m_size, 0, &gpu_data);
     memcpy(reinterpret_cast<char*>(gpu_data) + _index * m_size, m_current_data, m_size);
+    vkUnmapMemory(instance<v_backend_instance>()->device()->raw_device(), m_memory);
 }
 
 void v_buffer::create(size_t _size, MARS_MEMORY_TYPE _mem_type, size_t _frames)  {
@@ -63,7 +65,6 @@ void v_buffer::create(size_t _size, MARS_MEMORY_TYPE _mem_type, size_t _frames) 
         mars_debug::debug::error("MARS - Vulkan - Buffer - Failed to allocate buffer memory");
 
     vkBindBufferMemory(instance<v_backend_instance>()->device()->raw_device(), m_buffer, m_memory, 0);
-    vkMapMemory(instance<v_backend_instance>()->device()->raw_device(), m_memory, 0, m_size, 0, &gpu_data);
 }
 
 void v_buffer::destroy() {

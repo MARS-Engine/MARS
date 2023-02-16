@@ -18,15 +18,12 @@ namespace mars_layers {
 
     class update_layer {
     public:
-        virtual void pre_update() { }
         virtual void update() { }
-        virtual void post_update() { }
     };
 
-
-    class render_update_layer {
+    class post_update_layer {
     public:
-        virtual void prepare_gpu() { }
+        virtual void post_update() { }
     };
 
     class render_layer {
@@ -34,23 +31,24 @@ namespace mars_layers {
         mars_executioner::executioner_job* render_job = nullptr;
         mars_graphics::material* render_material = nullptr;
 
+        virtual void send_to_gpu() { }
+
         ~render_layer() {
             delete render_job;
         }
+    };
 
-        virtual void send_to_gpu() { }
-        virtual void pre_render() { }
+    class post_render_layer {
+    public:
         virtual void post_render() { }
     };
 
-    void load_layer_callback(mars_engine::engine_layers* _layer, int _thread);
-
-    void update_layer_callback(mars_engine::engine_layers* _layer, int _thread);
-
-    void render_update_layer_callback(mars_engine::engine_layers* _layer, int _thread);
-
-    void render_layer_callback(mars_engine::engine_layers* _layer, int _thread);
-
+    std::vector<std::function<void()>> load_layer_callback(mars_engine::engine_object* _target);
+    std::vector<std::function<void()>> update_layer_callback(mars_engine::engine_object* _target);
+    std::vector<std::function<void()>> post_update_layer_callback(mars_engine::engine_object* _target);
+    std::vector<std::function<void()>> render_update_layer_callback(mars_engine::engine_object* _target);
+    std::vector<std::function<void()>> render_layer_callback(mars_engine::engine_object* _target);
+    std::vector<std::function<void()>> post_render_layer_callback(mars_engine::engine_object* _target);
 }
 
 #endif

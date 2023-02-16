@@ -13,9 +13,6 @@ void executioner::execute() {
         return;
 
     worker->execute();
-    std::mutex mtx;
-    std::unique_lock<std::mutex> l(mtx);
-    worker->wait_room.wait(l, [&] { return !worker->executing(); });
 }
 
 void executioner::clean() {

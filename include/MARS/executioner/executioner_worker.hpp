@@ -2,7 +2,7 @@
 #define MARS_EXECUTIONER_WORKER_
 
 #include <pl/safe_map.hpp>
-#include <pl/safe_vector.hpp>
+#include <pl/safe.hpp>
 #include <functional>
 #include <condition_variable>
 #include <atomic>
@@ -13,32 +13,42 @@ namespace mars_graphics {
 
 namespace mars_executioner {
 
-    enum EXECUTIONER_JOB_PRIORITY {
-        EXECUTIONER_JOB_PRIORITY_NORMAL,
-        EXECUTIONER_JOB_PRIORITY_IN_FLIGHT
-    };
-
     struct executioner_job {
     private:
-        mars_graphics::pipeline* m_pipeline;
+        mars_graphics::pipeline* m_pipeline = nullptr;
+        executioner_job* m_next = nullptr;
+        std::mutex m_mtx;
     public:
+        inline void lock() { m_mtx.lock(); }
+        inline void unlock() { m_mtx.unlock(); }
+
+        inline executioner_job* next() { return m_next; }
+        inline void set_next(executioner_job* _next) { m_next = _next; }
+
+        [[nodiscard]] inline executioner_job* get_final() {
+            auto final = this;
+
+            while (final->next() != nullptr)
+                final = final->next();
+
+            return final;
+        }
+
         std::atomic<bool> started = false;
         std::atomic<bool> finished = false;
 
-        std::mutex mtx;
-        ///condition_variable called when finished
-        std::condition_variable wait_room;
         std::function<void()> callback;
 
         inline void finish() {
             started = false;
             finished = true;
+            finished.notify_all();
         }
 
         inline void reset() {
-            std::unique_lock<std::mutex> l(mtx);
             started = false;
             finished = false;
+            m_next = nullptr;
         }
 
         inline mars_graphics::pipeline* get_pipeline() { return m_pipeline; }
@@ -48,8 +58,7 @@ namespace mars_executioner {
         explicit executioner_job(const std::function<void()>& _callback) { m_pipeline = nullptr; finished = false; callback = _callback; }
 
         void wait() {
-            std::unique_lock<std::mutex> l(mtx);
-            wait_room.wait(l, [&]() { return finished.load(); });
+            finished.wait(false);
         }
 
         void clean() { finished = false; }
@@ -61,16 +70,13 @@ namespace mars_executioner {
         std::atomic<bool> m_execute = false;
         std::condition_variable m_worker_cv;
 
-        pl::safe_map<EXECUTIONER_JOB_PRIORITY, pl::safe_vector<executioner_job*>> m_jobs;
-        pl::safe_map<mars_graphics::pipeline*, pl::safe_vector<executioner_job*>> render_jobs;
+        pl::safe_map<mars_graphics::pipeline*, pl::safe<executioner_job*>> render_jobs;
 
         std::thread _thread;
         std::mutex gpu_lock;
 
     public:
         std::mutex job_mtx;
-        std::mutex render_mtx;
-        std::condition_variable wait_room;
 
         inline void lock_gpu() {
             gpu_lock.lock();
@@ -92,26 +98,41 @@ namespace mars_executioner {
             m_worker_cv.notify_all();
         };
 
-        inline void add_job(EXECUTIONER_JOB_PRIORITY _priority, executioner_job* _job) {
-            if (_priority == EXECUTIONER_JOB_PRIORITY_NORMAL && _job->get_pipeline() != nullptr) {
-                {
-                    std::unique_lock lk(render_mtx);
-                    render_jobs.lock();
-                    render_jobs[_job->get_pipeline()].push_back(_job);
-                    render_jobs.unlock();
-                }
-            }
-            else {
-                {
-                    std::unique_lock lk(job_mtx);
-                    m_jobs.lock();
-                    m_jobs[_priority].push_back(_job);
-                    m_jobs.unlock();
-                }
+        inline void wait() {
+            m_execute.wait(true);
+        }
 
-                if (_priority == EXECUTIONER_JOB_PRIORITY_IN_FLIGHT)
-                    m_worker_cv.notify_all();
+        inline void add_job(executioner_job* _job) {
+            if (_job->get_pipeline() == nullptr)
+                return;
+
+            if (!render_jobs.contains(_job->get_pipeline())) {
+                render_jobs.lock();
+                render_jobs.insert(std::pair(_job->get_pipeline(), nullptr));
+                render_jobs.unlock();
             }
+
+            auto job = render_jobs[_job->get_pipeline()].lock_get();
+
+            if (job == nullptr) {
+                render_jobs[_job->get_pipeline()].set(_job);
+                render_jobs[_job->get_pipeline()].unlock();
+                return;
+            }
+
+            render_jobs[_job->get_pipeline()].unlock();
+
+            auto tail = job->get_final();
+            tail->lock();
+
+            while (tail->next() != nullptr) {
+                tail->unlock();
+                tail = tail->get_final();
+                tail->lock();
+            }
+
+            tail->set_next(_job);
+            tail->unlock();
         }
 
         executioner_worker();

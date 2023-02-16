@@ -7,6 +7,7 @@ using namespace mars_graphics;
 using namespace mars_math;
 
 bool texture::load_texture(const std::string& _img_path) {
+    _path = _img_path;
     int width, height;
     m_data = stbi_load(_img_path.c_str(), &width, &height, &m_channels, STBI_rgb_alpha);
     m_channels = 4;

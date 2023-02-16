@@ -2,14 +2,13 @@
 #define MARS_TICK_
 
 #include <cstddef>
-#include <MARS/time/time_helper.hpp>
 
 namespace mars_engine {
     class tick {
     private:
+        std::chrono::_V2::system_clock::time_point _last_time;
         float m_tick_rate = 0.0f;
         float tick_per_second = 0.0f;
-        float m_last_tick = 0.0f;
     public:
         explicit tick(float _tick_rate) {
             m_tick_rate = _tick_rate;
@@ -17,12 +16,11 @@ namespace mars_engine {
         }
 
         inline bool tick_ready() {
-            m_last_tick +=  time_helper::delta_time_ms();
-            return m_last_tick >= tick_per_second;
+            return std::chrono::duration<float, std::chrono::milliseconds::period>(std::chrono::high_resolution_clock::now() - _last_time).count() >= tick_per_second;
         }
 
         inline void reset() {
-            m_last_tick = 0.0f;
+            _last_time = std::chrono::high_resolution_clock::now();
         }
     };
 }

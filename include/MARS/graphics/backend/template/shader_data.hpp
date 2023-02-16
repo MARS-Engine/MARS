@@ -42,9 +42,12 @@ namespace mars_graphics {
         std::map<std::string, uniform*> m_uniforms;
         std::map<std::string, texture*> m_textures;
         shader* m_shader = nullptr;
-        pipeline* m_pipeline;
-
+        pipeline* m_pipeline = nullptr;
+        shader_data* m_next = nullptr;
     public:
+        inline shader_data* next() const { return m_next; }
+        inline void set_next(shader_data* _next) { m_next = _next; }
+
         using graphics_component::graphics_component;
 
         std::map<std::string, uniform*>& get_uniforms() { return m_uniforms; }

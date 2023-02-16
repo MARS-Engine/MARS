@@ -60,6 +60,7 @@ namespace mars_graphics {
         void prepare_render() override;
         void draw() override;
         void destroy() override;
+        void wait_idle() override;
     };
 }
 

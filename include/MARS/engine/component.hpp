@@ -20,6 +20,9 @@ namespace mars_engine {
         inline engine_object* object() { return m_object; }
         inline mars_graphics::graphics_instance* g_instance() { return m_object->instance(); }
 
+        float get_delta_time();
+        float get_delta_time_ms();
+
         void set_object(engine_object* _new_object) { m_object = _new_object; }
 
         virtual void destroy() { }

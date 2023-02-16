@@ -16,7 +16,7 @@ namespace mars_graphics {
         std::optional<uint32_t> graphics_family;
         std::optional<uint32_t> present_family;
 
-        inline bool is_complete() const {
+        [[nodiscard]] inline bool is_complete() const {
             return graphics_family.has_value() && present_family.has_value();
         }
     };
@@ -37,12 +37,12 @@ namespace mars_graphics {
     public:
         bool is_device_suitable();
 
-        inline VkQueue raw_graphics_queue() const { return m_graphics_queue; }
-        inline VkQueue raw_present_queue() const { return m_present_queue; }
+        [[nodiscard]] inline VkQueue raw_graphics_queue() const { return m_graphics_queue; }
+        [[nodiscard]] inline VkQueue raw_present_queue() const { return m_present_queue; }
 
-        inline VkDevice raw_device() const { return m_device; }
-        inline VkPhysicalDevice raw_physical_device() const { return m_physical_device; }
-        inline queue_family_indices family_indices() const { return m_indices.value(); }
+        [[nodiscard]] inline VkDevice raw_device() const { return m_device; }
+        [[nodiscard]] inline VkPhysicalDevice raw_physical_device() const { return m_physical_device; }
+        [[nodiscard]] inline queue_family_indices family_indices() const { return m_indices.value(); }
 
         swapchain_support_details query_swap_chain_support();
 

@@ -75,6 +75,7 @@ namespace mars_graphics {
         virtual void prepare_render() { }
         virtual void draw() { }
         virtual void destroy() { }
+        virtual void wait_idle() { }
     };
 
     /* template specialization */
