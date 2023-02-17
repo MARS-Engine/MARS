@@ -31,11 +31,10 @@ namespace mars_engine {
     };
 
     struct engine_layers {
-        size_t hash;
         std::function<std::vector<std::function<void(void)>>(engine_object*)> validator;
         std::chrono::_V2::system_clock::time_point _last_time;
-        float delta_time;
-        float delta_time_ms;
+        float delta_time  = 0.0001f;
+        float delta_time_ms  = 0.0001f;
     };
 
     class engine_handler {
@@ -64,7 +63,7 @@ namespace mars_engine {
 
         template<typename T> inline void add_layer(const std::function<std::vector<std::function<void(void)>>(engine_object*)>& _validator) {
             auto hash = typeid(T).hash_code();
-            layer_data.insert(std::make_pair(hash, new engine_layers{ .hash = hash, .validator = _validator }));
+            layer_data.insert(std::make_pair(hash, new engine_layers{ .validator = _validator, ._last_time = std::chrono::high_resolution_clock::now() }));
             m_layer_components.insert(std::pair(hash, nullptr));
             m_layer_tail_components.insert(std::pair(hash, nullptr));
         }

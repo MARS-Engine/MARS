@@ -4,10 +4,10 @@
 #include <pl/safe_vector.hpp>
 #include <pl/safe.hpp>
 #include <MARS/graphics/graphics_instance.hpp>
+#include "transform_3d.hpp"
 
 namespace mars_engine {
 
-    class transform_3d;
     class component;
     class engine_handler;
 
@@ -18,7 +18,7 @@ namespace mars_engine {
         engine_object* m_parent = nullptr;
         mars_graphics::graphics_instance* m_instance = nullptr;
         engine_handler* m_engine = nullptr;
-        transform_3d* m_transform = nullptr;
+        transform_3d m_transform;
         pl::safe<engine_object*> m_children = nullptr;
         pl::safe_vector<component*> m_components;
     public:
@@ -39,7 +39,7 @@ namespace mars_engine {
         inline void set_previous(engine_object* _val) { m_prev = _val; }
 
         [[nodiscard]] inline engine_object* parent() const { return m_parent; }
-        [[nodiscard]] inline transform_3d* transform() const { return m_transform; }
+        [[nodiscard]] inline transform_3d& transform() { return m_transform; }
         [[nodiscard]] inline pl::safe<engine_object*>& children() { return m_children; }
         [[nodiscard]] inline pl::safe_vector<component*>& components() { return m_components; }
         [[nodiscard]] inline mars_graphics::graphics_instance* instance() const { return m_instance; }
@@ -86,7 +86,8 @@ namespace mars_engine {
             m_parent->children().unlock();
         }
 
-        engine_object();
+        engine_object() { m_transform.set_parent(this); }
+
         ~engine_object();
 
         template<class T> T* get_component() const {

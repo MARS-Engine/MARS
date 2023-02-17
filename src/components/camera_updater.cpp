@@ -4,7 +4,7 @@ using namespace mars_component;
 using namespace mars_math;
 
 void camera_updater::post_update() {
-    g_instance()->get_camera().set_view(matrix4<float>::look_at_lh(transform()->position(), transform()->position() + transform()->rotation() * vector3<float>::forward(), vector3<float>::up()));
+    g_instance()->get_camera().set_view(matrix4<float>::look_at_lh(transform().position(), transform().position() + transform().rotation() * vector3<float>::forward(), vector3<float>::up()));
 
     auto size = g_instance()->backend()->get_window()->size();
 
@@ -18,5 +18,5 @@ void camera_updater::post_update() {
     }
 
     g_instance()->get_camera().set_view_proj(g_instance()->get_camera().get_projection() * g_instance()->get_camera().get_view());
-    g_instance()->get_camera().position(transform()->get_world_position());
+    g_instance()->get_camera().position(transform().get_world_position());
 }

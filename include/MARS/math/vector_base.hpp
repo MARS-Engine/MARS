@@ -4,7 +4,8 @@
 #include "math_concept.hpp"
 #include <string>
 #include <cstring>
-#include <math.h>
+#include <cmath>
+#include <xmmintrin.h>
 
 namespace mars_math {
 
@@ -117,5 +118,17 @@ namespace mars_math {
             return memcmp(&m_data, &_right.m_data, sizeof(T) * Length) == 0;
         }
     };
+
+    template<> vector_base<float, 4> vector_base<float, 4>::operator+(const vector_base<float, 4UL> &right) const;
+    template<> vector_base<float, 4> vector_base<float, 4>::operator-(const vector_base<float, 4UL> &right) const;
+    template<> vector_base<float, 4> vector_base<float, 4>::operator*(const vector_base<float, 4UL> &right) const;
+    template<> vector_base<float, 4> vector_base<float, 4>::operator*(const float &right) const;
+    template<> vector_base<float, 4> vector_base<float, 4>::operator/(const vector_base<float, 4UL> &right) const;
+
+    template<> vector_base<float, 4>& vector_base<float, 4>::operator+=(const vector_base<float, 4UL> &right);
+    template<> vector_base<float, 4>& vector_base<float, 4>::operator-=(const vector_base<float, 4UL> &right);
+    template<> vector_base<float, 4>& vector_base<float, 4>::operator*=(const vector_base<float, 4UL> &right);
+    template<> vector_base<float, 4>& vector_base<float, 4>::operator*=(const float &right);
+    template<> vector_base<float, 4>& vector_base<float, 4>::operator/=(const vector_base<float, 4UL> &right);
 }
 #endif

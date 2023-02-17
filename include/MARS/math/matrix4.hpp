@@ -3,6 +3,7 @@
 
 #include "matrix_base.hpp"
 #include "quaternion.hpp"
+#include <MARS/debug/debug.hpp>
 
 namespace mars_math {
 

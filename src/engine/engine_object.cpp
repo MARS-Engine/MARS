@@ -5,10 +5,6 @@
 
 using namespace mars_engine;
 
-engine_object::engine_object() {
-    m_transform = new transform_3d(this);
-}
-
 engine_object::~engine_object() {
     if (m_prev != nullptr)
         m_prev->set_next(m_next);
@@ -20,7 +16,6 @@ engine_object::~engine_object() {
         c->destroy();
         delete c;
     }
-    delete m_transform;
 
     auto children = m_children.lock_get();
 

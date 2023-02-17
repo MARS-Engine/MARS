@@ -22,8 +22,8 @@ void v_buffer::copy_buffer(v_buffer *_src) {
 }
 
 void v_buffer::copy_data(size_t _index) {
-    vkMapMemory(instance<v_backend_instance>()->device()->raw_device(), m_memory, 0, m_size, 0, &gpu_data);
-    memcpy(reinterpret_cast<char*>(gpu_data) + _index * m_size, m_current_data, m_size);
+    vkMapMemory(instance<v_backend_instance>()->device()->raw_device(), m_memory, _index * m_size, m_size, 0, &gpu_data);
+    memcpy(gpu_data, m_current_data, m_size);
     vkUnmapMemory(instance<v_backend_instance>()->device()->raw_device(), m_memory);
 }
 

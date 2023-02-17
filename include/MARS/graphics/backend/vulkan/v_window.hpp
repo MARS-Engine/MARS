@@ -14,7 +14,7 @@ namespace mars_graphics {
     public:
         VkSurfaceKHR raw_surface() const { return m_surface; }
 
-        void initialize(const std::string &_title, mars_math::vector2<size_t> _size) override;
+        void initialize(const std::string& _title, const mars_math::vector2<size_t>& _size) override;
         void create_surface(v_instance* _instance);
         void destroy_surface();
     };

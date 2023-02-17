@@ -31,7 +31,7 @@ namespace mars_graphics {
 
         [[nodiscard]] inline bool should_close() const { return m_should_close; }
 
-        virtual void initialize(const std::string& _title, mars_math::vector2<size_t> _size) {\
+        virtual void initialize(const std::string& _title, const mars_math::vector2<size_t>& _size) {
             SDL_Init(SDL_INIT_VIDEO);
             SDL_SetHint(SDL_HINT_GRAB_KEYBOARD, "1");
             SDL_SetRelativeMouseMode(SDL_TRUE);

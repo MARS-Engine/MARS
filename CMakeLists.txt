@@ -12,6 +12,8 @@ find_package(OpenGL REQUIRED)
 
 add_library(MARS SHARED)
 
+target_compile_options(MARS INTERFACE -msse4.1)
+
 add_subdirectory(third_party/)
 
 target_include_directories(MARS PUBLIC ${SDL2_INCLUDE_DIR})

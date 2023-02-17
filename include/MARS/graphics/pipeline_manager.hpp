@@ -16,14 +16,14 @@ namespace mars_graphics {
         template<typename T> static inline mars_shader_inputs* get_input() {
             static_assert(std::is_function_v<decltype(T::get_description)>, "MARS - Pipeline Manager - Type Missing static get_description");
             auto hash = typeid(T).hash_code();
-            auto result = m_input_map[hash];
 
-            if (result == nullptr) {
-                result = &T::get_description();
+            if (!m_input_map.contains(hash)) {
+                auto result = &T::get_description();
                 m_input_map[hash] = result;
+                return result;
             }
 
-            return result;
+            return m_input_map[hash];
         }
 
         static pipeline* load_pipeline(mars_shader_inputs* _input, shader* _shader, graphics_instance* _graphics_instance, render_pass* _render_pass = nullptr);

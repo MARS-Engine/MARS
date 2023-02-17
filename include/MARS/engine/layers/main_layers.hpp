@@ -46,7 +46,6 @@ namespace mars_layers {
     std::vector<std::function<void()>> load_layer_callback(mars_engine::engine_object* _target);
     std::vector<std::function<void()>> update_layer_callback(mars_engine::engine_object* _target);
     std::vector<std::function<void()>> post_update_layer_callback(mars_engine::engine_object* _target);
-    std::vector<std::function<void()>> render_update_layer_callback(mars_engine::engine_object* _target);
     std::vector<std::function<void()>> render_layer_callback(mars_engine::engine_object* _target);
     std::vector<std::function<void()>> post_render_layer_callback(mars_engine::engine_object* _target);
 }

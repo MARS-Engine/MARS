@@ -4,7 +4,7 @@
 
 using namespace mars_graphics;
 
-void v_window::initialize(const std::string &_title, mars_math::vector2<size_t> _size) {
+void v_window::initialize(const std::string &_title, const mars_math::vector2<size_t>& _size) {
     window::initialize(_title, _size);
     m_flags = SDL_WINDOW_VULKAN;
 }

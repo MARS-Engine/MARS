@@ -5,12 +5,12 @@ MARS is a set of multiple modules that have as a goal help developers to easily 
 
 Feel free to join MARS [Discord Server](https://discord.gg/VHEP99VShx) if you wish to help or talk
 
-For a test sample, you can go [here](https://github.com/MARSngine/MARS-Samples)
+For a test sample, you can go [here](https://github.com/MARS-Engine/MARS-Samples)
 
 ## Main Modules Status
 
 - Math - Partially complete
-- Processing - Complete
+- Object Processing - Complete
 - Input - Complete but needs an overhaul
 - Rendering Thread - Complete but needs an overhaul
 - Physics - In development

@@ -13,8 +13,9 @@ namespace mars_scenes {
         static pl::safe_map<std::string, scene*> m_scenes;
     public:
 
-        static void add_scene(std::string _scene_name, scene* _scene);
-        static void load_scene(std::string _scene_name);
+        static void add_scene(const std::string& _scene_name, scene* _scene);
+        static void load_scene(const std::string& _scene_name);
+        static void clear();
     };
 }
 

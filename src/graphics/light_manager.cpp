@@ -24,7 +24,7 @@ void light_manager::load(graphics_instance* _instance) {
         return;
 
     if (!mars_resources::resource_manager::load_graphical_resource(mars_resources::resource_manager::find_path("light.mshader", MARS_RESOURCE_TYPE_SHADER, m_instance->render_type()),light_shader, m_instance))
-        mars_debug::debug::error("MARS - OpenGL - Backend - Failed to find light shader");
+        mars_debug::debug::error("MARS - Vulkan - Backend - Failed to find light shader");
 
     m_pipeline = pipeline_manager::prepare_pipeline(pipeline_manager::get_input<vertex2>(), light_shader, m_instance, m_instance->backend()->get_renderer()->get_framebuffer("light_render")->get_render_pass());
     m_pipeline->set_viewport({ 0, 0 }, {1920, 1080 }, {0, 1 });
@@ -75,7 +75,6 @@ void light_manager::draw_lights() {
     camera_uni->copy_data(m_instance->backend()->current_frame());
     auto light_uniform = m_data->get_uniform("lights");
     light_uniform->bind(m_instance->current_frame());
-    light_uniform->update(&scene);
     m_data->bind();
     m_input->bind();
 
@@ -87,6 +86,7 @@ void light_manager::draw_lights() {
 
         if (active_lights == 32 || lights.size() == i + 1) {
             active_lights = 0;
+            light_uniform->update(&scene);
             light_uniform->copy_data(m_instance->backend()->current_frame());
             m_instance->primary_buffer()->draw(0, 4);
         }
