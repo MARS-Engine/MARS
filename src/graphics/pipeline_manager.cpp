@@ -4,7 +4,7 @@
 
 using namespace mars_graphics;
 
-pl::safe_map<size_t, mars_shader_inputs*> pipeline_manager::m_input_map;
+pl::safe_map<std::type_index, mars_shader_inputs*> pipeline_manager::m_input_map;
 pl::safe_map<std::pair<mars_shader_inputs*, shader*>, pipeline*> pipeline_manager::m_pipelines;
 
 pipeline* pipeline_manager::load_pipeline(mars_shader_inputs* _input, shader* _shader, graphics_instance* _graphics_instance, render_pass* _render_pass) {

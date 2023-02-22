@@ -36,9 +36,9 @@ namespace mars_math {
         }
 
         matrix4& scale(vector3<T> _scale) {
-            this->get(0) *= _scale.x();
-            this->get(1) *= _scale.y();
-            this->get(2) *= _scale.z();
+            set(0, get(0) * _scale.x());
+            set(1, get(1) * _scale.y());
+            set(2, get(2) * _scale.z());
             return *this;
         }
 
@@ -121,6 +121,23 @@ namespace mars_math {
             Result.set(3,1, - (_top + _bottom) / (_top - _bottom));
             Result.set(3,2, - _z_near / (_z_far - _z_near));
             return Result;
+        }
+
+        using matrix_base<T, 4, 4>::operator*;
+
+        vector4<T> operator*(const vector4<T>& _right) const {
+            vector4<T> Mov0(_right.x());
+            vector4<T> Mov1(_right.y());
+            vector4<T> Mul0 = get(0) * Mov0;
+            vector4<T> Mul1 = get(1) * Mov1;
+            vector4<T> Add0 = Mul0 + Mul1;
+
+            vector4<T> Mov2(_right.z());
+            vector4<T> Mov3(_right.w());
+            vector4<T> Mul2 = get(2) * Mov2;
+            vector4<T> Mul3 = get(3) * Mov3;
+            vector4<T> Add1 = Mul2 + Mul3;
+            return Add0 + Add1;
         }
     };
 }

@@ -10,6 +10,7 @@ namespace mars_engine {
 
     class component;
     class engine_handler;
+    class object_bridge;
 
     class engine_object {
     private:
@@ -21,6 +22,7 @@ namespace mars_engine {
         transform_3d m_transform;
         pl::safe<engine_object*> m_children = nullptr;
         pl::safe_vector<component*> m_components;
+        pl::safe_map<std::string, object_bridge*> m_bridges;
     public:
         [[nodiscard]] inline engine_object* get_final() {
             auto final = this;
@@ -90,18 +92,45 @@ namespace mars_engine {
 
         ~engine_object();
 
-        template<class T> T* get_component() const {
+        template<typename T> T* get_bridge(const std::string& _bridge) {
+            static_assert(std::is_base_of_v<object_bridge, T>, "MARS - Engine Object - Invalid bridge, base must have type mars_engine::object_bridge");
+            if (m_bridges.contains(_bridge))
+                return static_cast<T*>(m_bridges[_bridge]);
+
+            m_bridges.lock();
+
+            if (m_bridges.contains(_bridge))
+                return static_cast<T*>(m_bridges[_bridge]);
+
+            auto bridge = new T(this);
+
+            m_bridges.insert(std::pair(_bridge, bridge));
+            m_bridges.unlock();
+
+            return bridge;
+        }
+
+        template<typename T> T* get_or_create_component() {
+            auto comp = get_component<T>();
+            return comp != nullptr ? comp : add_component<T>();
+        }
+
+        template<typename T> T* get_component() const {
             static_assert(std::is_base_of<component, T>::value, "invalid component - component must have type mars_engine::component has a base");
-            for (auto c : m_components) {
+            for (auto& c : m_components) {
                 auto cast = dynamic_cast<T*>(c);
                 if (cast != nullptr)
                     return cast;
             }
+
+            return nullptr;
         }
 
-        template<class T> T* add_component(T* _new_component) {
+        template<typename T> T* add_component(T* _new_component) {
             static_assert(std::is_base_of<component, T>::value, "invalid component - component must have type mars_engine::component has a base");
+            m_components.lock();
             m_components.push_back(_new_component);
+            m_components.unlock();
             _new_component->set_object(this);
             return _new_component;
         }

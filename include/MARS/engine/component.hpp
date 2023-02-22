@@ -18,12 +18,16 @@ namespace mars_engine {
         inline mars_input::input* get_input() { return mars_input::input_manager::get_input(g_instance()->backend()->get_window()); }
         inline transform_3d& transform() { return m_object->transform(); }
         inline engine_object* object() { return m_object; }
+
+        inline mars_engine::engine_handler* engine() { return m_object->engine(); }
         inline mars_graphics::graphics_instance* g_instance() { return m_object->instance(); }
 
         float get_delta_time();
         float get_delta_time_ms();
 
-        void set_object(engine_object* _new_object) { m_object = _new_object; }
+        void set_object(engine_object* _new_object) { m_object = _new_object; on_set_object(); }
+
+        virtual void on_set_object() { }
 
         virtual void destroy() { }
 

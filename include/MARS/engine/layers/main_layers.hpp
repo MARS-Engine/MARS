@@ -43,11 +43,11 @@ namespace mars_layers {
         virtual void post_render() { }
     };
 
-    std::vector<std::function<void()>> load_layer_callback(mars_engine::engine_object* _target);
-    std::vector<std::function<void()>> update_layer_callback(mars_engine::engine_object* _target);
-    std::vector<std::function<void()>> post_update_layer_callback(mars_engine::engine_object* _target);
-    std::vector<std::function<void()>> render_layer_callback(mars_engine::engine_object* _target);
-    std::vector<std::function<void()>> post_render_layer_callback(mars_engine::engine_object* _target);
+    std::pair<mars_engine::engine_layer_component*, mars_engine::engine_layer_component*> load_layer_callback(mars_engine::engine_object* _target);
+    std::pair<mars_engine::engine_layer_component*, mars_engine::engine_layer_component*> update_layer_callback(mars_engine::engine_object* _target);
+    std::pair<mars_engine::engine_layer_component*, mars_engine::engine_layer_component*> post_update_layer_callback(mars_engine::engine_object* _target);
+    std::pair<mars_engine::engine_layer_component*, mars_engine::engine_layer_component*> render_layer_callback(mars_engine::engine_object* _target);
+    std::pair<mars_engine::engine_layer_component*, mars_engine::engine_layer_component*> post_render_layer_callback(mars_engine::engine_object* _target);
 }
 
 #endif

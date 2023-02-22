@@ -30,7 +30,7 @@ namespace mars_math {
             memcpy(m_data, _vals, sizeof(T) * Rows * Cols);
         }
 
-        inline vector_base<T, Rows>& get(size_t _col) { return m_data[_col]; }
+        inline vector_base<T, Rows> get(size_t _col) const { return m_data[_col]; }
         inline T get(size_t _col, size_t _row) const { return m_data[_col].get(_row); }
         inline void set(size_t _col, size_t _row, T value) { m_data[_col][_row] = value; }
 

@@ -2,6 +2,7 @@
 #include "MARS/engine/component.hpp"
 #include "MARS/engine/engine_handler.hpp"
 #include <MARS/engine/transform_3d.hpp>
+#include <MARS/engine/object_bridge.hpp>
 
 using namespace mars_engine;
 
@@ -24,4 +25,7 @@ engine_object::~engine_object() {
         delete children;
         children = next;
     }
+
+    for (auto& bridge : m_bridges)
+        delete bridge.second;
 }

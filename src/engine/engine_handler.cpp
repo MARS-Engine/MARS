@@ -24,6 +24,9 @@ void engine_handler::clean() {
             delete layer.second;
 
     layer_data.clear();
+
+    for (auto& singleton : m_singletons)
+        delete singleton.second;
 }
 
 void engine_handler::spawn_wait_list() {
@@ -65,37 +68,35 @@ void engine_handler::spawn_wait_list() {
     m_instances.unlock();
 }
 
-void engine_handler::callback(engine_layer_component *_components) {
+void engine_handler::callback(engine_layer_component* _components) {
     mars_engine::engine_layer_component* current = _components;
 
     while (current != nullptr) {
-         if (!current->completed.exchange(true))
-            current->callback();
+         if (!current->completed(true))
+            current->callback(current);
         current = current->next;
     }
 }
 
 void engine_handler::process_layers(engine_object* _obj) {
     for (auto& layer : layer_data) {
-        auto valid_layers = layer.second->validator(_obj);
-        auto tail = m_layer_tail_components[layer.first].lock_get();
+        auto head_tail = layer.second->validator(_obj);
 
+        if (head_tail.first == nullptr)
+            continue;
+
+        m_layer_tail_components[layer.first].lock();
         m_layer_components[layer.first].lock();
 
-        for (auto& callback : valid_layers) {
-            auto new_layer_comp = new engine_layer_component();
-            if (m_layer_components[layer.first].get() == nullptr)
-                m_layer_components[layer.first].set(new_layer_comp);
-
-            new_layer_comp->previous = tail;
-            if (tail != nullptr)
-                tail->next = new_layer_comp;
-            new_layer_comp->parent = _obj;
-            new_layer_comp->callback = callback;
-            tail = new_layer_comp;
+        if (m_layer_components[layer.first].get() == nullptr) {
+            m_layer_components[layer.first].set(head_tail.first);
+            if (m_layer_tail_components[layer.first].get() == nullptr)
+                m_layer_tail_components[layer.first].set(head_tail.second);
         }
+        else
+            m_layer_tail_components[layer.first].get()->next = head_tail.first;
 
-        m_layer_tail_components[layer.first].set(tail);
+        m_layer_tail_components[layer.first].set(head_tail.second);
 
         m_layer_components[layer.first].unlock();
         m_layer_tail_components[layer.first].unlock();
