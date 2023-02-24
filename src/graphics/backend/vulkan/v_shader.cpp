@@ -1,5 +1,5 @@
 #include <MARS/graphics/backend/vulkan/v_shader.hpp>
-#include <MARS/graphics/backend/vulkan/v_backend_instance.hpp>
+#include <MARS/graphics/backend/vulkan/vulkan_backend.hpp>
 #include <MARS/graphics/backend/vulkan/v_backend/v_device.hpp>
 #include <MARS/graphics/backend/vulkan/v_buffer.hpp>
 
@@ -42,7 +42,7 @@ void v_shader::generate_shader(MARS_SHADER_TYPE _type, const std::string& _data)
     };
 
     VkShaderModule shader_module;
-    if (vkCreateShaderModule(instance<v_backend_instance>()->device()->raw_device(), &shader_create_info, nullptr, &shader_module) != VK_SUCCESS)
+    if (vkCreateShaderModule(cast_graphics<vulkan_backend>()->device()->raw_device(), &shader_create_info, nullptr, &shader_module) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Shader - Failed to create shader module");
     else
         m_v_modules.insert(std::pair<MARS_SHADER_TYPE, VkShaderModule>(_type, shader_module));
@@ -73,7 +73,7 @@ bool v_shader::load_resource(const std::string &_path) {
         };
 
         VkDescriptorPoolSize new_pool_desc = {
-            .descriptorCount = static_cast<uint32_t>(instance()->max_frames())
+            .descriptorCount = static_cast<uint32_t>(graphics()->max_frames())
         };
 
         switch (m_uniform->type) {
@@ -99,7 +99,7 @@ bool v_shader::load_resource(const std::string &_path) {
         .pBindings = m_descriptors.data(),
     };
 
-    if (vkCreateDescriptorSetLayout(instance<v_backend_instance>()->device()->raw_device(), &layoutInfo, nullptr, &m_uniform_layout) != VK_SUCCESS)
+    if (vkCreateDescriptorSetLayout(cast_graphics<vulkan_backend>()->device()->raw_device(), &layoutInfo, nullptr, &m_uniform_layout) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Shader - Failed to create descriptor set layout!");
 
     return true;
@@ -108,8 +108,8 @@ bool v_shader::load_resource(const std::string &_path) {
 void v_shader::clean() {
     shader::clean();
 
-    vkDestroyDescriptorSetLayout(instance<v_backend_instance>()->device()->raw_device(), m_uniform_layout, nullptr);
+    vkDestroyDescriptorSetLayout(cast_graphics<vulkan_backend>()->device()->raw_device(), m_uniform_layout, nullptr);
 
     for (auto& mod : m_v_modules)
-        vkDestroyShaderModule(instance<v_backend_instance>()->device()->raw_device(), mod.second, nullptr);
+        vkDestroyShaderModule(cast_graphics<vulkan_backend>()->device()->raw_device(), mod.second, nullptr);
 }

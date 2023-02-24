@@ -11,7 +11,7 @@ void v_framebuffer::create(swapchain* _swapchain) {
 
 
     if (m_depth_enabled) {
-        m_depth = new v_depth(instance<v_backend_instance>());
+        m_depth = new v_depth(cast_graphics<vulkan_backend>());
         m_depth->create();
     }
 
@@ -21,10 +21,10 @@ void v_framebuffer::create(swapchain* _swapchain) {
 
     m_framebuffers.resize(_views.size());
 
-    m_render_pass = instance()->instance<render_pass>();
+    m_render_pass = graphics()->create<render_pass>();
     m_render_pass->set_load_previous(m_load_previous);
     m_render_pass->set_framebuffer(this);
-    m_render_pass->add_attachment({ .format = VK2MARS(instance<v_backend_instance>()->swapchain()->image_format()), .layout = MARS_TEXTURE_LAYOUT_PRESENT });
+    m_render_pass->add_attachment({ .format = VK2MARS(cast_graphics<vulkan_backend>()->swapchain()->image_format()), .layout = MARS_TEXTURE_LAYOUT_PRESENT });
     if (m_depth_enabled)
         m_render_pass->add_attachment({ .format = m_depth->get_format(), .layout = MARS_TEXTURE_LAYOUT_DEPTH_OPTIMAL });
     m_render_pass->create();
@@ -48,13 +48,13 @@ void v_framebuffer::create(swapchain* _swapchain) {
         framebufferInfo.pAttachments = attachments.data();
         framebufferInfo.attachmentCount = attachments.size();
 
-        if (vkCreateFramebuffer(instance<v_backend_instance>()->device()->raw_device(), &framebufferInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS)
+        if (vkCreateFramebuffer(cast_graphics<vulkan_backend>()->device()->raw_device(), &framebufferInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS)
             mars_debug::debug::error("MARS - Vulkan - Failed to create framebuffer");
     }
 }
 void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<texture*>& _textures) {
     if (m_depth_enabled) {
-        m_depth = new v_depth(instance<v_backend_instance>());
+        m_depth = new v_depth(cast_graphics<vulkan_backend>());
         m_depth->create();
     }
 
@@ -62,7 +62,7 @@ void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<t
 
     m_size = _size;
 
-    m_render_pass = instance()->instance<render_pass>();
+    m_render_pass = graphics()->create<render_pass>();
     m_render_pass->set_framebuffer(this);
 
     std::vector<VkImageView> attachments;
@@ -90,7 +90,7 @@ void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<t
 
     m_framebuffers.resize(m_framebuffers.size() + 1);
 
-    if (vkCreateFramebuffer(instance<v_backend_instance>()->device()->raw_device(), &framebufferInfo, nullptr, &m_framebuffers[m_framebuffers.size() - 1]) != VK_SUCCESS)
+    if (vkCreateFramebuffer(cast_graphics<vulkan_backend>()->device()->raw_device(), &framebufferInfo, nullptr, &m_framebuffers[m_framebuffers.size() - 1]) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Failed to create framebuffer");
 }
 
@@ -106,5 +106,5 @@ void v_framebuffer::destroy() {
     }
 
     for (auto& frame : m_framebuffers)
-        vkDestroyFramebuffer(instance<v_backend_instance>()->device()->raw_device(), frame, nullptr);
+        vkDestroyFramebuffer(cast_graphics<vulkan_backend>()->device()->raw_device(), frame, nullptr);
 }

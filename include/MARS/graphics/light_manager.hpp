@@ -4,7 +4,7 @@
 #include <MARS/debug/debug.hpp>
 #include <MARS/math/vector4.hpp>
 #include <MARS/loaders/wavefront_loader.hpp>
-#include <MARS/graphics/graphics_instance.hpp>
+#include <MARS/graphics/graphics_engine.hpp>
 #include <MARS/graphics/backend/template/shader_input.hpp>
 #include <MARS/graphics/backend/template/buffer.hpp>
 #include <MARS/graphics/attribute/vertex1.hpp>
@@ -43,7 +43,7 @@ namespace mars_graphics {
         pipeline* m_pipeline = nullptr;
         shader_data* m_data = nullptr;
         shader_input* m_input = nullptr;
-        graphics_instance* m_instance;
+        graphics_engine* m_graphics;
 
         scene_lights scene;
     public:
@@ -55,7 +55,7 @@ namespace mars_graphics {
         }
 
 
-        void load(graphics_instance* _instance);
+        void load(graphics_engine* _graphics);
         void draw_lights();
         void destroy();
     };

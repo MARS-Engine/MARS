@@ -24,7 +24,7 @@ void v_image::create_image(VkImageAspectFlags _aspect_flag) {
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    auto device = graphics_instance()->device()->raw_device();
+    auto device = graphics()->device()->raw_device();
 
     if (vkCreateImage(device, &image_info, nullptr, &m_image) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Texture - Failed to create image");
@@ -35,7 +35,7 @@ void v_image::create_image(VkImageAspectFlags _aspect_flag) {
     VkMemoryAllocateInfo alloc_info {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
             .allocationSize = memRequirements.size,
-            .memoryTypeIndex = graphics_instance()->device()->find_memory_type(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
+            .memoryTypeIndex = graphics()->device()->find_memory_type(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
     };
 
     if (vkAllocateMemory(device, &alloc_info, nullptr, &m_image_memory) != VK_SUCCESS)
@@ -59,12 +59,12 @@ void v_image::create_image_view() {
             }
     };
 
-    if (vkCreateImageView(graphics_instance()->device()->raw_device(), &view_info, nullptr, &m_image_view) != VK_SUCCESS)
+    if (vkCreateImageView(graphics()->device()->raw_device(), &view_info, nullptr, &m_image_view) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Texture - Failed to create image view");
 }
 
 void v_image::destroy() {
-    vkDestroyImageView(graphics_instance()->device()->raw_device(), m_image_view, nullptr);
-    vkDestroyImage(graphics_instance()->device()->raw_device(), m_image, nullptr);
-    vkFreeMemory(graphics_instance()->device()->raw_device(), m_image_memory, nullptr);
+    vkDestroyImageView(graphics()->device()->raw_device(), m_image_view, nullptr);
+    vkDestroyImage(graphics()->device()->raw_device(), m_image, nullptr);
+    vkFreeMemory(graphics()->device()->raw_device(), m_image_memory, nullptr);
 }

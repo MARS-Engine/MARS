@@ -19,7 +19,7 @@ namespace mars_graphics {
     public:
         using framebuffer::framebuffer;
 
-        [[nodiscard]] inline VkFramebuffer get_frame() const { return m_framebuffers[is_swap ? instance()->index() : 0]; }
+        [[nodiscard]] inline VkFramebuffer get_frame() const { return m_framebuffers[is_swap ? graphics()->index() : 0]; }
 
         inline void set_render_pass(v_render_pass* _render_pass) { m_render_pass = _render_pass; }
 

@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace mars_graphics {
-    class backend_instance;
+    class graphics_backend;
 
     enum RENDERER_TEXTURE_TYPE {
         RENDERER_TEXTURE_TYPE_FRAME,

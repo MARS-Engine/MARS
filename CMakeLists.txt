@@ -19,7 +19,6 @@ add_subdirectory(third_party/)
 target_include_directories(MARS PUBLIC ${SDL2_INCLUDE_DIR})
 target_include_directories(MARS PUBLIC ${OPENGL_INCLUDE_DIR})
 target_include_directories(MARS PUBLIC ${VULKAN_INCLUDE_DIR})
-target_include_directories(MARS PUBLIC third_party/glad/include/)
 target_include_directories(MARS PUBLIC include)
 
 target_link_libraries(MARS ${CMAKE_THREAD_LIBS_INIT})

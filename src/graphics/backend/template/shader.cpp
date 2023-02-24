@@ -63,7 +63,8 @@ bool shader::load_shader_file(std::string _path, std::string _path_sufix) {
             case MARS_SHADER_TYPE_VERTEX:
             case MARS_SHADER_TYPE_FRAGMENT:
                 mod_data.resize(0);
-                if (!resource_manager::read_binary(resource_manager::resources_locations[MARS_RESOURCE_TYPE_SHADER] + instance()->render_type() + "/" + module.second + _path_sufix, mod_data))
+                if (!resource_manager::read_binary(graphics()->resources()->get_location(MARS_RESOURCE_TYPE_SHADER) +
+                                                   graphics()->render_type() + "/" + module.second + _path_sufix, mod_data))
                     return false;
                 module.second = std::string(mod_data.begin(), mod_data.end());
                 break;

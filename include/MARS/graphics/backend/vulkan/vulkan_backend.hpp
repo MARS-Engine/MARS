@@ -1,7 +1,7 @@
 #ifndef MARS_V_BACKEND_INSTANCE_
 #define MARS_V_BACKEND_INSTANCE_
 
-#include <MARS/graphics/backend/template/backend_instance.hpp>
+#include <MARS/graphics/backend/template/graphics_backend.hpp>
 #include <MARS/graphics/backend/vulkan/v_window.hpp>
 #include <MARS/graphics/backend/vulkan/v_pipeline.hpp>
 #include <MARS/graphics/backend/vulkan/v_render_pass.hpp>
@@ -22,7 +22,7 @@ namespace mars_graphics {
     class v_command_pool;
     class v_sync;
 
-    class v_backend_instance : public backend_instance {
+    class vulkan_backend : public graphics_backend {
     private:
         v_instance* m_vulkan_instance = nullptr;
         v_device* m_device = nullptr;
@@ -49,7 +49,7 @@ namespace mars_graphics {
 
         [[nodiscard]] inline VkCommandBuffer raw_command_buffer() const { return dynamic_cast<v_command_buffer*>(primary_buffer())->raw_command_buffer(); }
 
-        using backend_instance::backend_instance;
+        using graphics_backend::graphics_backend;
 
         VkCommandBuffer get_single_time_command();
         void end_single_time_command(VkCommandBuffer _command);

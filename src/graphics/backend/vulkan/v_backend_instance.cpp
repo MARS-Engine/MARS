@@ -1,4 +1,4 @@
-#include <MARS/graphics/backend/vulkan/v_backend_instance.hpp>
+#include <MARS/graphics/backend/vulkan/vulkan_backend.hpp>
 #include <MARS/graphics/backend/vulkan/v_window.hpp>
 #include <MARS/graphics/backend/vulkan/v_render_pass.hpp>
 #include <MARS/graphics/backend/vulkan/v_command_buffer.hpp>
@@ -14,7 +14,7 @@
 
 using namespace mars_graphics;
 
-VkCommandBuffer v_backend_instance::get_single_time_command() {
+VkCommandBuffer vulkan_backend::get_single_time_command() {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -34,7 +34,7 @@ VkCommandBuffer v_backend_instance::get_single_time_command() {
     return commandBuffer;
 }
 
-void v_backend_instance::end_single_time_command(VkCommandBuffer _command) {
+void vulkan_backend::end_single_time_command(VkCommandBuffer _command) {
     vkEndCommandBuffer(_command);
 
     VkSubmitInfo submitInfo{};
@@ -48,7 +48,7 @@ void v_backend_instance::end_single_time_command(VkCommandBuffer _command) {
     mars_executioner::executioner::unlock_gpu();
 }
 
-void v_backend_instance::create_with_window(const std::string &_title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) {
+void vulkan_backend::create_with_window(const std::string &_title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) {
     raw_window = new v_window();
     raw_window->initialize(_title, _size);
     raw_window->create();
@@ -83,14 +83,14 @@ void v_backend_instance::create_with_window(const std::string &_title, const mar
     m_sync->create();
 
     m_light = new light_manager();
-    m_light->load(m_instance);
+    m_light->load(m_graphics);
 }
 
-void v_backend_instance::update() {
+void vulkan_backend::update() {
 
 }
 
-void v_backend_instance::prepare_render() {
+void vulkan_backend::prepare_render() {
     m_sync->wait();
     mars_executioner::executioner::unlock_gpu();
     vkAcquireNextImageKHR(device()->raw_device(), swapchain()->raw_swapchain(), UINT64_MAX, sync()->image_available(), VK_NULL_HANDLE, &m_index);
@@ -101,7 +101,7 @@ void v_backend_instance::prepare_render() {
     instance_renderer()->get_framebuffer("main_render")->get_render_pass()->begin();
 }
 
-void v_backend_instance::draw() {
+void vulkan_backend::draw() {
     instance_renderer()->get_framebuffer("main_render")->get_render_pass()->end();
     m_light->draw_lights();
     m_primary_buffer->end();
@@ -137,7 +137,7 @@ void v_backend_instance::draw() {
     m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void v_backend_instance::destroy() {
+void vulkan_backend::destroy() {
     m_light->destroy();
     delete m_light;
 
@@ -167,6 +167,6 @@ void v_backend_instance::destroy() {
     delete raw_window;
 }
 
-void v_backend_instance::wait_idle() {
+void vulkan_backend::wait_idle() {
     vkDeviceWaitIdle(m_device->raw_device());
 }

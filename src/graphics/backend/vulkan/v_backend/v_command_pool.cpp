@@ -3,7 +3,7 @@
 using namespace mars_graphics;
 
 void v_command_pool::create() {
-    auto indices = graphics_instance()->device()->family_indices();
+    auto indices = graphics()->device()->family_indices();
 
     VkCommandPoolCreateInfo poolInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -11,6 +11,6 @@ void v_command_pool::create() {
         .queueFamilyIndex = indices.graphics_family.value(),
     };
 
-    if (vkCreateCommandPool(graphics_instance()->device()->raw_device(), &poolInfo, nullptr, &m_command_pool) != VK_SUCCESS)
+    if (vkCreateCommandPool(graphics()->device()->raw_device(), &poolInfo, nullptr, &m_command_pool) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Failed to create command pool");
 }

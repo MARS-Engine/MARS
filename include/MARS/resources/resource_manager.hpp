@@ -2,13 +2,16 @@
 #define MARS_RESOURCE_MANAGER_
 
 #include <MARS/debug/debug.hpp>
-#include <MARS/graphics/backend/template/graphics_component.hpp>
 #include <MARS/graphics/backend/template/graphics_types.hpp>
-#include <MARS/graphics/graphics_instance.hpp>
+#include <MARS/graphics/graphics_engine.hpp>
 #include <pl/safe_map.hpp>
 #include <string>
 #include <vector>
 #include <sys/stat.h>
+
+namespace mars_graphics {
+    class graphics_component;
+}
 
 namespace mars_resources {
 
@@ -20,7 +23,13 @@ namespace mars_resources {
 
     class resource_manager {
     private:
-        static pl::safe_map<std::string, resource_base*> resources;
+        pl::safe_map<std::string, resource_base*> resources;
+        std::map<mars_graphics::MARS_RESOURCE_TYPE, std::string> resources_locations = {
+                { mars_graphics::MARS_RESOURCE_TYPE_SHADER, "engine/assets/shaders/" },
+                { mars_graphics::MARS_RESOURCE_TYPE_TEXTURE, "engine/assets/textures/" },
+                { mars_graphics::MARS_RESOURCE_TYPE_MATERIAL, "engine/assets/materials/" },
+                { mars_graphics::MARS_RESOURCE_TYPE_RENDERER, "engine/assets/renderer/" }
+        };
 
         /***
         * Get a pointer to a resource
@@ -28,11 +37,11 @@ namespace mars_resources {
         * @param _path the path to the file
         * @return pointer to resource or nullptr
         */
-        template<typename T> static T* get_cached_resource(const std::string& _path) {
+        template<typename T> T* get_cached_resource(const std::string& _path) {
             return resources.contains(_path) ? dynamic_cast<T*>(resources[_path]) : nullptr;
         }
     public:
-        static std::map<mars_graphics::MARS_RESOURCE_TYPE, std::string> resources_locations;
+        [[nodiscard]] std::string get_location(mars_graphics::MARS_RESOURCE_TYPE _type) const { return resources_locations.at(_type); }
 
         /***
         * load or get cached graphical resource, exp: textures, shaders
@@ -41,7 +50,7 @@ namespace mars_resources {
         * @param _resource reference to resource pointer
         * @return true if successfully loads or finds cached or false otherwise
         */
-        template<typename T> static bool load_graphical_resource(const std::string& _path, T*& _resource, mars_graphics::graphics_instance* _instance) {
+        template<typename T> bool load_graphical_resource(const std::string& _path, T*& _resource, mars_graphics::graphics_engine* _instance) {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base and graphics_base");
             static_assert(std::is_base_of<mars_graphics::graphics_component, T>::value, "invalid resource type, T must be derived from backend_base");
 
@@ -55,7 +64,7 @@ namespace mars_resources {
                 return true;
             }
 
-            temp_resource = _instance->instance<T>();
+            temp_resource = _instance->create<T>();
             if (!temp_resource->load_resource(_path)) {
                 delete temp_resource;
                 resources.unlock();
@@ -76,7 +85,7 @@ namespace mars_resources {
         * @param _resource reference to resource pointer
         * @return true if successfully loads or finds cached or false otherwise
         */
-        template<typename T> static bool load_resource(const std::string& _path, T*& _resource, mars_graphics::graphics_instance* _instance) {
+        template<typename T> bool load_resource(const std::string& _path, T*& _resource, mars_graphics::graphics_engine* _instance) {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base and graphics_base");
 
             auto temp_resource = get_cached_resource<T>(_path);
@@ -104,7 +113,7 @@ namespace mars_resources {
          * @param _resource reference to resource pointer
          * @return true if successfully loads or finds cached or false otherwise
          */
-        template<typename T> static bool load_resource(const std::string& _path, T*& _resource) {
+        template<typename T> bool load_resource(const std::string& _path, T*& _resource) {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base and resource_base");
 
             auto temp_resource = get_cached_resource<T>(_path);
@@ -125,33 +134,19 @@ namespace mars_resources {
             return true;
         }
 
-        /***
-         *
-         */
+
         static inline bool file_exists(const std::string& _file) {
             struct stat buffer{};
             return (stat(_file.c_str(), &buffer) == 0);
         }
 
-        /***
-         * Read a file and store it to a line vector
-         * @param _path path to file
-         * @param data reference to the vector where it will be stored
-         * @return returns true if it was successful
-         */
         static bool read_file(const std::string& _path, std::vector<std::string>& data);
 
-        /***
-        * Read a binary file and store it to a line vector
-        * @param _path path to file
-        * @param data reference to the vector where it will be stored
-        * @return returns true if it was successful
-        */
         static bool read_binary(const std::string& _path, std::vector<char>& data);
 
-        static std::string find_path(const std::string& _file, mars_graphics::MARS_RESOURCE_TYPE _type, const std::string& _path_suffix = "");
+        std::string find_path(const std::string& _file, mars_graphics::MARS_RESOURCE_TYPE _type, const std::string& _path_suffix = "");
 
-        static void clean();
+        void clean();
     };
 }
 

@@ -9,16 +9,16 @@ void engine_handler::init() {
 }
 
 void engine_handler::clean() {
-    auto instance = m_instances.lock_get();
+    auto head = m_objects.lock_get();
 
-    while (instance != nullptr) {
-        auto to_delete = instance;
-        instance = to_delete->next();
+    while (head != nullptr) {
+        auto to_delete = head;
+        head = to_delete->next();
         delete to_delete;
     }
 
-    m_instances.set(nullptr);
-    m_instances.unlock();
+    m_objects.set(nullptr);
+    m_objects.unlock();
 
     for (auto& layer : layer_data)
             delete layer.second;
@@ -30,11 +30,11 @@ void engine_handler::clean() {
 }
 
 void engine_handler::spawn_wait_list() {
-    auto list = m_instances.lock_get();
-    auto spawn_list = m_new_instance_list.lock_get();
+    auto list = m_objects.lock_get();
+    auto spawn_list = m_new_objects.lock_get();
 
     if (list == nullptr)
-        m_instances = m_new_instance_list;
+        m_objects = m_new_objects;
     else {
         auto tail = list->get_final();
         tail->set_next(spawn_list);
@@ -63,9 +63,9 @@ void engine_handler::spawn_wait_list() {
         spawn_list = spawn_list->next();
     }
 
-    m_new_instance_list.set(nullptr);
-    m_new_instance_list.unlock();
-    m_instances.unlock();
+    m_new_objects.set(nullptr);
+    m_new_objects.unlock();
+    m_objects.unlock();
 }
 
 void engine_handler::callback(engine_layer_component* _components) {
@@ -103,31 +103,31 @@ void engine_handler::process_layers(engine_object* _obj) {
     }
 }
 
-engine_object* engine_handler::instance(engine_object *_obj, graphics_instance *_instance, engine_object *_parent) {
-    _obj->set_instance(_instance);
+engine_object* engine_handler::spawn(engine_object *_obj, graphics_engine *_graphics, engine_object *_parent) {
+    _obj->set_graphics(_graphics);
 
     if (_parent != nullptr) {
         _obj->set_parent(_parent);
         return _obj;
     }
 
-    auto new_list = m_new_instance_list.lock_get();
+    auto new_list = m_new_objects.lock_get();
 
     if (new_list == nullptr)
-        m_new_instance_list = _obj;
+        m_new_objects = _obj;
     else {
         engine_object* prev = new_list->get_final();
         prev->set_next(_obj);
         _obj->set_previous(prev);
     }
 
-    m_new_instance_list.unlock();
+    m_new_objects.unlock();
 
     if (++m_next_core >= m_active_cores)
         m_next_core = 0;
     return _obj;
 }
 
-engine_object* engine_handler::instance(engine_object *_obj, engine_object *_parent) {
-    return instance(_obj, _parent->instance(), _parent);
+engine_object* engine_handler::spawn(engine_object *_obj, engine_object *_parent) {
+    return spawn(_obj, _parent->graphics(), _parent);
 }

@@ -12,10 +12,10 @@ void v_shader_input::bind() {
 
         switch (og_buffer->type()) {
             case MARS_MEMORY_TYPE_VERTEX:
-                vkCmdBindVertexBuffers(instance<v_backend_instance>()->raw_command_buffer(), 0, 1, vertexBuffers, offsets);
+                vkCmdBindVertexBuffers(cast_graphics<vulkan_backend>()->raw_command_buffer(), 0, 1, vertexBuffers, offsets);
                 break;
             case MARS_MEMORY_TYPE_INDEX:
-                vkCmdBindIndexBuffer(instance<v_backend_instance>()->raw_command_buffer(), vertexBuffers[0], 0, VK_INDEX_TYPE_UINT32);
+                vkCmdBindIndexBuffer(cast_graphics<vulkan_backend>()->raw_command_buffer(), vertexBuffers[0], 0, VK_INDEX_TYPE_UINT32);
                 break;
         }
     }
@@ -50,7 +50,7 @@ void v_shader_input::load_input(mars_shader_inputs _inputs) {
 }
 
 buffer* v_shader_input::add_buffer(size_t _input_size, MARS_MEMORY_TYPE _input_type) {
-    auto new_buffer = new v_buffer(instance());
+    auto new_buffer = new v_buffer(graphics());
     new_buffer->create(_input_size, _input_type, 1);
     m_buffers.push_back(new_buffer);
     return new_buffer;

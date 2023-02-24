@@ -17,7 +17,7 @@ namespace mars_graphics {
         void create();
 
         inline void destroy() {
-            vkDestroyCommandPool(graphics_instance()->device()->raw_device(), m_command_pool, nullptr);
+            vkDestroyCommandPool(graphics()->device()->raw_device(), m_command_pool, nullptr);
         }
     };
 }

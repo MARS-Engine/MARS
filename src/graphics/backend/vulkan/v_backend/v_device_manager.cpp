@@ -3,7 +3,7 @@
 
 using namespace mars_graphics;
 
-std::vector<v_device*> mars_graphics::get_vulkan_devices(v_backend_instance* _backend_instance) {
+std::vector<v_device*> mars_graphics::get_vulkan_devices(vulkan_backend* _backend_instance) {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(_backend_instance->instance()->raw_instance(), &deviceCount, nullptr);
 

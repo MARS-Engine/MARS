@@ -15,12 +15,12 @@ namespace mars_engine {
         engine_object* m_object = nullptr;
     public:
 
-        inline mars_input::input* get_input() { return mars_input::input_manager::get_input(g_instance()->backend()->get_window()); }
+        inline mars_input::input* get_input() { return mars_input::input_manager::get_input(graphics()->backend()->get_window()); }
         inline transform_3d& transform() { return m_object->transform(); }
         inline engine_object* object() { return m_object; }
 
         inline mars_engine::engine_handler* engine() { return m_object->engine(); }
-        inline mars_graphics::graphics_instance* g_instance() { return m_object->instance(); }
+        inline mars_graphics::graphics_engine* graphics() { return m_object->graphics(); }
 
         float get_delta_time();
         float get_delta_time_ms();

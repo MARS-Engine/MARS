@@ -9,7 +9,7 @@ using namespace mars_graphics;
 VkImageView v_texture::raw_image_view() { return m_image->raw_image_view(); }
 
 void v_texture::copy_buffer_to_image(v_buffer& buffer, VkImage _image) {
-    VkCommandBuffer commandBuffer = instance<v_backend_instance>()->get_single_time_command();
+    VkCommandBuffer commandBuffer = cast_graphics<vulkan_backend>()->get_single_time_command();
 
     VkBufferImageCopy region {
         .bufferOffset = 0,
@@ -27,11 +27,11 @@ void v_texture::copy_buffer_to_image(v_buffer& buffer, VkImage _image) {
 
     vkCmdCopyBufferToImage(commandBuffer, buffer.vulkan_buffer(), m_image->raw_image(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-    instance<v_backend_instance>()->end_single_time_command(commandBuffer);
+    cast_graphics<vulkan_backend>()->end_single_time_command(commandBuffer);
 }
 
 void v_texture::transition_image_layout(VkImageLayout oldLayout, VkImageLayout newLayout) {
-    VkCommandBuffer commandBuffer = instance<v_backend_instance>()->get_single_time_command();
+    VkCommandBuffer commandBuffer = cast_graphics<vulkan_backend>()->get_single_time_command();
 
     VkImageMemoryBarrier barrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -71,12 +71,12 @@ void v_texture::transition_image_layout(VkImageLayout oldLayout, VkImageLayout n
 
     vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-    instance<v_backend_instance>()->end_single_time_command(commandBuffer);
+    cast_graphics<vulkan_backend>()->end_single_time_command(commandBuffer);
 }
 
 void v_texture::create_sampler() {
     VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(instance<v_backend_instance>()->device()->raw_physical_device(), &properties);
+    vkGetPhysicalDeviceProperties(cast_graphics<vulkan_backend>()->device()->raw_physical_device(), &properties);
 
     VkSamplerCreateInfo samplerInfo {
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -94,7 +94,7 @@ void v_texture::create_sampler() {
         .unnormalizedCoordinates = VK_FALSE,
     };
 
-    if (vkCreateSampler(instance<v_backend_instance>()->device()->raw_device(), &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS) {
+    if (vkCreateSampler(cast_graphics<vulkan_backend>()->device()->raw_device(), &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
 }
@@ -105,13 +105,13 @@ bool v_texture::load_resource(const std::string &_texture_path) {
         return false;
     }
 
-    m_image = new v_image(instance<v_backend_instance>());
+    m_image = new v_image(cast_graphics<vulkan_backend>());
 
     m_image->set_format((VkFormat)(VK_FORMAT_R8_SRGB + m_channels * 7));
     m_image->set_size(m_size);
     m_image->set_usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 
-    v_buffer m_buffer(instance());
+    v_buffer m_buffer(graphics());
     m_buffer.create(m_size.x() * m_size.y() * m_channels, MARS_MEMORY_TYPE_TRANSFER, 1);
     m_buffer.update(m_data);
     m_buffer.copy_data(0);
@@ -145,7 +145,7 @@ void v_texture::create(MARS_FORMAT _format, MARS_TEXTURE_USAGE _usage) {
             aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
     }
 
-    m_image = new v_image(instance<v_backend_instance>());
+    m_image = new v_image(cast_graphics<vulkan_backend>());
     m_image->set_format(MARS2VK(_format));
     m_image->set_usage(MARS2VK(_usage));
     m_image->set_size(m_size);
@@ -155,7 +155,7 @@ void v_texture::create(MARS_FORMAT _format, MARS_TEXTURE_USAGE _usage) {
 }
 
 void v_texture::clean() {
-    auto device = instance<v_backend_instance>()->device()->raw_device();
+    auto device = cast_graphics<vulkan_backend>()->device()->raw_device();
     vkDestroySampler(device, m_sampler, nullptr);
 
     m_image->destroy();

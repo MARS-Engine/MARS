@@ -5,6 +5,10 @@
 #include <MARS/executioner/executioner.hpp>
 #include "window.hpp"
 
+namespace mars_resources {
+    class resource_manager;
+};
+
 namespace mars_graphics {
 
     class buffer;
@@ -15,22 +19,23 @@ namespace mars_graphics {
     class render_pass;
     class command_buffer;
     class shader_data;
-    class graphics_instance;
+    class graphics_engine;
     class light_manager;
     class renderer;
     class swapchain;
     class framebuffer;
 
 
-    class backend_instance {
+    class graphics_backend {
     protected:
         mars_executioner::executioner_job* clear_job = nullptr;
         mars_executioner::executioner_job* swap_job = nullptr;
+        mars_resources::resource_manager* m_resources = nullptr;
 
         window* raw_window = nullptr;
         bool m_enable_validation = false;
         command_buffer* m_primary_buffer = nullptr;
-        graphics_instance* m_instance = nullptr;
+        graphics_engine* m_graphics = nullptr;
         swapchain* m_swapchain = nullptr;
         renderer* m_renderer = nullptr;
 
@@ -49,6 +54,9 @@ namespace mars_graphics {
 
         light_manager* m_light = nullptr;
     public:
+        [[nodiscard]] inline mars_resources::resource_manager* resources() const { return m_resources; }
+        inline void set_resources(mars_resources::resource_manager* _resource_manager) { m_resources = _resource_manager; }
+
         [[nodiscard]] inline uint32_t index() const { return m_index; }
         [[nodiscard]] inline uint32_t current_frame() const { return m_current_frame; }
         [[nodiscard]] inline uint32_t max_frames() const { return MAX_FRAMES_IN_FLIGHT; }
@@ -59,15 +67,15 @@ namespace mars_graphics {
         [[nodiscard]] inline swapchain* get_swapchain() const { return m_swapchain; }
         [[nodiscard]] inline renderer* get_renderer() const { return m_renderer; }
 
-        inline void set_instance(graphics_instance* _instance) { m_instance = _instance; }
+        inline void set_graphics(graphics_engine* _graphics) { m_graphics = _graphics; }
 
         [[nodiscard]] inline light_manager* lights() const { return m_light; }
 
         [[nodiscard]] std::string render_type() const;
 
-        explicit backend_instance(bool _enable_validation) { m_enable_validation = _enable_validation; }
+        explicit graphics_backend(bool _enable_validation) { m_enable_validation = _enable_validation; }
 
-        template<typename T> T* instance() { mars_debug::debug::error((std::string)" T - type - " + typeid(T).name() + " - is not a valid graphic type"); }
+        template<typename T> T* create() { mars_debug::debug::error((std::string)" T - type - " + typeid(T).name() + " - is not a valid graphic type"); }
 
         virtual void create_with_window(const std::string& _title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) { }
 
@@ -79,14 +87,14 @@ namespace mars_graphics {
     };
 
     /* template specialization */
-    template<> inline buffer* backend_instance::instance<buffer>() { return generate_buffer(); }
-    template<> inline shader* backend_instance::instance<shader>() { return generate_shader(); }
-    template<> inline shader_input* backend_instance::instance<shader_input>() { return generate_shader_input(); }
-    template<> inline texture* backend_instance::instance<texture>() { return generate_texture(); }
-    template<> inline pipeline* backend_instance::instance<pipeline>() { return generate_pipeline(); }
-    template<> inline render_pass* backend_instance::instance<render_pass>() { return generate_render_pass(); }
-    template<> inline shader_data* backend_instance::instance<shader_data>() { return generate_shader_data(); }
-    template<> inline framebuffer* backend_instance::instance<framebuffer>() { return generate_framebuffer(); }
+    template<> inline buffer* graphics_backend::create<buffer>() { return generate_buffer(); }
+    template<> inline shader* graphics_backend::create<shader>() { return generate_shader(); }
+    template<> inline shader_input* graphics_backend::create<shader_input>() { return generate_shader_input(); }
+    template<> inline texture* graphics_backend::create<texture>() { return generate_texture(); }
+    template<> inline pipeline* graphics_backend::create<pipeline>() { return generate_pipeline(); }
+    template<> inline render_pass* graphics_backend::create<render_pass>() { return generate_render_pass(); }
+    template<> inline shader_data* graphics_backend::create<shader_data>() { return generate_shader_data(); }
+    template<> inline framebuffer* graphics_backend::create<framebuffer>() { return generate_framebuffer(); }
 }
 
 #endif

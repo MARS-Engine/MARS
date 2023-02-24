@@ -48,7 +48,7 @@ namespace mars_graphics {
 
         uint32_t find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-        v_device(v_backend_instance* _instance, VkPhysicalDevice _physical_device) : v_base(_instance) {
+        v_device(vulkan_backend* _instance, VkPhysicalDevice _physical_device) : v_base(_instance) {
             m_physical_device = _physical_device;
         }
 

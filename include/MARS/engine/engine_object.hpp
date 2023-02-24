@@ -3,7 +3,7 @@
 
 #include <pl/safe_vector.hpp>
 #include <pl/safe.hpp>
-#include <MARS/graphics/graphics_instance.hpp>
+#include <MARS/graphics/graphics_engine.hpp>
 #include "transform_3d.hpp"
 
 namespace mars_engine {
@@ -17,7 +17,7 @@ namespace mars_engine {
         engine_object* m_prev = nullptr;
         engine_object* m_next = nullptr;
         engine_object* m_parent = nullptr;
-        mars_graphics::graphics_instance* m_instance = nullptr;
+        mars_graphics::graphics_engine* m_graphics = nullptr;
         engine_handler* m_engine = nullptr;
         transform_3d m_transform;
         pl::safe<engine_object*> m_children = nullptr;
@@ -44,16 +44,16 @@ namespace mars_engine {
         [[nodiscard]] inline transform_3d& transform() { return m_transform; }
         [[nodiscard]] inline pl::safe<engine_object*>& children() { return m_children; }
         [[nodiscard]] inline pl::safe_vector<component*>& components() { return m_components; }
-        [[nodiscard]] inline mars_graphics::graphics_instance* instance() const { return m_instance; }
+        [[nodiscard]] inline mars_graphics::graphics_engine* graphics() const { return m_graphics; }
         [[nodiscard]] inline engine_handler* engine() const { return m_engine; }
 
-        void set_instance(mars_graphics::graphics_instance* _new_instance) {
-            m_instance = _new_instance;
+        void set_graphics(mars_graphics::graphics_engine* _graphics) {
+            m_graphics = _graphics;
 
             //TODO: Make non-recursive
             auto child = children().lock_get();
             while (child != nullptr) {
-                child->set_instance(m_instance);
+                child->set_graphics(m_graphics);
                 child = child->next();
             }
 

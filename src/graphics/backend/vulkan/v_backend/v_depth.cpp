@@ -7,7 +7,7 @@ using namespace mars_graphics;
 VkFormat v_depth::find_supported_format(const std::vector<VkFormat>& _candidates, VkImageTiling _tiling, VkFormatFeatureFlags _features) {
     for (VkFormat format : _candidates) {
         VkFormatProperties props;
-        vkGetPhysicalDeviceFormatProperties(graphics_instance()->device()->raw_physical_device(), format, &props);
+        vkGetPhysicalDeviceFormatProperties(graphics()->device()->raw_physical_device(), format, &props);
 
         if ((_tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & _features) == _features) || (_tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & _features) == _features))
             return format;
@@ -26,9 +26,9 @@ VkFormat v_depth::find_depth_format() {
 
 
 void v_depth::create() {
-    image = new v_image(graphics_instance());
+    image = new v_image(graphics());
     image->set_format(find_depth_format());
-    image->set_size(graphics_instance()->get_window()->size());
+    image->set_size(graphics()->get_window()->size());
     image->set_usage(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
     image->create_image(VK_IMAGE_ASPECT_DEPTH_BIT);

@@ -29,7 +29,7 @@ namespace mars_graphics {
         void create();
 
         inline void destroy() {
-            if (graphics_instance()->enable_validation_layer())
+            if (graphics()->enable_validation_layer())
                 destroy_debug_utils_messenger_ext(raw_instance(), debugMessenger, nullptr);
 
             vkDestroyInstance(raw_instance(), nullptr);

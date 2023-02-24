@@ -13,7 +13,7 @@ void v_render_pass::begin() {
     renderPassInfo.renderPass = m_render_pass;
     renderPassInfo.framebuffer = dynamic_cast<v_framebuffer*>(m_framebuffer)->get_frame();
     renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = instance<v_backend_instance>()->swapchain()->extent();
+    renderPassInfo.renderArea.extent = cast_graphics<vulkan_backend>()->swapchain()->extent();
 
     std::vector<VkClearValue> clearValues;
 
@@ -34,19 +34,19 @@ void v_render_pass::begin() {
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
 
-    vkCmdBeginRenderPass(instance<v_backend_instance>()->raw_command_buffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(cast_graphics<vulkan_backend>()->raw_command_buffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void v_render_pass::end() {
-    vkCmdEndRenderPass(instance<v_backend_instance>()->raw_command_buffer());
+    vkCmdEndRenderPass(cast_graphics<vulkan_backend>()->raw_command_buffer());
 }
 
 void v_render_pass::destroy() {
-    vkDestroyRenderPass(instance<v_backend_instance>()->device()->raw_device(), m_render_pass, nullptr);
+    vkDestroyRenderPass(cast_graphics<vulkan_backend>()->device()->raw_device(), m_render_pass, nullptr);
 }
 
 void v_render_pass::create() {
-    auto v_instance = instance<v_backend_instance>();
+    auto v_instance = cast_graphics<vulkan_backend>();
 
     std::vector<VkAttachmentDescription> vk_attachments;
     std::vector<VkAttachmentReference> vk_attachment_refs;

@@ -6,11 +6,11 @@ namespace mars_engine {
 
     class singleton {
     private:
-        engine_handler* m_instance;
+        engine_handler* m_engine;
     public:
-        [[nodiscard]] inline engine_handler* instance() const { return m_instance; }
+        [[nodiscard]] inline engine_handler* engine() const { return m_engine; }
 
-        explicit singleton(engine_handler* _instance) { m_instance = _instance; }
+        explicit singleton(engine_handler* _engine) { m_engine = _engine; }
     };
 }
 

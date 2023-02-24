@@ -1,20 +1,20 @@
 #ifndef MARS_GRAPHICS_COMPONENT_
 #define MARS_GRAPHICS_COMPONENT_
 
-#include "backend_instance.hpp"
+#include "graphics_backend.hpp"
 #include "graphics_types.hpp"
 
 namespace mars_graphics {
 
     class graphics_component {
     private:
-        backend_instance* m_instance;
+        graphics_backend* m_graphics;
     public:
 
-        inline backend_instance* instance() const { return m_instance; }
-        template<typename T> inline T* instance() const { return static_cast<T*>(m_instance); }
+        [[nodiscard]] inline graphics_backend* graphics() const { return m_graphics; }
+        template<typename T> inline T* cast_graphics() const { return static_cast<T*>(m_graphics); }
 
-        explicit graphics_component(backend_instance* _instance) { m_instance = _instance; }
+        explicit graphics_component(graphics_backend* _graphics) { m_graphics = _graphics; }
     };
 }
 

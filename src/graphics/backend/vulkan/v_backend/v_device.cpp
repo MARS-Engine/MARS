@@ -19,7 +19,7 @@ queue_family_indices v_device::find_queue_families() {
 
 
         VkBool32 present_support = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(m_physical_device, i, graphics_instance()->get_vulkan_window()->raw_surface(), &present_support);
+        vkGetPhysicalDeviceSurfaceSupportKHR(m_physical_device, i, graphics()->get_vulkan_window()->raw_surface(), &present_support);
 
         if (present_support)
             indices.present_family = i;
@@ -38,7 +38,7 @@ bool v_device::check_device_extension_support() {
     std::vector<VkExtensionProperties> available_extensions(extension_count);
     vkEnumerateDeviceExtensionProperties(m_physical_device, nullptr, &extension_count, available_extensions.data());
 
-    std::set<std::string> requiredExtensions(graphics_instance()->instance()->device_extensions.begin(), graphics_instance()->instance()->device_extensions.end());
+    std::set<std::string> requiredExtensions(graphics()->instance()->device_extensions.begin(), graphics()->instance()->device_extensions.end());
 
     for (const auto& extension : available_extensions)
         requiredExtensions.erase(extension.extensionName);
@@ -49,7 +49,7 @@ bool v_device::check_device_extension_support() {
 swapchain_support_details v_device::query_swap_chain_support() {
     swapchain_support_details details;
 
-    auto surface = graphics_instance()->get_vulkan_window()->raw_surface();
+    auto surface = graphics()->get_vulkan_window()->raw_surface();
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physical_device, surface, &details.capabilities);
 
@@ -128,14 +128,14 @@ void v_device::create() {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size()),
         .pQueueCreateInfos = queue_create_infos.data(),
-        .enabledExtensionCount = static_cast<uint32_t>(graphics_instance()->instance()->device_extensions.size()),
-        .ppEnabledExtensionNames = graphics_instance()->instance()->device_extensions.data(),
+        .enabledExtensionCount = static_cast<uint32_t>(graphics()->instance()->device_extensions.size()),
+        .ppEnabledExtensionNames = graphics()->instance()->device_extensions.data(),
         .pEnabledFeatures = &device_features
     };
 
-    if (graphics_instance()->enable_validation_layer()) {
-        create_info.enabledLayerCount = static_cast<uint32_t>(graphics_instance()->instance()->validation_layers.size());
-        create_info.ppEnabledLayerNames = graphics_instance()->instance()->validation_layers.data();
+    if (graphics()->enable_validation_layer()) {
+        create_info.enabledLayerCount = static_cast<uint32_t>(graphics()->instance()->validation_layers.size());
+        create_info.ppEnabledLayerNames = graphics()->instance()->validation_layers.data();
     }
     else
         create_info.enabledLayerCount = 0;

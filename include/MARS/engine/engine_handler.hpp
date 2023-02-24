@@ -3,7 +3,8 @@
 
 #include <pl/parallel.hpp>
 #include <pl/safe.hpp>
-#include <MARS/graphics/graphics_instance.hpp>
+#include <MARS/graphics/graphics_engine.hpp>
+#include <MARS/resources/resource_manager.hpp>
 #include <vector>
 #include <typeindex>
 #include "engine_object.hpp"
@@ -47,12 +48,13 @@ namespace mars_engine {
     class engine_handler {
     private:
         pl::pl_job* job = nullptr;
-        pl::safe<engine_object*> m_instances = nullptr;
-        pl::safe<engine_object*> m_new_instance_list = nullptr;
+        pl::safe<engine_object*> m_objects = nullptr;
+        pl::safe<engine_object*> m_new_objects = nullptr;
         pl::safe_map<std::type_index, engine_layers*> layer_data;
         pl::safe_map<std::type_index, pl::safe<engine_layer_component*>> m_layer_components;
         pl::safe_map<std::type_index, pl::safe<engine_layer_component*>> m_layer_tail_components;
         pl::safe_map<std::type_index, singleton*> m_singletons;
+        mars_resources::resource_manager* m_resources;
 
         size_t m_active_cores;
         std::type_index m_layer_index = std::type_index(typeid(engine_handler));
@@ -62,6 +64,9 @@ namespace mars_engine {
         static void callback(engine_layer_component* _components);
         void process_layers(engine_object* _obj);
     public:
+        [[nodiscard]] inline mars_resources::resource_manager* resources() const { return m_resources; }
+        inline void set_resources(mars_resources::resource_manager* _resource_manager) { m_resources = _resource_manager; }
+
         [[nodiscard]] inline float get_delta_time() { return layer_data[m_layer_index]->delta_time; }
         [[nodiscard]] inline float get_delta_time_ms() { return layer_data[m_layer_index]->delta_time_ms; }
 
@@ -83,9 +88,9 @@ namespace mars_engine {
             if (m_singletons.contains(type_index))
                 return (T*)m_singletons[type_index];
 
-            auto instance = new T(this);
-            m_singletons.insert(std::pair(type_index, instance));
-            return instance;
+            auto new_singleton = new T(this);
+            m_singletons.insert(std::pair(type_index, new_singleton));
+            return new_singleton;
         }
 
         void init();
@@ -127,8 +132,8 @@ namespace mars_engine {
 
         void spawn_wait_list();
 
-        engine_object* instance(engine_object* _obj, mars_graphics::graphics_instance* _instance, engine_object* _parent);
-        engine_object* instance(engine_object* _obj, engine_object* _parent);
+        engine_object* spawn(engine_object* _obj, mars_graphics::graphics_engine* _graphics, engine_object* _parent);
+        engine_object* spawn(engine_object* _obj, engine_object* _parent);
     };
 }
 

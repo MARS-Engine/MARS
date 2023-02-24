@@ -4,7 +4,7 @@
 using namespace mars_graphics;
 
 void v_buffer::bind() {
-    vkBindBufferMemory(instance<v_backend_instance>()->device()->raw_device(), m_buffer, m_memory, 0);
+    vkBindBufferMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), m_buffer, m_memory, 0);
 }
 
 void v_buffer::copy_offset(size_t _offset, size_t _size, void* _data) {
@@ -12,19 +12,19 @@ void v_buffer::copy_offset(size_t _offset, size_t _size, void* _data) {
 }
 
 void v_buffer::copy_buffer(v_buffer *_src) {
-    VkCommandBuffer commandBuffer = instance<v_backend_instance>()->get_single_time_command();
+    VkCommandBuffer commandBuffer = cast_graphics<vulkan_backend>()->get_single_time_command();
 
     VkBufferCopy copyRegion{};
     copyRegion.size = _src->m_size;
     vkCmdCopyBuffer(commandBuffer, _src->m_buffer, m_buffer, 1, &copyRegion);
 
-    instance<v_backend_instance>()->end_single_time_command(commandBuffer);
+    cast_graphics<vulkan_backend>()->end_single_time_command(commandBuffer);
 }
 
 void v_buffer::copy_data(size_t _index) {
-    vkMapMemory(instance<v_backend_instance>()->device()->raw_device(), m_memory, _index * m_size, m_size, 0, &gpu_data);
+    vkMapMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), m_memory, _index * m_size, m_size, 0, &gpu_data);
     memcpy(gpu_data, m_current_data, m_size);
-    vkUnmapMemory(instance<v_backend_instance>()->device()->raw_device(), m_memory);
+    vkUnmapMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), m_memory);
 }
 
 void v_buffer::create(size_t _size, MARS_MEMORY_TYPE _mem_type, size_t _frames)  {
@@ -50,24 +50,24 @@ void v_buffer::create(size_t _size, MARS_MEMORY_TYPE _mem_type, size_t _frames) 
             break;
     }
 
-    if (vkCreateBuffer(instance<v_backend_instance>()->device()->raw_device(), &bufferInfo, nullptr, &m_buffer) != VK_SUCCESS)
+    if (vkCreateBuffer(cast_graphics<vulkan_backend>()->device()->raw_device(), &bufferInfo, nullptr, &m_buffer) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Buffer - Failed to create buffer");
 
     VkMemoryRequirements mem_requirements;
-    vkGetBufferMemoryRequirements(instance<v_backend_instance>()->device()->raw_device(), m_buffer, &mem_requirements);
+    vkGetBufferMemoryRequirements(cast_graphics<vulkan_backend>()->device()->raw_device(), m_buffer, &mem_requirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = mem_requirements.size;
-    allocInfo.memoryTypeIndex = instance<v_backend_instance>()->device()->find_memory_type(mem_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    allocInfo.memoryTypeIndex = cast_graphics<vulkan_backend>()->device()->find_memory_type(mem_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-    if (vkAllocateMemory(instance<v_backend_instance>()->device()->raw_device(), &allocInfo, nullptr, &m_memory) != VK_SUCCESS)
+    if (vkAllocateMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), &allocInfo, nullptr, &m_memory) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Buffer - Failed to allocate buffer memory");
 
-    vkBindBufferMemory(instance<v_backend_instance>()->device()->raw_device(), m_buffer, m_memory, 0);
+    vkBindBufferMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), m_buffer, m_memory, 0);
 }
 
 void v_buffer::destroy() {
-    vkDestroyBuffer(instance<v_backend_instance>()->device()->raw_device(), m_buffer, nullptr);
-    vkFreeMemory(instance<v_backend_instance>()->device()->raw_device(), m_memory, nullptr);
+    vkDestroyBuffer(cast_graphics<vulkan_backend>()->device()->raw_device(), m_buffer, nullptr);
+    vkFreeMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), m_memory, nullptr);
 }

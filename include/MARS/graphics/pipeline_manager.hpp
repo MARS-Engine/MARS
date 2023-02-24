@@ -4,7 +4,7 @@
 #include <typeindex>
 #include <pl/safe_map.hpp>
 #include "backend/template/pipeline.hpp"
-#include "graphics_instance.hpp"
+#include "graphics_engine.hpp"
 
 namespace mars_graphics {
 
@@ -27,8 +27,8 @@ namespace mars_graphics {
             return m_input_map[type_index];
         }
 
-        static pipeline* load_pipeline(mars_shader_inputs* _input, shader* _shader, graphics_instance* _graphics_instance, render_pass* _render_pass = nullptr);
-        static pipeline* prepare_pipeline(mars_shader_inputs* _input, shader* _shader, graphics_instance* _graphics_instance, render_pass* _render_pass = nullptr);
+        static pipeline* load_pipeline(mars_shader_inputs* _input, shader* _shader, graphics_engine* _graphics, render_pass* _render_pass = nullptr);
+        static pipeline* prepare_pipeline(mars_shader_inputs* _input, shader* _shader, graphics_engine* _graphics, render_pass* _render_pass = nullptr);
 
         static void destroy();
     };

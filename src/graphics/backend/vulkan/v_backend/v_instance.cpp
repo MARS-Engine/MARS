@@ -6,12 +6,12 @@ using namespace mars_graphics;
 
 std::vector<const char *> v_instance::get_required_extensions() {
     uint32_t extensionCount = 0;
-    SDL_Vulkan_GetInstanceExtensions(graphics_instance()->get_window()->raw_window(), &extensionCount, nullptr);
+    SDL_Vulkan_GetInstanceExtensions(graphics()->get_window()->raw_window(), &extensionCount, nullptr);
     std::vector<const char*> extensions(extensionCount);
 
-    SDL_Vulkan_GetInstanceExtensions(graphics_instance()->get_window()->raw_window(), &extensionCount, extensions.data());
+    SDL_Vulkan_GetInstanceExtensions(graphics()->get_window()->raw_window(), &extensionCount, extensions.data());
 
-    if (graphics_instance()->enable_validation_layer())
+    if (graphics()->enable_validation_layer())
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
     return extensions;
@@ -42,7 +42,7 @@ bool v_instance::check_validation_layer_support() {
 }
 
 void v_instance::create() {
-    if (graphics_instance()->enable_validation_layer() && !check_validation_layer_support())
+    if (graphics()->enable_validation_layer() && !check_validation_layer_support())
         mars_debug::debug::error("MARS - Vulkan - Validation Layers Requested but not available!");
 
     VkApplicationInfo info{
@@ -66,7 +66,7 @@ void v_instance::create() {
     createInfo.enabledLayerCount = 0;
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-    if (graphics_instance()->enable_validation_layer())  {
+    if (graphics()->enable_validation_layer())  {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
         createInfo.ppEnabledLayerNames = validation_layers.data();
 
@@ -79,7 +79,7 @@ void v_instance::create() {
     if (vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Failed to create a raw_instance");
 
-    if (!graphics_instance()->enable_validation_layer())
+    if (!graphics()->enable_validation_layer())
         return;
 
     if (create_debug_utils_messenger_ext(raw_instance(), &debugCreateInfo, nullptr, &debugMessenger) != VK_SUCCESS)

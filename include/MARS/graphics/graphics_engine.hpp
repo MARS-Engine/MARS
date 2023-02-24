@@ -1,7 +1,7 @@
 #ifndef MARS_GRAPHICS_INSTANCE_
 #define MARS_GRAPHICS_INSTANCE_
 
-#include "backend/template/backend_instance.hpp"
+#include "backend/template/graphics_backend.hpp"
 #include <MARS/math/matrix4.hpp>
 #include <MARS/input/input_manager.hpp>
 
@@ -27,20 +27,21 @@ namespace mars_graphics {
         inline mars_math::matrix4<float> get_proj_view() const { return view_proj; }
     };
 
-    class graphics_instance {
+    class graphics_engine {
     private:
-        backend_instance* m_instance = nullptr;
+        graphics_backend* m_instance = nullptr;
         camera m_camera;
         mars_input::input* m_input = nullptr;
 
     public:
+        [[nodiscard]] inline mars_resources::resource_manager* resources() const { return backend()->resources(); }
         [[nodiscard]] inline camera& get_camera() { return m_camera; }
         [[nodiscard]] inline bool is_running() const { return !m_instance->get_window()->should_close(); }
         [[nodiscard]] inline size_t current_frame() const { return m_instance->current_frame(); }
 
-        template<typename T> [[nodiscard]] inline T* instance() const { return m_instance->instance<T>(); }
+        template<typename T> [[nodiscard]] inline T* create() const { return m_instance->create<T>(); }
 
-        [[nodiscard]] inline backend_instance* backend() const { return m_instance; }
+        [[nodiscard]] inline graphics_backend* backend() const { return m_instance; }
 
         [[nodiscard]] inline mars_graphics::command_buffer* primary_buffer() const { return  m_instance->primary_buffer(); }
 
@@ -50,9 +51,9 @@ namespace mars_graphics {
             m_instance->get_window()->process(m_input);
         }
 
-        explicit graphics_instance(backend_instance* _instance) {
+        explicit graphics_engine(graphics_backend* _instance) {
             m_instance = _instance;
-            m_instance->set_instance(this);
+            m_instance->set_graphics(this);
         }
 
         inline void create_with_window(const std::string& _title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) {

@@ -22,7 +22,7 @@ void renderer::create(const std::string& _path) {
 
     std::vector<std::string> _data;
 
-    resource_manager::read_file(resource_manager::find_path(_path, MARS_RESOURCE_TYPE_RENDERER), _data);
+    resource_manager::read_file(graphics()->resources()->find_path(_path, MARS_RESOURCE_TYPE_RENDERER), _data);
 
     std::string frame_name;
     texture* active_texture;
@@ -35,7 +35,7 @@ void renderer::create(const std::string& _path) {
         if (!render_frame_token.contains(values[0]))
             continue;
 
-        auto size = instance()->get_window()->size();
+        auto size = graphics()->get_window()->size();
 
         switch (render_frame_token[values[0]]) {
             case RENDERER_TEXTURE_TYPE_FRAME:
@@ -43,10 +43,10 @@ void renderer::create(const std::string& _path) {
                     if (has_forward) {
                         if (m_framebuffers.size() != 1)
                             m_framebuffers[frame_name].frame->set_load_previous(true);
-                        m_framebuffers[frame_name].frame->create(instance()->get_swapchain());
+                        m_framebuffers[frame_name].frame->create(graphics()->get_swapchain());
                     }
                     else
-                        m_framebuffers[frame_name].frame->create(instance()->get_window()->size(), m_framebuffers[frame_name].buffers);
+                        m_framebuffers[frame_name].frame->create(graphics()->get_window()->size(), m_framebuffers[frame_name].buffers);
                 }
 
                 has_forward = false;
@@ -54,20 +54,20 @@ void renderer::create(const std::string& _path) {
                     frame_name = values[1];
 
                 m_framebuffers[frame_name] = {};
-                m_framebuffers[frame_name].frame = instance()->instance<framebuffer>();
+                m_framebuffers[frame_name].frame = graphics()->create<framebuffer>();
                 m_framebuffers[frame_name].frame->set_size(size);
 
                 if (i++ != 0)
                     m_framebuffers[frame_name].frame->set_load_previous(true);
                 break;
             case RENDERER_TEXTURE_TYPE_COLOR:
-                active_texture = instance()->instance<texture>();
+                active_texture = graphics()->create<texture>();
                 active_texture->set_size(size);
                 active_texture->create(MARS_FORMAT_SBGRA_8, MARS_TEXTURE_USAGE_COLOR);
                 m_framebuffers[frame_name].buffers.push_back(active_texture);
                 break;
             case RENDERER_TEXTURE_TYPE_POSITION:
-                active_texture = instance()->instance<texture>();
+                active_texture = graphics()->create<texture>();
                 active_texture->set_size(size);
                 active_texture->create(MARS_FORMAT_F_RGBA16, MARS_TEXTURE_USAGE_COLOR);
                 m_framebuffers[frame_name].buffers.push_back(active_texture);
@@ -84,10 +84,10 @@ void renderer::create(const std::string& _path) {
     if (has_forward) {
         if (m_framebuffers.size() != 1)
             m_framebuffers[frame_name].frame->set_load_previous(true);
-        m_framebuffers[frame_name].frame->create(instance()->get_swapchain());
+        m_framebuffers[frame_name].frame->create(graphics()->get_swapchain());
     }
     else
-        m_framebuffers[frame_name].frame->create(instance()->get_window()->size(), m_framebuffers[frame_name].buffers);
+        m_framebuffers[frame_name].frame->create(graphics()->get_window()->size(), m_framebuffers[frame_name].buffers);
 }
 
 void renderer::destroy() {

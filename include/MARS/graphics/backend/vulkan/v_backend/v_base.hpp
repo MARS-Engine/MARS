@@ -2,18 +2,18 @@
 #define MARS_V_BASE_
 
 #include <vulkan/vulkan.h>
-#include <MARS/graphics/backend/vulkan/v_backend_instance.hpp>
+#include <MARS/graphics/backend/vulkan/vulkan_backend.hpp>
 
 namespace mars_graphics {
 
     class v_base {
     private:
-        v_backend_instance* m_instance;
+        vulkan_backend* m_graphics;
     public:
-        inline v_backend_instance* graphics_instance() const { return m_instance; }
+        [[nodiscard]] inline vulkan_backend* graphics() const { return m_graphics; }
 
-        explicit v_base(v_backend_instance* _instance) {
-            m_instance = _instance;
+        explicit v_base(vulkan_backend* _graphics) {
+            m_graphics = _graphics;
         }
     };
 }
