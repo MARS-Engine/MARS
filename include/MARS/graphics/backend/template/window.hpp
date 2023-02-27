@@ -34,7 +34,7 @@ namespace mars_graphics {
         virtual void initialize(const std::string& _title, const mars_math::vector2<size_t>& _size) {
             SDL_Init(SDL_INIT_VIDEO);
             SDL_SetHint(SDL_HINT_GRAB_KEYBOARD, "1");
-            SDL_SetRelativeMouseMode(SDL_TRUE);
+            SDL_SetRelativeMouseMode(SDL_FALSE);
 
             m_size = _size;
             m_title = _title;

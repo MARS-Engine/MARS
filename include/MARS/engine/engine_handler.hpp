@@ -7,9 +7,11 @@
 #include <MARS/resources/resource_manager.hpp>
 #include <vector>
 #include <typeindex>
+#include <optional>
 #include "engine_object.hpp"
 #include "component.hpp"
 #include "singleton.hpp"
+#include "engine_worker.hpp"
 
 namespace mars_engine {
 
@@ -17,29 +19,18 @@ namespace mars_engine {
     private:
         std::atomic<bool> m_completed = false;
     public:
-        inline bool completed(bool _old) { return m_completed.exchange(_old); }
-
-        engine_layer_component* next;
-        engine_layer_component* previous;
-        engine_object* parent;
-
-        void* target;
-
+        engine_layer_component* next = nullptr;
+        engine_object* parent = nullptr;
+        void* target = nullptr;
         std::function<void(engine_layer_component*)> callback;
 
-        void clear() {
-            m_completed = false;
-            auto next_clear = next;
+        inline bool completed(bool _old) { return m_completed.exchange(_old); }
 
-            while (next_clear != nullptr) {
-                next_clear->m_completed = false;
-                next_clear = next_clear->next;
-            }
-        }
+        inline void clear() { m_completed = false; }
     };
 
     struct engine_layers {
-        std::function<std::pair<engine_layer_component*, engine_layer_component*>(engine_object*)> validator;
+        std::function<std::vector<engine_layer_component*>(engine_object*)> validator;
         std::chrono::_V2::system_clock::time_point _last_time;
         float delta_time  = 0.0001f;
         float delta_time_ms  = 0.0001f;
@@ -47,23 +38,23 @@ namespace mars_engine {
 
     class engine_handler {
     private:
-        pl::pl_job* job = nullptr;
+        pl::safe_vector<engine_worker*> m_workers;
         pl::safe<engine_object*> m_objects = nullptr;
         pl::safe<engine_object*> m_new_objects = nullptr;
         pl::safe_map<std::type_index, engine_layers*> layer_data;
-        pl::safe_map<std::type_index, pl::safe<engine_layer_component*>> m_layer_components;
-        pl::safe_map<std::type_index, pl::safe<engine_layer_component*>> m_layer_tail_components;
+        std::type_index m_layer_index = std::type_index(typeid(engine_handler));
+        pl::safe_map<std::type_index, std::vector<engine_layer_component*>> m_layer_components;
         pl::safe_map<std::type_index, singleton*> m_singletons;
         mars_resources::resource_manager* m_resources;
 
         size_t m_active_cores;
-        std::type_index m_layer_index = std::type_index(typeid(engine_handler));
         size_t m_next_core;
         std::mutex m_layer_mtx;
 
-        static void callback(engine_layer_component* _components);
+        static void callback(const pl::safe_vector<engine_layer_component*>& _components);
         void process_layers(engine_object* _obj);
     public:
+        [[nodiscard]] inline std::vector<engine_layer_component*>& get_current_components() { return m_layer_components[m_layer_index]; }
         [[nodiscard]] inline mars_resources::resource_manager* resources() const { return m_resources; }
         inline void set_resources(mars_resources::resource_manager* _resource_manager) { m_resources = _resource_manager; }
 
@@ -74,11 +65,10 @@ namespace mars_engine {
             return layer_data[typeid(T)];
         }
 
-        template<typename T> inline void add_layer(const std::function<std::pair<engine_layer_component*, engine_layer_component*>(engine_object*)>& _validator) {
+        template<typename T> inline void add_layer(const std::function<std::vector<engine_layer_component*>(engine_object*)>& _validator) {
             auto type_index = std::type_index(typeid(T));
             layer_data.insert(std::make_pair(type_index, new engine_layers{ .validator = _validator, ._last_time = std::chrono::high_resolution_clock::now() }));
-            m_layer_components.insert(std::pair(type_index, nullptr));
-            m_layer_tail_components.insert(std::pair(type_index, nullptr));
+            m_layer_components.insert(std::pair(type_index, std::vector<engine_layer_component*>()));
         }
 
         template<typename T> inline T* get_or_create_singleton() {
@@ -106,20 +96,15 @@ namespace mars_engine {
         template<typename T> inline void process_layer() {
             m_layer_index = std::type_index(typeid(T));
 
-            if (job == nullptr) {
-                job = pl::async_for(0, m_active_cores, [&](int _thread_idx) {
-                    callback(m_layer_components[m_layer_index].get());
-                    return true;
-                });
-            }
-
             //Updating
-            m_layer_components[m_layer_index].lock();
-            job->start();
-            job->wait();
-            if (m_layer_components[m_layer_index].get() != nullptr)
-                m_layer_components[m_layer_index].get()->clear();
-            m_layer_components[m_layer_index].unlock();
+            for (auto& worker : m_workers)
+                worker->execute();
+            for (auto& worker : m_workers)
+                worker->wait();
+            if (!m_layer_components[m_layer_index].empty()) {
+                for (auto& component : m_layer_components[m_layer_index])
+                    component->clear();
+            }
 
             //Timing
             auto now = std::chrono::high_resolution_clock::now();

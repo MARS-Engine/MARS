@@ -6,6 +6,7 @@
 #include <functional>
 #include <condition_variable>
 #include <atomic>
+#include <semaphore>
 
 namespace mars_graphics {
     class pipeline;
@@ -68,7 +69,7 @@ namespace mars_executioner {
     private:
         std::atomic<bool> m_running = false;
         std::atomic<bool> m_execute = false;
-        std::condition_variable m_worker_cv;
+        std::binary_semaphore m_semaphore {0};
 
         pl::safe_map<mars_graphics::pipeline*, pl::safe<executioner_job*>> render_jobs;
 
@@ -86,21 +87,14 @@ namespace mars_executioner {
             gpu_lock.unlock();
         }
 
-        inline void stop() { m_running = false; m_worker_cv.notify_all(); }
+        inline void stop() { m_running = false; m_semaphore.release(); }
 
         inline bool executing() { return m_execute; }
 
         inline void execute() {
-            {
-                std::lock_guard lk(job_mtx);
-                m_execute = true;
-            }
-            m_worker_cv.notify_all();
+            m_execute.exchange(true);
+            m_semaphore.release();
         };
-
-        inline void wait() {
-            m_execute.wait(true);
-        }
 
         inline void add_job(executioner_job* _job) {
             if (_job->get_pipeline() == nullptr)

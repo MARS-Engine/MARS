@@ -17,10 +17,7 @@ executioner_worker::~executioner_worker() {
 void executioner_worker::worker() {
 
     while (m_running) {
-        {
-            std::unique_lock lk(job_mtx);
-            m_worker_cv.wait(lk, [&]{ return m_execute || !m_running; });
-        }
+        m_semaphore.acquire();
 
         if (m_execute) {
             for (auto& pair : render_jobs) {
@@ -40,7 +37,6 @@ void executioner_worker::worker() {
             }
         }
 
-        m_execute = false;
-        m_execute.notify_all();
+        m_execute.exchange(false);
     }
 }

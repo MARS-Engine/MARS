@@ -6,6 +6,8 @@ using namespace mars_graphics;
 
 void engine_handler::init() {
     m_active_cores = std::thread::hardware_concurrency();
+    for (size_t i = 0; i < m_active_cores; i++)
+        m_workers.push_back(new engine_worker(this));
 }
 
 void engine_handler::clean() {
@@ -68,38 +70,24 @@ void engine_handler::spawn_wait_list() {
     m_objects.unlock();
 }
 
-void engine_handler::callback(engine_layer_component* _components) {
-    mars_engine::engine_layer_component* current = _components;
-
-    while (current != nullptr) {
-         if (!current->completed(true))
-            current->callback(current);
-        current = current->next;
+void engine_handler::callback(const pl::safe_vector<engine_layer_component*>& _components) {
+    for (engine_layer_component* component : _components) {
+        if (!component->completed(true))
+            component->callback(component);
     }
 }
 
 void engine_handler::process_layers(engine_object* _obj) {
     for (auto& layer : layer_data) {
-        auto head_tail = layer.second->validator(_obj);
+        std::vector<engine_layer_component*> list = layer.second->validator(_obj);
 
-        if (head_tail.first == nullptr)
+        if (list.empty())
             continue;
 
-        m_layer_tail_components[layer.first].lock();
-        m_layer_components[layer.first].lock();
+        if (!m_layer_components[layer.first].empty())
+            m_layer_components[layer.first][m_layer_components[layer.first].size() - 1]->next = list[0];
 
-        if (m_layer_components[layer.first].get() == nullptr) {
-            m_layer_components[layer.first].set(head_tail.first);
-            if (m_layer_tail_components[layer.first].get() == nullptr)
-                m_layer_tail_components[layer.first].set(head_tail.second);
-        }
-        else
-            m_layer_tail_components[layer.first].get()->next = head_tail.first;
-
-        m_layer_tail_components[layer.first].set(head_tail.second);
-
-        m_layer_components[layer.first].unlock();
-        m_layer_tail_components[layer.first].unlock();
+        m_layer_components[layer.first].insert(m_layer_components[layer.first].end(), list.begin(), list.end());
     }
 }
 
