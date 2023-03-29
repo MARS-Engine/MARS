@@ -15,7 +15,7 @@ float quadVertices[] = {
 };
 
 
-void light_manager::load(graphics_engine* _graphics) {
+void light_manager::load(const std::shared_ptr<graphics_engine>& _graphics) {
     m_graphics = _graphics;
 
     //NOTE: temp
@@ -31,7 +31,7 @@ void light_manager::load(graphics_engine* _graphics) {
     m_pipeline->set_topology(MARS_TOPOLOGY_TRIANGLE_STRIP);
     m_pipeline->create();
 
-    std::map<std::string, texture*> input_textures {
+    std::map<std::string, std::shared_ptr<texture>> input_textures {
             {"gPosition",   m_graphics->backend()->get_renderer()->get_framebuffer("main_render")->get_texture(0)},
             {"gNormal",     m_graphics->backend()->get_renderer()->get_framebuffer("main_render")->get_texture(1)},
             {"gAlbedoSpec", m_graphics->backend()->get_renderer()->get_framebuffer("main_render")->get_texture(2)}
@@ -98,8 +98,6 @@ void light_manager::destroy() {
         return;
 
     m_data->destroy();
-    delete m_data;
 
     m_input->destroy();
-    delete m_input;
 }

@@ -1,45 +1,46 @@
 #ifndef MARS_GRAPHICS_INSTANCE_
 #define MARS_GRAPHICS_INSTANCE_
 
+#include <functional>
 #include "backend/template/graphics_backend.hpp"
 #include <MARS/math/matrix4.hpp>
 #include <MARS/input/input_manager.hpp>
+#include "graphics_handler.hpp"
+#include "engine_camera.hpp"
+#include <pl/vector_ptr.hpp>
 
 namespace mars_graphics {
 
-
-    class camera {
-    private:
-        mars_math::matrix4<float> view;
-        mars_math::matrix4<float> projection;
-        mars_math::matrix4<float> view_proj;
-        mars_math::vector3<float> m_position;
-    public:
-        inline mars_math::vector3<float>& position() { return m_position; }
-        inline void position(const mars_math::vector3<float>& _position) { m_position = _position; }
-
-        inline void set_view(const mars_math::matrix4<float>& _val) { view = _val; }
-        inline void set_projection(const mars_math::matrix4<float>& _val) { projection = _val; }
-        inline void set_view_proj(const mars_math::matrix4<float>& _val) { view_proj = _val; }
-
-        inline mars_math::matrix4<float> get_view() const { return view; }
-        inline mars_math::matrix4<float> get_projection() const { return projection; }
-        inline mars_math::matrix4<float> get_proj_view() const { return view_proj; }
+    enum MARS_PIPELINE_CALLBACK_STATUS {
+        MARS_PIPELINE_CALLBACK_STATUS_WAITING,
+        MARS_PIPELINE_CALLBACK_STATUS_WORKING,
+        MARS_PIPELINE_CALLBACK_STATUS_COMPLETE
     };
 
-    class graphics_engine {
+    struct graphics_draw_call {
+        std::function<void()> draw_call;
+
+        explicit graphics_draw_call(const std::function<void()>& _call) {
+            draw_call = _call;
+        }
+    };
+
+    class graphics_engine : public std::enable_shared_from_this<graphics_engine> {
     private:
         graphics_backend* m_instance = nullptr;
         camera m_camera;
         mars_input::input* m_input = nullptr;
-
+        graphics_handler m_handler;
+        pl::vector_ptr<graphics_draw_call> m_drawcalls;
     public:
+        std::shared_ptr<graphics_engine> get_ptr() { return shared_from_this(); }
+
         [[nodiscard]] inline mars_resources::resource_manager* resources() const { return backend()->resources(); }
         [[nodiscard]] inline camera& get_camera() { return m_camera; }
         [[nodiscard]] inline bool is_running() const { return !m_instance->get_window()->should_close(); }
         [[nodiscard]] inline size_t current_frame() const { return m_instance->current_frame(); }
 
-        template<typename T> [[nodiscard]] inline T* create() const { return m_instance->create<T>(); }
+        template<typename T> [[nodiscard]] inline std::shared_ptr<T> create() const { return m_instance->create<T>(); }
 
         [[nodiscard]] inline graphics_backend* backend() const { return m_instance; }
 
@@ -47,13 +48,19 @@ namespace mars_graphics {
 
         [[nodiscard]] inline std::string render_type() const { return m_instance->render_type(); }
 
+        [[nodiscard]] inline pl::vector_ptr<graphics_draw_call>& get_drawcalls() { return m_drawcalls; }
+
+        inline void add_drawcall(const std::function<void()>& _draw_call) {
+            auto call = graphics_draw_call(_draw_call);
+            m_drawcalls.push_back(call);
+        }
+
         inline void window_update() {
             m_instance->get_window()->process(m_input);
         }
 
-        explicit graphics_engine(graphics_backend* _instance) {
+        explicit graphics_engine(graphics_backend* _instance, size_t _threads) : m_handler(this, _threads == 1 ? MARS_GRAPHICS_WORKER_TYPE_SINGLE_THREAD : MARS_GRAPHICS_WORKER_TYPE_MULTI_THREAD, _threads) {
             m_instance = _instance;
-            m_instance->set_graphics(this);
         }
 
         inline void create_with_window(const std::string& _title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) {
@@ -75,6 +82,16 @@ namespace mars_graphics {
         }
 
         inline void draw() {
+
+            m_handler.execute();
+
+        }
+
+        inline void wait_draw() {
+            m_handler.wait();
+        }
+
+        inline void swap() {
             m_instance->draw();
         }
 

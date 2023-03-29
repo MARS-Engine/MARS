@@ -3,6 +3,7 @@
 
 #include "graphics_component.hpp"
 #include "framebuffer.hpp"
+#include <vector>
 
 namespace mars_graphics {
 

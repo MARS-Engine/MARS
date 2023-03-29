@@ -1,1 +1,2 @@
 target_include_directories(MARS PUBLIC include)
+target_include_directories(MARS PUBLIC parallel/include)

@@ -1,19 +1,31 @@
 #include <MARS/engine/engine_worker.hpp>
-#include <MARS/engine/engine_handler.hpp>
+#include <MARS/engine/object_engine.hpp>
 
 using namespace mars_engine;
 
 void engine_worker::work() {
     while (m_running) {
-        m_semaphore.acquire();
+        while (m_running && !m_working) {
+            std::unique_lock<std::mutex> l(m_mtx);
+            m_cv.wait(l, [&](){ return !m_running || m_working.load(); });
+        }
 
         if (!m_running)
             return;
 
-         for (auto& component : m_engine->get_current_components())
-            if (!component->completed(true))
-                component->callback(component);
+        auto components = m_engine->get_components(m_layer);
+        layer_component_param param {
+                .layer_tick = &m_engine->get_layer(m_layer)->m_tick,
+                .layers = components,
+        };
 
-        m_semaphore.release();
+        for (size_t index = m_index.fetch_add(1); index < components->size(); index = m_index.fetch_add(1)) {
+            param.index = index;
+            param.component = &components->at(index);
+            components->at(index).callback(param);
+        }
+
+        m_barriers.arrive_and_wait();
     }
+    printf("CLOSE");
 }

@@ -15,7 +15,7 @@ namespace mars_graphics {
         mars_math::vector3<float> normal;
         mars_math::vector2<float> uv;
 
-        static mars_shader_inputs& get_description() { return m_description; };
+        static std::shared_ptr<mars_shader_inputs> get_description() { return std::make_shared<mars_shader_inputs>(m_description); };
     };
 }
 

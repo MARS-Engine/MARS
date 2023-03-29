@@ -14,7 +14,7 @@ namespace mars_graphics {
 
         void bind() override;
 
-        void load_input(mars_shader_inputs _inputs) override;
+        void load_input(const std::shared_ptr<mars_shader_inputs>& _inputs) override;
 
         buffer* add_buffer(size_t _input_size, MARS_MEMORY_TYPE _input_type) override;
 

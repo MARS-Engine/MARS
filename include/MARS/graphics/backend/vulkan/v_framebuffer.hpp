@@ -21,10 +21,10 @@ namespace mars_graphics {
 
         [[nodiscard]] inline VkFramebuffer get_frame() const { return m_framebuffers[is_swap ? graphics()->index() : 0]; }
 
-        inline void set_render_pass(v_render_pass* _render_pass) { m_render_pass = _render_pass; }
+        inline void set_render_pass(const std::shared_ptr<v_render_pass>& _render_pass) { m_render_pass = _render_pass; }
 
         void create(swapchain* _swapchain) override;
-        void create(mars_math::vector2<size_t> _size, const std::vector<texture*>& _textures) override;
+        void create(mars_math::vector2<size_t> _size, const std::vector<std::shared_ptr<texture>>& _textures) override;
 
         void destroy() override;
     };

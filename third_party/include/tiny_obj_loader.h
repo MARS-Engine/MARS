@@ -1119,7 +1119,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
 
       if (has_tr) {
         ss << "WARN: Both `d` and `Tr` parameters defined for \""
-           << material.name << "\". Use the value of `d` for dissolve."
+           << material.name << "\". Use the get of `d` for dissolve."
            << std::endl;
       }
       has_d = true;
@@ -1130,7 +1130,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       if (has_d) {
         // `d` wins. Ignore `Tr` value.
         ss << "WARN: Both `d` and `Tr` parameters defined for \""
-           << material.name << "\". Use the value of `d` for dissolve."
+           << material.name << "\". Use the get of `d` for dissolve."
            << std::endl;
       } else {
         // We invert value of Tr(assume Tr is in range [0, 1])

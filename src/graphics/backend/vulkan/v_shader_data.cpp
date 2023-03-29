@@ -11,29 +11,28 @@ void v_uniform::destroy() {
         return;
 
     m_buffer->destroy();
-    delete m_buffer;
 }
 
 void v_shader_data::bind() {
-    vkCmdBindDescriptorSets(cast_graphics<vulkan_backend>()->raw_command_buffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, ((v_pipeline*)m_pipeline)->raw_layout(), 0, 1, &m_descriptor_sets[graphics()->current_frame()], 0, nullptr);
+    vkCmdBindDescriptorSets(cast_graphics<vulkan_backend>()->raw_command_buffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::static_pointer_cast<v_pipeline>(m_pipeline)->raw_layout(), 0, 1, &m_descriptor_sets[graphics()->current_frame()], 0, nullptr);
 }
 
-void v_shader_data::generate(pipeline* _pipeline, shader* _shader) {
+void v_shader_data::generate(const std::shared_ptr<pipeline>& _pipeline, const std::shared_ptr<shader>& _shader) {
     m_pipeline = _pipeline;
     m_shader = _shader;
 
     VkDescriptorPoolCreateInfo poolInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
             .maxSets = static_cast<uint32_t>(graphics()->max_frames()),
-            .poolSizeCount = static_cast<uint32_t>(((v_shader*)m_shader)->get_pool_descriptors().size()),
-            .pPoolSizes = ((v_shader*)m_shader)->get_pool_descriptors().data(),
+            .poolSizeCount = static_cast<uint32_t>(std::static_pointer_cast<v_shader>(m_shader)->get_pool_descriptors().size()),
+            .pPoolSizes = std::static_pointer_cast<v_shader>(m_shader)->get_pool_descriptors().data(),
     };
 
 
     if (vkCreateDescriptorPool(cast_graphics<vulkan_backend>()->device()->raw_device(), &poolInfo, nullptr, &m_descriptor_pool))
         mars_debug::debug::error("MARS - Vulkan - Shader - Failed to create descriptor pool");
 
-    std::vector<VkDescriptorSetLayout> layouts(graphics()->max_frames(), ((v_shader*)m_shader)->raw_uniform_layout());
+    std::vector<VkDescriptorSetLayout> layouts(graphics()->max_frames(), std::static_pointer_cast<v_shader>(m_shader)->raw_uniform_layout());
 
     VkDescriptorSetAllocateInfo allocInfo {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -55,7 +54,7 @@ void v_shader_data::generate(pipeline* _pipeline, shader* _shader) {
             continue;
         }
 
-        buffer* new_buffer = graphics()->create<buffer>();
+        std::shared_ptr<buffer> new_buffer = graphics()->create<buffer>();
         new_buffer->create(uniforms[i]->size * sizeof(float), MARS_MEMORY_TYPE_UNIFORM, graphics()->max_frames());
 
         auto uni = new v_uniform(uniforms[i], i, _shader, new_buffer);
@@ -71,7 +70,7 @@ void v_shader_data::generate(pipeline* _pipeline, shader* _shader) {
             if (uni.second->get_data()->type == MARS_UNIFORM_TYPE_SAMPLER)
                 continue;
             VkDescriptorBufferInfo info {
-                .buffer = ((v_uniform*)uni.second)->get_buffer(i),
+                .buffer = std::static_pointer_cast<v_uniform>(uni.second)->get_buffer(i),
                 .offset = i * uni.second->get_buffer_size(),
                 .range = uni.second->get_data()->size * sizeof(float)
             };
@@ -81,8 +80,8 @@ void v_shader_data::generate(pipeline* _pipeline, shader* _shader) {
 
         for (auto& tex : m_textures) {
             VkDescriptorImageInfo info {
-                .sampler = ((v_texture*)tex.second)->raw_sampler(),
-                .imageView = ((v_texture*)tex.second)->raw_image_view(),
+                .sampler = std::static_pointer_cast<v_texture>(tex.second)->raw_sampler(),
+                .imageView = std::static_pointer_cast<v_texture>(tex.second)->raw_image_view(),
                 .imageLayout = MARS2VK(tex.second->layout()),
             };
 
@@ -122,8 +121,6 @@ void v_shader_data::generate(pipeline* _pipeline, shader* _shader) {
 void v_shader_data::destroy() {
     vkDestroyDescriptorPool(cast_graphics<vulkan_backend>()->device()->raw_device(), m_descriptor_pool, nullptr);
 
-    for (auto& uni : m_uniforms) {
+    for (auto& uni : m_uniforms)
         uni.second->destroy();
-        delete uni.second;
-    }
 }

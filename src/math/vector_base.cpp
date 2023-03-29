@@ -1,4 +1,5 @@
 #include <MARS/math/vector_base.hpp>
+#include <xmmintrin.h>
 
 using namespace mars_math;
 

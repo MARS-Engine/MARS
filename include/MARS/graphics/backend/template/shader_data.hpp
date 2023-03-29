@@ -10,16 +10,16 @@ namespace mars_graphics {
 
     class uniform {
     protected:
-        buffer* m_buffer = nullptr;
-        shader* m_shader = nullptr;
+        std::shared_ptr<buffer> m_buffer;
+        std::shared_ptr<shader> m_shader;
         size_t m_index = 0;
-        mars_shader_uniform* m_uni_data = nullptr;
+        std::shared_ptr<mars_shader_uniform> m_uni_data;
     public:
-        mars_shader_uniform* get_data() { return m_uni_data; }
+        std::shared_ptr<mars_shader_uniform> get_data() { return m_uni_data; }
 
         [[nodiscard]] size_t get_buffer_size() const { return m_buffer->size(); }
 
-        explicit uniform(mars_shader_uniform* _uni_data, size_t _index, shader* _shader, buffer* _buffer = nullptr) { m_uni_data = _uni_data; m_index = _index; m_shader = _shader; m_buffer = _buffer; }
+        explicit uniform(const std::shared_ptr<mars_shader_uniform>& _uni_data, size_t _index, const std::shared_ptr<shader>& _shader, const std::shared_ptr<buffer>& _buffer = nullptr) { m_uni_data = _uni_data; m_index = _index; m_shader = _shader; m_buffer = _buffer; }
 
         inline void copy_offset(size_t _index, size_t _offset, size_t _size, void* _data) { m_buffer->copy_offset(_offset, _size, _data); }
 
@@ -39,23 +39,23 @@ namespace mars_graphics {
 
     class shader_data : public graphics_component {
     protected:
-        std::map<std::string, uniform*> m_uniforms;
-        std::map<std::string, texture*> m_textures;
-        shader* m_shader = nullptr;
-        pipeline* m_pipeline = nullptr;
-        shader_data* m_next = nullptr;
+        std::map<std::string, std::shared_ptr<uniform>> m_uniforms;
+        std::map<std::string, std::shared_ptr<texture>> m_textures;
+        std::shared_ptr<shader> m_shader = nullptr;
+        std::shared_ptr<pipeline> m_pipeline = nullptr;
+        std::shared_ptr<shader_data> m_next = nullptr;
     public:
-        inline shader_data* next() const { return m_next; }
-        inline void set_next(shader_data* _next) { m_next = _next; }
+        inline std::shared_ptr<shader_data> next() const { return m_next; }
+        inline void set_next(std::shared_ptr<shader_data> _next) { m_next = _next; }
 
         using graphics_component::graphics_component;
 
-        std::map<std::string, uniform*>& get_uniforms() { return m_uniforms; }
-        std::map<std::string, texture*>& get_textures() { return m_textures; }
+        std::map<std::string, std::shared_ptr<uniform>>& get_uniforms() { return m_uniforms; }
+        std::map<std::string, std::shared_ptr<texture>>& get_textures() { return m_textures; }
 
-        virtual void generate(pipeline* _pipeline, shader* _shader) { }
+        virtual void generate(const std::shared_ptr<pipeline>& _pipeline, const std::shared_ptr<shader>& _shader) { }
 
-        void set_textures(const std::map<std::string, texture*>& _textures) {
+        void set_textures(const std::map<std::string, std::shared_ptr<texture>>& _textures) {
             m_textures = _textures;
         }
 
@@ -65,7 +65,7 @@ namespace mars_graphics {
 
         void update(const std::string& _uniform, void* _data) { m_uniforms[_uniform]->update(_data); }
 
-        uniform* get_uniform(const std::string& _uniform) { return m_uniforms[_uniform]; }
+        std::shared_ptr<uniform> get_uniform(const std::string& _uniform) { return m_uniforms[_uniform]; }
     };
 }
 
