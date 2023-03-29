@@ -1,39 +1,30 @@
 #ifndef MARS_COMPONENT_
 #define MARS_COMPONENT_
 
-#include <type_traits>
-#include <cstddef>
-
-#include <MARS/executioner/executioner.hpp>
-#include "engine_object.hpp"
+#include <MARS/graphics/graphics_engine.hpp>
 #include "transform_3d.hpp"
 
 namespace mars_engine {
+    class mars_object;
+    class object_engine;
 
     class component {
-    protected:
-        engine_object* m_object = nullptr;
+    private:
+        std::shared_ptr<mars_object> m_object;
     public:
+        void set_object(mars_object& _parent);
 
-        inline mars_input::input* get_input() { return mars_input::input_manager::get_input(graphics()->backend()->get_window()); }
-        inline transform_3d& transform() { return m_object->transform(); }
-        inline engine_object* object() { return m_object; }
+        [[nodiscard]] std::shared_ptr<object_engine> engine() const;
+        [[nodiscard]] std::shared_ptr<mars_graphics::graphics_engine> graphics() const;
 
-        inline mars_engine::engine_handler* engine() { return m_object->engine(); }
-        inline mars_graphics::graphics_engine* graphics() { return m_object->graphics(); }
+        transform_3d& transform();
 
-        float get_delta_time();
-        float get_delta_time_ms();
-
-        void set_object(engine_object* _new_object) { m_object = _new_object; on_set_object(); }
+        inline std::shared_ptr<mars_object> object() { return m_object; }
+        [[nodiscard]] inline mars_input::input* get_input() const { return mars_input::input_manager::get_input(graphics()->backend()->get_window()); }
 
         virtual void on_set_object() { }
 
         virtual void destroy() { }
-
-        template<class T> inline T* get_component() { return m_object->get_component<T>(); }
-        template<class T> inline T* add_component(T* comp) { return m_object->add_component(comp); }
-        template<class T> inline T* add_component() { return m_object->add_component<T>(); }
     };
 }
 

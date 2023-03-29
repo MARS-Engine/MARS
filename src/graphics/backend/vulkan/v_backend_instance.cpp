@@ -21,7 +21,6 @@ VkCommandBuffer vulkan_backend::get_single_time_command() {
     allocInfo.commandPool = command_pool()->raw_command_pool();
     allocInfo.commandBufferCount = 1;
 
-    mars_executioner::executioner::lock_gpu();
     VkCommandBuffer commandBuffer;
     vkAllocateCommandBuffers(device()->raw_device(), &allocInfo, &commandBuffer);
 
@@ -45,7 +44,6 @@ void vulkan_backend::end_single_time_command(VkCommandBuffer _command) {
     vkQueueSubmit(device()->raw_graphics_queue(), 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(device()->raw_graphics_queue());
     vkFreeCommandBuffers(device()->raw_device(), command_pool()->raw_command_pool(), 1, &_command);
-    mars_executioner::executioner::unlock_gpu();
 }
 
 void vulkan_backend::create_with_window(const std::string &_title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) {
@@ -92,7 +90,6 @@ void vulkan_backend::update() {
 
 void vulkan_backend::prepare_render() {
     m_sync->wait();
-    mars_executioner::executioner::unlock_gpu();
     vkAcquireNextImageKHR(device()->raw_device(), swapchain()->raw_swapchain(), UINT64_MAX, sync()->image_available(), VK_NULL_HANDLE, &m_index);
     vkResetFences(device()->raw_device(), 1, &sync()->inflight_fence());
 
@@ -119,7 +116,6 @@ void vulkan_backend::draw() {
         .pSignalSemaphores = &sync()->render_finished(),
     };
 
-    mars_executioner::executioner::lock_gpu();
     if (vkQueueSubmit(device()->raw_graphics_queue(), 1, &submit_Info, sync()->inflight_fence()) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Backend Instance - Failed to submit draw command buffer");
 
@@ -134,7 +130,9 @@ void vulkan_backend::draw() {
 
     if (vkQueuePresentKHR(device()->raw_present_queue(), &presentInfo) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Present Failed");
+
     m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+    wait_idle();
 }
 
 void vulkan_backend::destroy() {

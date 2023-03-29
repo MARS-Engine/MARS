@@ -2,33 +2,92 @@
 #define MARS_ENGINE_WORKER_
 
 #include <atomic>
+#include <memory>
+#include <deque>
 #include <thread>
-#include <semaphore>
+#include <condition_variable>
+#include <barrier>
+#include <typeindex>
+#include "object_engine.hpp"
 
 namespace mars_engine {
 
-    class engine_handler;
-
-    class engine_worker {
+    class engine_worker : public std::enable_shared_from_this<engine_worker> {
     private:
-        engine_handler* m_engine = nullptr;
-
-        std::jthread m_thread;
+        std::mutex m_mtx;
+        std::condition_variable m_cv;
 
         std::atomic<bool> m_running = true;
-        std::binary_semaphore m_semaphore {0};
+        std::atomic<int> m_index = 0;
+        std::atomic<bool> m_working = false;
+
+        std::barrier<std::function<void()>> m_barriers;
+
+        std::shared_ptr<object_engine> m_engine;
+        std::deque<std::jthread> m_threads;
+        std::type_index m_layer = typeid(engine_worker);
+        size_t m_cores;
+
+        inline void on_finish() {
+            {
+                std::lock_guard<std::mutex> l(m_mtx);
+                m_working = !m_working;
+            }
+            m_cv.notify_all();
+        }
 
         void work();
     public:
-        inline void execute() {
-            m_semaphore.release();
+        inline std::shared_ptr<engine_worker> get_ptr() { return shared_from_this(); }
+
+        engine_worker(const std::shared_ptr<object_engine>& _engine, size_t _cores) : m_engine(_engine), m_barriers(_cores, [&]() { on_finish(); }) {
+            m_running = true;
+            m_cores = _cores;
+
+            for (size_t i = 0; i < _cores; i++)
+                m_threads.emplace_back(&engine_worker::work, this);
         }
 
-        inline void wait() {
-            m_semaphore.acquire();
+        template<typename T> engine_worker& process_layer() {
+            wait();
+            m_layer = typeid(T);
+            m_engine->get_layer(m_layer)->m_tick.exec_tick();
+            m_index = 0;
+
+            {
+                std::lock_guard<std::mutex> l(m_mtx);
+                m_working = true;
+            }
+
+            m_cv.notify_all();
+            return *this;
         }
 
-        explicit engine_worker(engine_handler* _engine) : m_engine(_engine), m_thread(&engine_worker::work, this) { }
+        engine_worker& wait() {
+            while (m_working) {
+                std::unique_lock<std::mutex> l(m_mtx);
+                m_cv.wait(l, [&](){ return !m_working.load(); });
+            }
+
+            return *this;
+        }
+
+        engine_worker& close() {
+            m_running = false;
+
+            {
+                std::lock_guard<std::mutex> l(m_mtx);
+                m_working = true;
+            }
+
+            m_cv.notify_all();
+            return *this;
+        }
+
+        void join() {
+            for (auto& thread : m_threads)
+                thread.join();
+        }
     };
 }
 

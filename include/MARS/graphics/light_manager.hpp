@@ -39,11 +39,11 @@ namespace mars_graphics {
         pl::safe_vector<point_light*> update_buffer;
         pl::safe_vector<point_light*> lights;
 
-        shader* light_shader = nullptr;
-        pipeline* m_pipeline = nullptr;
-        shader_data* m_data = nullptr;
-        shader_input* m_input = nullptr;
-        graphics_engine* m_graphics;
+        std::shared_ptr<shader> light_shader;
+        std::shared_ptr<pipeline> m_pipeline;
+        std::shared_ptr<shader_data> m_data;
+        std::shared_ptr<shader_input> m_input;
+        std::shared_ptr<graphics_engine> m_graphics;
 
         scene_lights scene;
     public:
@@ -55,7 +55,7 @@ namespace mars_graphics {
         }
 
 
-        void load(graphics_engine* _graphics);
+        void load(const std::shared_ptr<graphics_engine>& _graphics);
         void draw_lights();
         void destroy();
     };

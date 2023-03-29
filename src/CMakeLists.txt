@@ -1,7 +1,6 @@
 add_subdirectory(algo)
 add_subdirectory(engine)
 add_subdirectory(graphics)
-add_subdirectory(executioner)
 add_subdirectory(resources)
 add_subdirectory(scenes)
 add_subdirectory(loaders)

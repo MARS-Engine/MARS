@@ -7,9 +7,9 @@
 
 namespace mars_graphics {
 
-    class v_uniform : uniform {
+    class v_uniform : public uniform {
     public:
-        inline VkBuffer& get_buffer(size_t _index) { return ((v_buffer*)m_buffer)->vulkan_buffer(); }
+        inline VkBuffer& get_buffer(size_t _index) { return std::static_pointer_cast<v_buffer>(m_buffer)->vulkan_buffer(); }
 
         using uniform::uniform;
 
@@ -25,7 +25,7 @@ namespace mars_graphics {
 
         void bind() override;
 
-        void generate(pipeline* _pipeline, shader *_shader) override;
+        void generate(const std::shared_ptr<pipeline>& _pipeline, const std::shared_ptr<shader>& _shader) override;
         void destroy() override;
     };
 }

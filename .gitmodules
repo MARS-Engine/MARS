@@ -1,0 +1,3 @@
+[submodule "third_party/parallel"]
+	path = third_party/parallel
+	url = https://github.com/PedroSilva8/parallel.git

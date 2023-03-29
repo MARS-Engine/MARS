@@ -4,13 +4,13 @@
 #include <cstddef>
 
 namespace mars_engine {
-    class tick {
+    class tick_rate {
     private:
         std::chrono::_V2::system_clock::time_point _last_time;
         float m_tick_rate = 0.0f;
         float tick_per_second = 0.0f;
     public:
-        explicit tick(float _tick_rate) {
+        explicit tick_rate(float _tick_rate) {
             m_tick_rate = _tick_rate;
             tick_per_second = 1000.0f / m_tick_rate;
         }

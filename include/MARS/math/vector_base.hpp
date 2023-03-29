@@ -5,7 +5,6 @@
 #include <string>
 #include <cstring>
 #include <cmath>
-#include <xmmintrin.h>
 
 namespace mars_math {
 

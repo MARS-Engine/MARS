@@ -51,7 +51,7 @@ bool shader::load_shader_file(std::string _path, std::string _path_sufix) {
 
                 size_t binding = std::strtoul(data[3].c_str(), nullptr, 10);
 
-                m_uniforms.push_back(new mars_shader_uniform(data[0], uniform_tokens[data[1]], size, binding));
+                m_uniforms.push_back(std::make_shared<mars_shader_uniform>(data[0], uniform_tokens[data[1]], size, binding));
                 break;
         }
     }
@@ -78,12 +78,7 @@ bool shader::load_resource(const std::string& _path) {
     return load_shader_file(_path);
 }
 
-void shader::clean() {
-    for (auto& uni : m_uniforms)
-        delete uni;
-}
-
-mars_shader_uniform* shader::get_uniform(const std::string& _name) {
+std::shared_ptr<mars_shader_uniform> shader::get_uniform(const std::string& _name) {
     for (auto uni : m_uniforms)
         if (uni->name == _name)
             return uni;

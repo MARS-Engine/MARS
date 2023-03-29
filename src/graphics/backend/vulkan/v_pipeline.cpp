@@ -136,13 +136,13 @@ void v_pipeline::create() {
     VkPipelineLayoutCreateInfo pipeline_layout_pipeline {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = 1,
-        .pSetLayouts = &((v_shader*)m_shader)->raw_uniform_layout()
+        .pSetLayouts = &std::static_pointer_cast<v_shader>(m_shader)->raw_uniform_layout()
     };
 
     if (vkCreatePipelineLayout(cast_graphics<vulkan_backend>()->device()->raw_device(), &pipeline_layout_pipeline, nullptr, &m_pipeline_layout) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Pipeline - Failed to create pipeline layout");
 
-    auto shaderStages = dynamic_cast<v_shader*>(m_shader)->get_stages();
+    auto shaderStages = std::dynamic_pointer_cast<v_shader>(m_shader)->get_stages();
 
     std::vector<VkPipelineColorBlendAttachmentState> m_blend_attachments;
 
@@ -180,7 +180,7 @@ void v_pipeline::create() {
         .pColorBlendState = &blendInfo,
         .pDynamicState = &m_dynamic_state,
         .layout = m_pipeline_layout,
-        .renderPass = ((v_render_pass*)m_render_pass)->raw_render_pass(),
+        .renderPass = std::static_pointer_cast<v_render_pass>(m_render_pass)->raw_render_pass(),
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE
     };

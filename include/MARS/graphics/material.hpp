@@ -14,23 +14,23 @@ namespace mars_graphics {
 
     class material : public mars_resources::resource_base {
     private:
-        shader* m_shader = nullptr;
-        pipeline* m_pipeline = nullptr;
-        std::map<std::string, texture*> m_textures;
+        std::shared_ptr<shader> m_shader;
+        std::shared_ptr<pipeline> m_pipeline;
+        std::map<std::string, std::shared_ptr<texture>> m_textures;
 
-        graphics_engine* m_graphics;
+        std::shared_ptr<graphics_engine> m_graphics;
 
         static std::map<std::string, MARS_MATERIAL_INPUT> mat_input_tokens;
     public:
-        material(graphics_engine* _instance) { m_graphics = _instance; }
+        material(const std::shared_ptr<graphics_engine>& _instance) { m_graphics = _instance; }
 
-        inline pipeline* get_pipeline() { return m_pipeline; }
+        inline std::shared_ptr<pipeline> get_pipeline() { return m_pipeline; }
 
         inline void bind() {
             m_shader->bind();
         }
 
-        inline shader_data* generate_shader_data() {
+        inline std::shared_ptr<shader_data> generate_shader_data() {
             auto data = m_graphics->create<shader_data>();
             data->set_textures(m_textures);
             data->generate(m_pipeline, m_shader);

@@ -3,6 +3,7 @@
 
 #include <MARS/graphics/backend/template/command_buffer.hpp>
 #include <vulkan/vulkan.h>
+#include <vector>
 
 namespace mars_graphics {
 

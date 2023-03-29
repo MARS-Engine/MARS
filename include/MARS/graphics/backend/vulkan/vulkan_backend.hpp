@@ -30,14 +30,14 @@ namespace mars_graphics {
         v_sync* m_sync = nullptr;
 
     protected:
-        shader* generate_shader() override { return new v_shader(this); }
-        pipeline* generate_pipeline() override { return new v_pipeline(this); }
-        render_pass* generate_render_pass() override { return new v_render_pass(this); }
-        texture* generate_texture() override { return new v_texture(this); }
-        shader_input* generate_shader_input() override { return new v_shader_input(this); }
-        shader_data* generate_shader_data() override { return new v_shader_data(this); }
-        buffer* generate_buffer() override { return new v_buffer(this); }
-        framebuffer* generate_framebuffer() override { return new v_framebuffer(this); }
+        std::shared_ptr<shader> generate_shader() override { return std::make_shared<v_shader>(this); }
+        std::shared_ptr<pipeline> generate_pipeline() override { return std::make_shared<v_pipeline>(this); }
+        std::shared_ptr<render_pass> generate_render_pass() override { return std::make_shared<v_render_pass>(this); }
+        std::shared_ptr<texture> generate_texture() override { return std::make_shared<v_texture>(this); }
+        std::shared_ptr<shader_input> generate_shader_input() override { return std::make_shared<v_shader_input>(this); }
+        std::shared_ptr<shader_data> generate_shader_data() override { return std::make_shared<v_shader_data>(this); }
+        std::shared_ptr<buffer> generate_buffer() override { return std::make_shared<v_buffer>(this); }
+        std::shared_ptr<framebuffer> generate_framebuffer() override { return std::make_shared<v_framebuffer>(this); }
     public:
         [[nodiscard]] inline v_instance* instance() const { return m_vulkan_instance; }
         [[nodiscard]] inline v_window* get_vulkan_window() const { return dynamic_cast<v_window*>(get_window()); }
