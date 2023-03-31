@@ -100,7 +100,6 @@ uint32_t v_device::find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags p
             return i;
 
     mars_debug::debug::error("MARS - Vulkan - Device - Failed to find suitable memory type");
-    return 0;
 }
 
 void v_device::create() {

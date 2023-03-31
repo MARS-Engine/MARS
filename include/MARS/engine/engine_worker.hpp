@@ -23,7 +23,7 @@ namespace mars_engine {
 
         std::barrier<std::function<void()>> m_barriers;
 
-        std::shared_ptr<object_engine> m_engine;
+        object_engine m_engine;
         std::deque<std::jthread> m_threads;
         std::type_index m_layer = typeid(engine_worker);
         size_t m_cores;
@@ -40,7 +40,7 @@ namespace mars_engine {
     public:
         inline std::shared_ptr<engine_worker> get_ptr() { return shared_from_this(); }
 
-        engine_worker(const std::shared_ptr<object_engine>& _engine, size_t _cores) : m_engine(_engine), m_barriers(_cores, [&]() { on_finish(); }) {
+        engine_worker(const object_engine& _engine, size_t _cores) : m_engine(_engine), m_barriers(_cores, [&]() { on_finish(); }) {
             m_running = true;
             m_cores = _cores;
 
@@ -73,10 +73,9 @@ namespace mars_engine {
         }
 
         engine_worker& close() {
-            m_running = false;
-
             {
                 std::lock_guard<std::mutex> l(m_mtx);
+                m_running = false;
                 m_working = true;
             }
 

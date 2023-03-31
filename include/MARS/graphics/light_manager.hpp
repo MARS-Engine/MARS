@@ -43,7 +43,7 @@ namespace mars_graphics {
         std::shared_ptr<pipeline> m_pipeline;
         std::shared_ptr<shader_data> m_data;
         std::shared_ptr<shader_input> m_input;
-        std::shared_ptr<graphics_engine> m_graphics;
+        mars_graphics::graphics_engine m_graphics;
 
         scene_lights scene;
     public:
@@ -55,7 +55,7 @@ namespace mars_graphics {
         }
 
 
-        void load(const std::shared_ptr<graphics_engine>& _graphics);
+        void load(const mars_graphics::graphics_engine& _graphics);
         void draw_lights();
         void destroy();
     };

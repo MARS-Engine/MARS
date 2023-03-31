@@ -4,15 +4,16 @@
 #include <memory>
 
 namespace mars_engine {
-    class object_engine;
+    class _object_engine;
+    typedef std::shared_ptr<_object_engine> object_engine;
 
     class singleton {
     private:
-        std::shared_ptr<object_engine> m_engine;
+        object_engine m_engine;
     public:
-        [[nodiscard]] inline std::shared_ptr<object_engine> engine() const { return m_engine; }
+        [[nodiscard]] inline object_engine engine() const { return m_engine; }
 
-        explicit singleton(std::shared_ptr<object_engine> _engine) { m_engine = _engine; }
+        explicit singleton(object_engine _engine) { m_engine = _engine; }
     };
 }
 

@@ -5,7 +5,7 @@ using namespace mars_resources;
 using namespace mars_graphics;
 using namespace pl;
 
-bool resource_manager::read_file(const std::string& _path, std::vector<std::string>& data) {
+bool _resource_manager::read_file(const std::string& _path, std::vector<std::string>& data) {
     std::ifstream stream(_path.c_str());
 
     if (!stream.is_open())
@@ -20,7 +20,7 @@ bool resource_manager::read_file(const std::string& _path, std::vector<std::stri
     return true;
 }
 
-bool resource_manager::read_binary(const std::string& _path, std::vector<char>& data) {
+bool _resource_manager::read_binary(const std::string& _path, std::vector<char>& data) {
     std::ifstream stream(_path.c_str(), std::ios::ate | std::ios::binary);
 
     if (!stream.is_open())
@@ -37,11 +37,11 @@ bool resource_manager::read_binary(const std::string& _path, std::vector<char>& 
     return true;
 }
 
-std::string resource_manager::find_path(const std::string& _file, mars_graphics::MARS_RESOURCE_TYPE _type, const std::string& _path_suffix) {
+std::string _resource_manager::find_path(const std::string& _file, mars_graphics::MARS_RESOURCE_TYPE _type, const std::string& _path_suffix) {
     return resources_locations[_type] + ( _path_suffix.empty() ? "" :  _path_suffix + "/") + _file;
 }
 
-void resource_manager::clean() {
+void _resource_manager::clean() {
     for (auto& kv : resources)
         kv.second->clean();
 

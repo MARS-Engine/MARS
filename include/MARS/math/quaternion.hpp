@@ -27,18 +27,20 @@ namespace mars_math {
         inline T get(size_t i) const { return m_data[i]; }
         inline void set(size_t i, T value) { m_data[i] = value; }
 
+        inline T operator[](size_t i) const { return m_data[i]; }
+
         inline T& operator[](size_t i) { return m_data[i]; }
 
-        inline float length() {
+        [[nodiscard]] inline float length() const {
             return sqrt(m_data[3] * m_data[3] + m_data.xyz().length_squared());
         }
 
-        quaternion<T> normalize() {
+        [[nodiscard]] quaternion<T> normalize() const {
             T scale = static_cast<T>(1) / length();
             return quaternion(m_data.xyz() * scale, m_data.w() * scale);
         }
 
-        vector4<T> to_axis_angle() {
+        [[nodiscard]] vector4<T> to_axis_angle() {
             if (abs(m_data.w()) > 1.0f)
                 m_data = normalize().m_data;
 
@@ -54,7 +56,7 @@ namespace mars_math {
             return result;
         }
 
-        vector3<T> to_euler() {
+        [[nodiscard]] vector3<T> to_euler() const {
             vector3<T> euler;
 
             float sinr_cosp = 2 * (m_data.w() * m_data.x() + m_data.y() * m_data.z());
@@ -62,7 +64,7 @@ namespace mars_math {
             euler.x(atan2(sinr_cosp, consr_cosp));
 
             float sinp = 2 * (m_data.w() * m_data.y() - m_data.z() * m_data.x());
-            if (abs(sinp) >= 1)
+            if (abs(sinp) >= 1.0f)
                 euler.y(copysign(M_PI / 2, sinp));
             else
                 euler.y(asin(sinp));
@@ -74,7 +76,7 @@ namespace mars_math {
             return euler;
         }
 
-        quaternion<T> operator*(quaternion right) {
+        quaternion<T> operator*(const quaternion& right) {
             return quaternion(vector4(
                     m_data.w() * right.m_data.x() + m_data.x() * right.m_data.w() + m_data.y() * right.m_data.z() - m_data.z() * right.m_data.y(),
                     m_data.w() * right.m_data.y() + m_data.y() * right.m_data.w() + m_data.z() * right.m_data.x() - m_data.x() * right.m_data.z(),
@@ -83,7 +85,7 @@ namespace mars_math {
             ));
         }
 
-        vector3<T> operator*(vector3<T> right) {
+        vector3<T> operator*(const vector3<T>& right) {
             vector3 Xyz = m_data.xyz();
             vector3 Uv =  vector3<T>::cross(Xyz, right);
             vector3 Uuv = vector3<T>::cross(Xyz, Uv);
@@ -91,7 +93,7 @@ namespace mars_math {
             return right + ((Uv * m_data.w()) + Uuv) * 2.0f;
         }
 
-        void operator*=(quaternion right) {
+        void operator*=(const quaternion& right) {
             m_data = vector4(
                 m_data.w() * right.m_data.x() + m_data.x() * right.m_data.w() + m_data.y() * right.m_data.z() - m_data.z() * right.m_data.y(),
                 m_data.w() * right.m_data.y() + m_data.y() * right.m_data.w() + m_data.z() * right.m_data.x() - m_data.x() * right.m_data.z(),
@@ -104,7 +106,7 @@ namespace mars_math {
             return memcmp(&m_data, &_right.m_data, sizeof(vector4<T>)) == 0;
         }
 
-        static quaternion<T> from_axis_angle(vector3<T> _axis, float _angle) {
+        static quaternion<T> from_axis_angle(const vector3<T>& _axis, float _angle) {
             T half = _angle * .5f;
             T s = sin(half);
             return quaternion<T>({
@@ -115,7 +117,7 @@ namespace mars_math {
             });
         }
 
-        static quaternion<T> from_euler(vector3<T> _euler) {
+        static quaternion<T> from_euler(const vector3<T>& _euler) {
             float cy = cos(_euler.z() * 0.5);
             float sy = sin(_euler.z() * 0.5);
             float cp = cos(_euler.y() * 0.5);

@@ -9,19 +9,19 @@ namespace mars_math {
 
     template<typename T = float> requires arithmetic<T> class vector4 : public vector_base<T, 4> {
     public:
-        inline T x() const { return this->get(0); }
-        inline T y() const { return this->get(1); }
-        inline T z() const { return this->get(2); }
-        inline T w() const { return this->get(3); }
+        [[nodiscard]] inline T x() const { return this->get(0); }
+        [[nodiscard]] inline T y() const { return this->get(1); }
+        [[nodiscard]] inline T z() const { return this->get(2); }
+        [[nodiscard]] inline T w() const { return this->get(3); }
 
         inline void x(T value) { this->set(0, value); }
         inline void y(T value) { this->set(1, value); }
         inline void z(T value) { this->set(2, value); }
         inline void w(T value) { this->set(3, value); }
 
-        inline vector2<T> xy() { return { x(), y() }; };
-        inline vector2<T> zw() { return { z(), w() }; };
-        inline vector3<T> xyz() { return { x(), y(), z() }; };
+        [[nodiscard]] inline vector2<T> xy() const { return { x(), y() }; };
+        [[nodiscard]] inline vector2<T> zw() const { return { z(), w() }; };
+        [[nodiscard]] inline vector3<T> xyz() const { return { x(), y(), z() }; };
         inline void xyz(vector3<T> _val) { x(_val.x()); y(_val.y()); z(_val.z()); };
 
         vector4(const vector_base<T, 4>& _val) : vector_base<T, 4>(_val) { }

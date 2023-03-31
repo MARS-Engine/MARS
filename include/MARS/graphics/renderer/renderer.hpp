@@ -34,9 +34,6 @@ namespace mars_graphics {
 
         void create(const std::string& _path);
 
-        void pre_draw();
-        void post_draw();
-
         void destroy();
     };
 }

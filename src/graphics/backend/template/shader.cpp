@@ -20,7 +20,7 @@ std::map<std::string, MARS_UNIFORM_TYPE> shader::uniform_tokens = {
 
 bool shader::load_shader_file(std::string _path, std::string _path_sufix) {
     std::vector<std::string> lines;
-    if (!resource_manager::read_file(_path, lines))
+    if (!_resource_manager::read_file(_path, lines))
         return false;
 
     auto reading_mode = MARS_SHADER_TOKEN_VERTEX;
@@ -63,7 +63,7 @@ bool shader::load_shader_file(std::string _path, std::string _path_sufix) {
             case MARS_SHADER_TYPE_VERTEX:
             case MARS_SHADER_TYPE_FRAGMENT:
                 mod_data.resize(0);
-                if (!resource_manager::read_binary(graphics()->resources()->get_location(MARS_RESOURCE_TYPE_SHADER) +
+                if (!_resource_manager::read_binary(graphics()->resources()->get_location(MARS_RESOURCE_TYPE_SHADER) +
                                                    graphics()->render_type() + "/" + module.second + _path_sufix, mod_data))
                     return false;
                 module.second = std::string(mod_data.begin(), mod_data.end());

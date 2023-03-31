@@ -18,11 +18,11 @@ namespace mars_graphics {
         std::shared_ptr<pipeline> m_pipeline;
         std::map<std::string, std::shared_ptr<texture>> m_textures;
 
-        std::shared_ptr<graphics_engine> m_graphics;
+        mars_graphics::graphics_engine m_graphics;
 
         static std::map<std::string, MARS_MATERIAL_INPUT> mat_input_tokens;
     public:
-        material(const std::shared_ptr<graphics_engine>& _instance) { m_graphics = _instance; }
+        material(const mars_graphics::graphics_engine& _instance) { m_graphics = _instance; }
 
         inline std::shared_ptr<pipeline> get_pipeline() { return m_pipeline; }
 

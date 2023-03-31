@@ -95,7 +95,7 @@ namespace mars_graphics {
 
         mars_shader_uniform() = default;
 
-        mars_shader_uniform(std::string _name, MARS_UNIFORM_TYPE _type, size_t _size, size_t _binding) {
+        mars_shader_uniform(const std::string& _name, MARS_UNIFORM_TYPE _type, size_t _size, size_t _binding) {
             name = _name;
             type = _type;
             size = _size;

@@ -6,7 +6,7 @@ using namespace mars_layers;
 std::vector<mars_engine::engine_layer_component> mars_layers::load_layer_callback(const mars_engine::mars_object& _target) {
     std::vector<mars_engine::engine_layer_component> list;
 
-    for (auto& comp : _target.components()) {
+    for (auto& comp : _target->components()) {
         auto target = dynamic_cast<load_layer*>(comp.get());
         if (target == nullptr)
             continue;
@@ -27,7 +27,7 @@ std::vector<mars_engine::engine_layer_component> mars_layers::load_layer_callbac
 std::vector<mars_engine::engine_layer_component> mars_layers::update_layer_callback(const mars_engine::mars_object& _target) {
     std::vector<mars_engine::engine_layer_component> list;
 
-    for (auto& comp : _target.components()) {
+    for (auto& comp : _target->components()) {
         auto target = dynamic_cast<update_layer*>(comp.get());
         if (target == nullptr)
             continue;
@@ -46,7 +46,7 @@ std::vector<mars_engine::engine_layer_component> mars_layers::update_layer_callb
 std::vector<mars_engine::engine_layer_component> mars_layers::post_update_layer_callback(const mars_engine::mars_object& _target) {
     std::vector<mars_engine::engine_layer_component> list;
 
-    for (auto& comp : _target.components()) {
+    for (auto& comp : _target->components()) {
         auto target = dynamic_cast<post_update_layer*>(comp.get());
         if (target == nullptr)
             continue;
@@ -65,7 +65,7 @@ std::vector<mars_engine::engine_layer_component> mars_layers::post_update_layer_
 std::vector<mars_engine::engine_layer_component> mars_layers::update_gpu_callback(const mars_engine::mars_object& _target) {
     std::vector<mars_engine::engine_layer_component> list;
 
-    for (auto& comp : _target.components()) {
+    for (auto& comp : _target->components()) {
         auto target = dynamic_cast<update_gpu*>(comp.get());
         if (target == nullptr)
             continue;
@@ -84,7 +84,7 @@ std::vector<mars_engine::engine_layer_component> mars_layers::update_gpu_callbac
 std::vector<mars_engine::engine_layer_component> mars_layers::post_render_layer_callback(const mars_engine::mars_object& _target) {
     std::vector<mars_engine::engine_layer_component> list;
 
-    for (auto& comp : _target.components()) {
+    for (auto& comp : _target->components()) {
         auto target = dynamic_cast<post_render_layer*>(comp.get());
         if (target == nullptr)
             continue;

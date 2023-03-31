@@ -3,12 +3,12 @@
 
 using namespace mars_engine;
 
-std::shared_ptr<engine_worker> object_engine::create_worker(size_t _cores) {
+std::shared_ptr<engine_worker> _object_engine::create_worker(size_t _cores) {
     m_workers.emplace_back(std::make_shared<engine_worker>(get_ptr(), _cores));
     return m_workers.back()->get_ptr();
 }
 
-void object_engine::spawn_wait_list() {
+void _object_engine::spawn_wait_list() {
     m_new_objects.lock();
 
     for (auto& object : m_new_objects) {
@@ -21,9 +21,9 @@ void object_engine::spawn_wait_list() {
     m_new_objects.unlock();
 }
 
-void object_engine::process_layers(const std::shared_ptr<mars_object>& _obj) {
+void _object_engine::process_layers(const mars_object& _obj) {
     for (auto& layer : m_layer_data) {
-        std::vector<engine_layer_component> list = layer.second.m_validator(*_obj);
+        std::vector<engine_layer_component> list = layer.second.m_validator(_obj);
 
         if (list.empty())
             continue;
@@ -32,7 +32,7 @@ void object_engine::process_layers(const std::shared_ptr<mars_object>& _obj) {
     }
 }
 
-std::shared_ptr<mars_object> object_engine::spawn(const std::shared_ptr<mars_object>& _obj, const std::shared_ptr<mars_graphics::graphics_engine>& _graphics, const std::shared_ptr<mars_object>& _parent) {
+mars_object _object_engine::spawn(const mars_object& _obj, const mars_graphics::graphics_engine& _graphics, const mars_object& _parent) {
     _obj->set_graphics(_graphics);
 
     m_new_objects.lock();

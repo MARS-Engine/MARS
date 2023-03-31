@@ -21,7 +21,7 @@ namespace mars_resources {
         inline virtual void clean() { }
     };
 
-    class resource_manager : public std::enable_shared_from_this<resource_manager> {
+    class _resource_manager : public std::enable_shared_from_this<_resource_manager> {
     private:
         pl::safe_map<std::string, std::shared_ptr<resource_base>> resources;
         std::map<mars_graphics::MARS_RESOURCE_TYPE, std::string> resources_locations = {
@@ -41,7 +41,7 @@ namespace mars_resources {
             return resources.contains(_path) ? std::dynamic_pointer_cast<T>(resources[_path]) : std::shared_ptr<T>();
         }
     public:
-        [[nodiscard]] std::shared_ptr<resource_manager> get_ptr() { return shared_from_this(); }
+        [[nodiscard]] resource_manager get_ptr() { return shared_from_this(); }
 
         [[nodiscard]] std::string get_location(mars_graphics::MARS_RESOURCE_TYPE _type) const { return resources_locations.at(_type); }
 
@@ -52,7 +52,7 @@ namespace mars_resources {
         * @param _resource reference to resource pointer
         * @return true if successfully loads or finds cached or false otherwise
         */
-        template<typename T> bool load_graphical_resource(const std::string& _path, std::shared_ptr<T>& _resource, const std::shared_ptr<mars_graphics::graphics_engine>& _instance) {
+        template<typename T> bool load_graphical_resource(const std::string& _path, std::shared_ptr<T>& _resource, const mars_graphics::graphics_engine& _instance) {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base and graphics_base");
             static_assert(std::is_base_of<mars_graphics::graphics_component, T>::value, "invalid resource type, T must be derived from backend_base");
 
@@ -86,7 +86,7 @@ namespace mars_resources {
         * @param _resource reference to resource pointer
         * @return true if successfully loads or finds cached or false otherwise
         */
-        template<typename T> bool load_resource(const std::string& _path, std::shared_ptr<T>& _resource, std::shared_ptr<mars_graphics::graphics_engine> _instance) {
+        template<typename T> bool load_resource(const std::string& _path, std::shared_ptr<T>& _resource, const mars_graphics::graphics_engine& _instance) {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base and graphics_base");
 
             auto temp_resource = get_cached_resource<T>(_path);
@@ -146,6 +146,12 @@ namespace mars_resources {
 
         void clean();
     };
+
+    typedef std::shared_ptr<_resource_manager> resource_manager;
+
+    inline resource_manager create_resource_manager() {
+        return std::make_shared<_resource_manager>();
+    }
 }
 
 #endif

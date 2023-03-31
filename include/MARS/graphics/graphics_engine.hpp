@@ -25,7 +25,9 @@ namespace mars_graphics {
         }
     };
 
-    class graphics_engine : public std::enable_shared_from_this<graphics_engine> {
+    typedef std::shared_ptr<_graphics_engine> graphics_engine;
+
+    class _graphics_engine : public std::enable_shared_from_this<_graphics_engine> {
     private:
         graphics_backend* m_instance = nullptr;
         camera m_camera;
@@ -33,9 +35,9 @@ namespace mars_graphics {
         graphics_handler m_handler;
         pl::vector_ptr<graphics_draw_call> m_drawcalls;
     public:
-        std::shared_ptr<graphics_engine> get_ptr() { return shared_from_this(); }
+        graphics_engine get_ptr() { return shared_from_this(); }
 
-        [[nodiscard]] inline mars_resources::resource_manager* resources() const { return backend()->resources(); }
+        [[nodiscard]] inline mars_resources::resource_manager resources() const { return backend()->resources(); }
         [[nodiscard]] inline camera& get_camera() { return m_camera; }
         [[nodiscard]] inline bool is_running() const { return !m_instance->get_window()->should_close(); }
         [[nodiscard]] inline size_t current_frame() const { return m_instance->current_frame(); }
@@ -59,7 +61,7 @@ namespace mars_graphics {
             m_instance->get_window()->process(m_input);
         }
 
-        explicit graphics_engine(graphics_backend* _instance, size_t _threads) : m_handler(this, _threads == 1 ? MARS_GRAPHICS_WORKER_TYPE_SINGLE_THREAD : MARS_GRAPHICS_WORKER_TYPE_MULTI_THREAD, _threads) {
+        explicit _graphics_engine(graphics_backend* _instance, size_t _threads) : m_handler(this, _threads == 1 ? MARS_GRAPHICS_WORKER_TYPE_SINGLE_THREAD : MARS_GRAPHICS_WORKER_TYPE_MULTI_THREAD, _threads) {
             m_instance = _instance;
         }
 
@@ -103,6 +105,10 @@ namespace mars_graphics {
             m_instance->wait_idle();
         }
     };
+
+    inline graphics_engine create_graphics_engine(graphics_backend* _instance, size_t _threads) {
+        return std::make_shared<_graphics_engine>(_instance, _threads);
+    }
 }
 
 #endif

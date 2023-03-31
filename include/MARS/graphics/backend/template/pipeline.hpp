@@ -17,7 +17,7 @@ namespace mars_graphics {
         bool m_flip_y = true;
         MARS_TOPOLOGY m_topology = MARS_TOPOLOGY_TRIANGLE_LIST;
     public:
-        inline std::shared_ptr<shader> get_shader() const { return m_shader; }
+        [[nodiscard]] inline std::shared_ptr<shader> get_shader() const { return m_shader; }
 
         using graphics_component::graphics_component;
 
@@ -27,13 +27,13 @@ namespace mars_graphics {
         inline void set_shader(const std::shared_ptr<shader>& _shader) { m_shader = _shader; }
         inline void set_shader_input(mars_shader_inputs _input) { m_shader_input = _input; }
 
-        void set_viewport(mars_math::vector2<int> _position, mars_math::vector2<size_t> _size, mars_math::vector2<float> _depth) {
+        void set_viewport(const mars_math::vector2<int>& _position, const mars_math::vector2<size_t>& _size, const mars_math::vector2<float>& _depth) {
             m_viewport.position = _position,
             m_viewport.size = _size,
             m_viewport.depth = _depth;
         }
 
-        virtual void set_extension(mars_math::vector4<int> _view) { }
+        virtual void set_extension(const mars_math::vector4<int>& _view) { }
 
         virtual void bind() { }
 

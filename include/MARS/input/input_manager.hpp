@@ -23,7 +23,7 @@ namespace mars_input {
         mars_math::vector2<float> m_mouse_relative;
     public:
         inline mars_math::vector2<float> mouse_relative() { return m_mouse_relative; }
-        inline void move_mouse(mars_math::vector2<float> _value) { m_mouse_relative += _value; }
+        inline void move_mouse(const mars_math::vector2<float>& _value) { m_mouse_relative += _value; }
 
         inline bool get_key(const std::string& key) { return m_keys.count(key) && m_keys[key] == MARS_INPUT_STATE_PRESS; }
         inline bool get_key_down(const std::string& key) { return m_keys.count(key) && m_keys[key] == MARS_INPUT_STATE_DOWN; }

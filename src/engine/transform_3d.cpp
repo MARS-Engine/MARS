@@ -3,7 +3,7 @@
 
 using namespace mars_engine;
 
-mars_math::vector3<float> transform_3d::get_world_position() {
+mars_math::vector3<float> transform_3d::get_world_position() const {
     auto next_parent = m_object->parent();
     mars_math::vector3<float> result = position();
 
@@ -15,7 +15,7 @@ mars_math::vector3<float> transform_3d::get_world_position() {
 return result;
 }
 
-mars_math::quaternion<float> transform_3d::get_world_rotation() {
+mars_math::quaternion<float> transform_3d::get_world_rotation() const {
     auto next_parent = m_object->parent();
     mars_math::quaternion<float> result = rotation();
 

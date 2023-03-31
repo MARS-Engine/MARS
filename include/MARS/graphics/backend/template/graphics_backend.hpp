@@ -5,8 +5,9 @@
 #include "window.hpp"
 
 namespace mars_resources {
-    class resource_manager;
-};
+    class _resource_manager;
+    typedef std::shared_ptr<_resource_manager> resource_manager;
+}
 
 namespace mars_graphics {
 
@@ -18,21 +19,22 @@ namespace mars_graphics {
     class render_pass;
     class command_buffer;
     class shader_data;
-    class graphics_engine;
     class light_manager;
     class renderer;
     class swapchain;
     class framebuffer;
 
+    class _graphics_engine;
+    typedef std::shared_ptr<_graphics_engine> graphics_engine;
 
     class graphics_backend {
     protected:
-        mars_resources::resource_manager* m_resources = nullptr;
+        mars_resources::resource_manager m_resources;
 
         window* raw_window = nullptr;
         bool m_enable_validation = false;
         command_buffer* m_primary_buffer = nullptr;
-        std::shared_ptr<graphics_engine> m_graphics = nullptr;
+        graphics_engine m_graphics;
         swapchain* m_swapchain = nullptr;
         renderer* m_renderer = nullptr;
 
@@ -51,8 +53,8 @@ namespace mars_graphics {
 
         light_manager* m_light = nullptr;
     public:
-        [[nodiscard]] inline mars_resources::resource_manager* resources() const { return m_resources; }
-        inline void set_resources(mars_resources::resource_manager* _resource_manager) { m_resources = _resource_manager; }
+        [[nodiscard]] inline mars_resources::resource_manager resources() const { return m_resources; }
+        inline void set_resources(const mars_resources::resource_manager& _resource_manager) { m_resources = _resource_manager; }
 
         [[nodiscard]] inline uint32_t index() const { return m_index; }
         [[nodiscard]] inline uint32_t current_frame() const { return m_current_frame; }
@@ -64,7 +66,7 @@ namespace mars_graphics {
         [[nodiscard]] inline swapchain* get_swapchain() const { return m_swapchain; }
         [[nodiscard]] inline renderer* get_renderer() const { return m_renderer; }
 
-        inline void set_graphics(const std::shared_ptr<graphics_engine>& _graphics) { m_graphics = _graphics; }
+        inline void set_graphics(const graphics_engine& _graphics) { m_graphics = _graphics; }
 
         [[nodiscard]] inline light_manager* lights() const { return m_light; }
 

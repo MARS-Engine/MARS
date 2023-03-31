@@ -23,7 +23,7 @@ namespace mars_math {
             memcpy(m_data, _val, sizeof(T) * Length);
         }
 
-        inline T get(size_t i) const {
+        [[nodiscard]] inline T get(size_t i) const {
             return m_data[i];
         }
 
@@ -32,6 +32,10 @@ namespace mars_math {
         }
 
         inline T& operator[](size_t i) {
+            return m_data[i];
+        }
+
+        inline T operator[](size_t i) const {
             return m_data[i];
         }
 

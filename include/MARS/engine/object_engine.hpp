@@ -9,7 +9,6 @@
 #include <pl/safe_vector.hpp>
 #include <pl/safe_deque.hpp>
 #include <MARS/resources/resource_manager.hpp>
-
 #include "singleton.hpp"
 #include "mars_object.hpp"
 
@@ -57,22 +56,24 @@ namespace mars_engine {
 
     class engine_worker;
 
-    class object_engine : public std::enable_shared_from_this<object_engine> {
+    typedef std::shared_ptr<_object_engine> object_engine;
+
+    class _object_engine : public std::enable_shared_from_this<_object_engine> {
     private:
-        std::shared_ptr<mars_resources::resource_manager> m_resources;
+        mars_resources::resource_manager m_resources;
 
         std::deque<std::shared_ptr<engine_worker>> m_workers;
-        pl::safe_deque<std::shared_ptr<mars_object>> m_new_objects;
-        pl::safe_deque<std::shared_ptr<mars_object>> m_objects;
+        pl::safe_deque<mars_object> m_new_objects;
+        pl::safe_deque<mars_object> m_objects;
         pl::safe_map<std::type_index, std::shared_ptr<std::vector<engine_layer_component>>>  m_layer_calls;
         pl::safe_map<std::type_index, engine_layers> m_layer_data;
         pl::safe_map<std::type_index, std::shared_ptr<singleton>> m_singletons;
     public:
-        std::shared_ptr<object_engine> get_ptr() { return shared_from_this(); }
+        object_engine get_ptr() { return shared_from_this(); }
 
-        inline void set_resources(std::shared_ptr<mars_resources::resource_manager> _resource_manager) { m_resources = _resource_manager; }
+        inline void set_resources(const mars_resources::resource_manager& _resource_manager) { m_resources = _resource_manager; }
 
-        std::shared_ptr<mars_resources::resource_manager> resources() { return m_resources; }
+        mars_resources::resource_manager resources() { return m_resources; }
 
         std::shared_ptr<std::vector<engine_layer_component>> get_components(std::type_index _layer) {
             if (!m_layer_calls.contains(_layer))
@@ -117,14 +118,23 @@ namespace mars_engine {
         }
 
         void spawn_wait_list();
-        void process_layers(const std::shared_ptr<mars_object>& _obj);
+        void process_layers(const mars_object& _obj);
 
-        std::shared_ptr<mars_object> spawn(const std::shared_ptr<mars_object>& _obj, const std::shared_ptr<mars_graphics::graphics_engine>& _graphics, const std::shared_ptr<mars_object>& _parent);
+        mars_object spawn(const mars_object& _obj, const mars_graphics::graphics_engine& _graphics, const mars_object& _parent);
 
-        std::shared_ptr<mars_object> spawn(const std::shared_ptr<mars_object>& _obj, const std::shared_ptr<mars_graphics::graphics_engine>& _graphics) {
+        mars_object spawn(const mars_object& _obj, const mars_graphics::graphics_engine& _graphics) {
             return spawn(_obj, _graphics, nullptr);
         }
+
+        void clean() {
+            for (auto& object : m_objects)
+                object->destroy();
+        }
     };
+
+    inline object_engine create_engine() {
+        return std::make_shared<_object_engine>();
+    }
 }
 
 #endif

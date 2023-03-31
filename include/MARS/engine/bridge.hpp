@@ -4,17 +4,18 @@
 #include <memory>
 
 namespace mars_engine {
-    class mars_object;
+    class _mars_object;
+    using mars_object = std::shared_ptr<_mars_object>;
 
     class bridge : public std::enable_shared_from_this<bridge> {
     private:
-        std::shared_ptr<mars_object> m_object;
+        mars_object m_object;
     public:
         inline std::shared_ptr<bridge> get_ptr() { return shared_from_this(); }
 
-        [[nodiscard]] inline std::shared_ptr<mars_object> get_engine_object() const { return m_object; }
+        [[nodiscard]] inline mars_object get_engine_object() const { return m_object; }
 
-        explicit bridge(mars_object& _object);
+        explicit bridge(const mars_object& _object);
     };
 }
 

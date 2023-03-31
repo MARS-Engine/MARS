@@ -15,7 +15,7 @@ float quadVertices[] = {
 };
 
 
-void light_manager::load(const std::shared_ptr<graphics_engine>& _graphics) {
+void light_manager::load(const mars_graphics::graphics_engine& _graphics) {
     m_graphics = _graphics;
 
     //NOTE: temp

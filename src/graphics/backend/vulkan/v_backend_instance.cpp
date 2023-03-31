@@ -128,7 +128,8 @@ void vulkan_backend::draw() {
         .pImageIndices = &m_index,
     };
 
-    if (vkQueuePresentKHR(device()->raw_present_queue(), &presentInfo) != VK_SUCCESS)
+    auto res = vkQueuePresentKHR(device()->raw_present_queue(), &presentInfo);
+    if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) //temp ignore suboptimal
         mars_debug::debug::error("MARS - Present Failed");
 
     m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
