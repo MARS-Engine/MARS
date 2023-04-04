@@ -1,8 +1,10 @@
 #ifndef MARS_BACKEND_INSTANCE_
 #define MARS_BACKEND_INSTANCE_
 
+#include <MARS/memory/mars_ref.hpp>
 #include <MARS/debug/debug.hpp>
 #include "window.hpp"
+#include <deque>
 
 namespace mars_resources {
     class _resource_manager;
@@ -38,14 +40,23 @@ namespace mars_graphics {
         swapchain* m_swapchain = nullptr;
         renderer* m_renderer = nullptr;
 
-        virtual std::shared_ptr<buffer> generate_buffer() { return nullptr; }
-        virtual std::shared_ptr<shader> generate_shader() { return nullptr; }
-        virtual std::shared_ptr<shader_input> generate_shader_input() { return nullptr; }
-        virtual std::shared_ptr<texture> generate_texture() { return nullptr; }
-        virtual std::shared_ptr<pipeline> generate_pipeline() { return nullptr; }
-        virtual std::shared_ptr<render_pass> generate_render_pass() { return nullptr; }
-        virtual std::shared_ptr<shader_data> generate_shader_data() { return nullptr; }
-        virtual std::shared_ptr<framebuffer> generate_framebuffer() { return nullptr; }
+        std::deque<std::shared_ptr<buffer>> m_buffer_storage;
+        std::deque<std::shared_ptr<shader>> m_shader_storage;
+        std::deque<std::shared_ptr<shader_input>> m_shader_input_storage;
+        std::deque<std::shared_ptr<texture>> m_texture_storage;
+        std::deque<std::shared_ptr<pipeline>> m_pipeline_storage;
+        std::deque<std::shared_ptr<render_pass>> m_render_pass_storage;
+        std::deque<std::shared_ptr<shader_data>> m_shader_data_storage;
+        std::deque<std::shared_ptr<framebuffer>> m_framebuffer_storage;
+
+        virtual mars_ref<buffer> generate_buffer() { return {}; }
+        virtual mars_ref<shader> generate_shader() { return {}; }
+        virtual mars_ref<shader_input> generate_shader_input() { return {}; }
+        virtual mars_ref<texture> generate_texture() { return {}; }
+        virtual mars_ref<pipeline> generate_pipeline() { return {}; }
+        virtual mars_ref<render_pass> generate_render_pass() { return {}; }
+        virtual mars_ref<shader_data> generate_shader_data() { return {}; }
+        virtual mars_ref<framebuffer> generate_framebuffer() { return {}; }
 
         uint32_t m_index = 0;
         uint32_t m_current_frame = 0;
@@ -74,7 +85,7 @@ namespace mars_graphics {
 
         explicit graphics_backend(bool _enable_validation) { m_enable_validation = _enable_validation; }
 
-        template<typename T> std::shared_ptr<T> create() { mars_debug::debug::error((std::string)" T - type - " + typeid(T).name() + " - is not a valid graphic type"); }
+        template<typename T> mars_ref<T> create() { mars_debug::debug::error((std::string)" T - type - " + typeid(T).name() + " - is not a valid graphic type"); }
 
         virtual void create_with_window(const std::string& _title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) { }
 
@@ -86,14 +97,14 @@ namespace mars_graphics {
     };
 
     /* template specialization */
-    template<> inline std::shared_ptr<buffer> graphics_backend::create<buffer>() { return generate_buffer(); }
-    template<> inline std::shared_ptr<shader> graphics_backend::create<shader>() { return generate_shader(); }
-    template<> inline std::shared_ptr<shader_input> graphics_backend::create<shader_input>() { return generate_shader_input(); }
-    template<> inline std::shared_ptr<texture> graphics_backend::create<texture>() { return generate_texture(); }
-    template<> inline std::shared_ptr<pipeline> graphics_backend::create<pipeline>() { return generate_pipeline(); }
-    template<> inline std::shared_ptr<render_pass> graphics_backend::create<render_pass>() { return generate_render_pass(); }
-    template<> inline std::shared_ptr<shader_data> graphics_backend::create<shader_data>() { return generate_shader_data(); }
-    template<> inline std::shared_ptr<framebuffer> graphics_backend::create<framebuffer>() { return generate_framebuffer(); }
+    template<> inline mars_ref<buffer> graphics_backend::create<buffer>() { return generate_buffer(); }
+    template<> inline mars_ref<shader> graphics_backend::create<shader>() { return generate_shader(); }
+    template<> inline mars_ref<shader_input> graphics_backend::create<shader_input>() { return generate_shader_input(); }
+    template<> inline mars_ref<texture> graphics_backend::create<texture>() { return generate_texture(); }
+    template<> inline mars_ref<pipeline> graphics_backend::create<pipeline>() { return generate_pipeline(); }
+    template<> inline mars_ref<render_pass> graphics_backend::create<render_pass>() { return generate_render_pass(); }
+    template<> inline mars_ref<shader_data> graphics_backend::create<shader_data>() { return generate_shader_data(); }
+    template<> inline mars_ref<framebuffer> graphics_backend::create<framebuffer>() { return generate_framebuffer(); }
 }
 
 #endif

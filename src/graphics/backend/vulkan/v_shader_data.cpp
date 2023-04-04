@@ -7,32 +7,32 @@
 using namespace mars_graphics;
 
 void v_uniform::destroy() {
-    if (m_buffer == nullptr)
+    if (!m_buffer.is_alive())
         return;
 
     m_buffer->destroy();
 }
 
 void v_shader_data::bind() {
-    vkCmdBindDescriptorSets(cast_graphics<vulkan_backend>()->raw_command_buffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::static_pointer_cast<v_pipeline>(m_pipeline)->raw_layout(), 0, 1, &m_descriptor_sets[graphics()->current_frame()], 0, nullptr);
+    vkCmdBindDescriptorSets(cast_graphics<vulkan_backend>()->raw_command_buffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.cast_static<v_pipeline>()->raw_layout(), 0, 1, &m_descriptor_sets[graphics()->current_frame()], 0, nullptr);
 }
 
-void v_shader_data::generate(const std::shared_ptr<pipeline>& _pipeline, const std::shared_ptr<shader>& _shader) {
+void v_shader_data::generate(const mars_ref<pipeline>& _pipeline, const mars_ref<shader>& _shader) {
     m_pipeline = _pipeline;
     m_shader = _shader;
 
     VkDescriptorPoolCreateInfo poolInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
             .maxSets = static_cast<uint32_t>(graphics()->max_frames()),
-            .poolSizeCount = static_cast<uint32_t>(std::static_pointer_cast<v_shader>(m_shader)->get_pool_descriptors().size()),
-            .pPoolSizes = std::static_pointer_cast<v_shader>(m_shader)->get_pool_descriptors().data(),
+            .poolSizeCount = static_cast<uint32_t>(m_shader.cast_static<v_shader>()->get_pool_descriptors().size()),
+            .pPoolSizes = m_shader.cast_static<v_shader>()->get_pool_descriptors().data(),
     };
 
 
     if (vkCreateDescriptorPool(cast_graphics<vulkan_backend>()->device()->raw_device(), &poolInfo, nullptr, &m_descriptor_pool))
         mars_debug::debug::error("MARS - Vulkan - Shader - Failed to create descriptor pool");
 
-    std::vector<VkDescriptorSetLayout> layouts(graphics()->max_frames(), std::static_pointer_cast<v_shader>(m_shader)->raw_uniform_layout());
+    std::vector<VkDescriptorSetLayout> layouts(graphics()->max_frames(), m_shader.cast_static<v_shader>()->raw_uniform_layout());
 
     VkDescriptorSetAllocateInfo allocInfo {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -54,7 +54,7 @@ void v_shader_data::generate(const std::shared_ptr<pipeline>& _pipeline, const s
             continue;
         }
 
-        std::shared_ptr<buffer> new_buffer = graphics()->create<buffer>();
+        mars_ref<buffer> new_buffer = graphics()->create<buffer>();
         new_buffer->create(uniforms[i]->size * sizeof(float), MARS_MEMORY_TYPE_UNIFORM, graphics()->max_frames());
 
         auto uni = new v_uniform(uniforms[i], i, _shader, new_buffer);
@@ -80,8 +80,8 @@ void v_shader_data::generate(const std::shared_ptr<pipeline>& _pipeline, const s
 
         for (auto& tex : m_textures) {
             VkDescriptorImageInfo info {
-                .sampler = std::static_pointer_cast<v_texture>(tex.second)->raw_sampler(),
-                .imageView = std::static_pointer_cast<v_texture>(tex.second)->raw_image_view(),
+                .sampler = tex.second.cast_static<v_texture>()->raw_sampler(),
+                .imageView = tex.second.cast_static<v_texture>()->raw_image_view(),
                 .imageLayout = MARS2VK(tex.second->layout()),
             };
 

@@ -44,7 +44,10 @@ std::string _resource_manager::find_path(const std::string& _file, mars_graphics
 void _resource_manager::clean() {
     for (auto& kv : resources)
         kv.second->clean();
+    for (auto& kv : ref_resources)
+        kv.second->clean();
 
     resources.clear();
+    ref_resources.clear();
     resources_locations.clear();
 }

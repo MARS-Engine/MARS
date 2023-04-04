@@ -25,7 +25,7 @@ void renderer::create(const std::string& _path) {
     _resource_manager::read_file(graphics()->resources()->find_path(_path, MARS_RESOURCE_TYPE_RENDERER), _data);
 
     std::string frame_name;
-    std::shared_ptr<texture> active_texture;
+    mars_ref<texture> active_texture;
     bool has_forward = false;
     for (size_t i = 0; auto& line : _data) {
         std::transform(line.begin(), line.end(), line.begin(), ::tolower);

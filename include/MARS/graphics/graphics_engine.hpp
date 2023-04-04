@@ -42,7 +42,7 @@ namespace mars_graphics {
         [[nodiscard]] inline bool is_running() const { return !m_instance->get_window()->should_close(); }
         [[nodiscard]] inline size_t current_frame() const { return m_instance->current_frame(); }
 
-        template<typename T> [[nodiscard]] inline std::shared_ptr<T> create() const { return m_instance->create<T>(); }
+        template<typename T> [[nodiscard]] inline mars_ref<T> create() const { return m_instance->create<T>(); }
 
         [[nodiscard]] inline graphics_backend* backend() const { return m_instance; }
 

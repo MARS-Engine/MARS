@@ -164,6 +164,15 @@ void vulkan_backend::destroy() {
 
     raw_window->destroy();
     delete raw_window;
+
+    m_buffer_storage.clear();
+    m_shader_storage.clear();
+    m_shader_input_storage.clear();
+    m_texture_storage.clear();
+    m_pipeline_storage.clear();
+    m_render_pass_storage.clear();
+    m_shader_data_storage.clear();
+    m_framebuffer_storage.clear();
 }
 
 void vulkan_backend::wait_idle() {

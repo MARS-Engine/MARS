@@ -30,6 +30,7 @@ namespace mars_graphics {
         [[nodiscard]] inline MARS_FORMAT format() { return m_format; }
         [[nodiscard]] inline MARS_TEXTURE_LAYOUT layout() { return m_layout; }
         inline void set_size(const mars_math::vector2<size_t>& _size) { m_size = _size; }
+        [[nodiscard]] mars_math::vector2<size_t> size() const { return m_size; }
 
         using graphics_component::graphics_component;
 

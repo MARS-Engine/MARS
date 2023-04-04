@@ -11,7 +11,7 @@ namespace mars_graphics {
     class pipeline_manager {
     private:
         static pl::safe_map<std::type_index, std::shared_ptr<mars_shader_inputs>> m_input_map;
-        static pl::safe_map<std::pair<std::shared_ptr<mars_shader_inputs>, std::shared_ptr<shader>>, std::shared_ptr<pipeline>> m_pipelines;
+        static pl::safe_map<std::pair<std::shared_ptr<mars_shader_inputs>, mars_ref<shader>>, std::shared_ptr<pipeline>> m_pipelines;
     public:
         template<typename T> static inline void add_input(std::shared_ptr<mars_shader_inputs> _input) { m_input_map[typeid(T)] = _input; }
         template<typename T> static inline std::shared_ptr<mars_shader_inputs> get_input() {
@@ -27,8 +27,8 @@ namespace mars_graphics {
             return m_input_map[type_index];
         }
 
-        static std::shared_ptr<pipeline> load_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const std::shared_ptr<shader>& _shader, const mars_graphics::graphics_engine& _graphics, const std::shared_ptr<render_pass>& _render_pass = nullptr);
-        static std::shared_ptr<pipeline> prepare_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const std::shared_ptr<shader>& _shader, const mars_graphics::graphics_engine& _graphics, const std::shared_ptr<render_pass>& _render_pass = nullptr);
+        static mars_ref<pipeline> load_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_graphics::graphics_engine& _graphics, const mars_ref<render_pass>& _render_pass = mars_ref<render_pass>());
+        static mars_ref<pipeline> prepare_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_graphics::graphics_engine& _graphics, const mars_ref<render_pass>& _render_pass = mars_ref<render_pass>());
 
         static void destroy();
     };

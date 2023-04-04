@@ -31,7 +31,7 @@ void v_framebuffer::create(swapchain* _swapchain) {
 
     VkFramebufferCreateInfo framebufferInfo {
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-            .renderPass = std::static_pointer_cast<v_render_pass>(m_render_pass)->raw_render_pass(),
+            .renderPass = m_render_pass.cast_static<v_render_pass>()->raw_render_pass(),
             .width = static_cast<uint32_t>(m_size.x()),
             .height = static_cast<uint32_t>(m_size.y()),
             .layers = 1
@@ -52,7 +52,7 @@ void v_framebuffer::create(swapchain* _swapchain) {
             mars_debug::debug::error("MARS - Vulkan - Failed to create framebuffer");
     }
 }
-void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<std::shared_ptr<texture>>& _textures) {
+void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<mars_ref<texture>>& _textures) {
     if (m_depth_enabled) {
         m_depth = new v_depth(cast_graphics<vulkan_backend>());
         m_depth->create();
@@ -69,7 +69,7 @@ void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<s
 
     for (auto& _texture : _textures) {
         m_render_pass->add_attachment({ .format = _texture->format(), .layout = MARS_TEXTURE_LAYOUT_READONLY });
-        attachments.push_back(std::static_pointer_cast<v_texture>(_texture)->raw_image_view());
+        attachments.push_back(_texture.cast_static<v_texture>()->raw_image_view());
     }
 
     if (m_depth_enabled) {
@@ -80,7 +80,7 @@ void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<s
 
     VkFramebufferCreateInfo framebufferInfo {
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-            .renderPass = std::static_pointer_cast<v_render_pass>(m_render_pass)->raw_render_pass(),
+            .renderPass = m_render_pass.cast_static<v_render_pass>()->raw_render_pass(),
             .attachmentCount = static_cast<uint32_t>(attachments.size()),
             .pAttachments = attachments.data(),
             .width = static_cast<uint32_t>(m_size.x()),
@@ -95,7 +95,7 @@ void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<s
 }
 
 void v_framebuffer::destroy() {
-    if (m_render_pass != nullptr)
+    if (m_render_pass.is_alive())
         m_render_pass->destroy();
 
     if (m_depth_enabled) {

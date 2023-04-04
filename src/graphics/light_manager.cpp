@@ -31,7 +31,7 @@ void light_manager::load(const mars_graphics::graphics_engine& _graphics) {
     m_pipeline->set_topology(MARS_TOPOLOGY_TRIANGLE_STRIP);
     m_pipeline->create();
 
-    std::map<std::string, std::shared_ptr<texture>> input_textures {
+    std::map<std::string, mars_ref<texture>> input_textures {
             {"gPosition",   m_graphics->backend()->get_renderer()->get_framebuffer("main_render")->get_texture(0)},
             {"gNormal",     m_graphics->backend()->get_renderer()->get_framebuffer("main_render")->get_texture(1)},
             {"gAlbedoSpec", m_graphics->backend()->get_renderer()->get_framebuffer("main_render")->get_texture(2)}

@@ -4,6 +4,7 @@
 #include <MARS/debug/debug.hpp>
 #include <MARS/graphics/backend/template/graphics_types.hpp>
 #include <MARS/graphics/graphics_engine.hpp>
+#include <MARS/memory/mars_ref.hpp>
 #include <pl/safe_map.hpp>
 #include <string>
 #include <vector>
@@ -24,6 +25,7 @@ namespace mars_resources {
     class _resource_manager : public std::enable_shared_from_this<_resource_manager> {
     private:
         pl::safe_map<std::string, std::shared_ptr<resource_base>> resources;
+        pl::safe_map<std::string, mars_ref<resource_base>> ref_resources;
         std::map<mars_graphics::MARS_RESOURCE_TYPE, std::string> resources_locations = {
                 { mars_graphics::MARS_RESOURCE_TYPE_SHADER, "engine/assets/shaders/" },
                 { mars_graphics::MARS_RESOURCE_TYPE_TEXTURE, "engine/assets/textures/" },
@@ -37,9 +39,14 @@ namespace mars_resources {
         * @param _path the path to the file
         * @return pointer to resource or nullptr
         */
-        template<typename T> std::shared_ptr<T> get_cached_resource(const std::string& _path) {
-            return resources.contains(_path) ? std::dynamic_pointer_cast<T>(resources[_path]) : std::shared_ptr<T>();
+        template<typename T> std::shared_ptr<T> get_cached_resource(const std::string& _path) const {
+            return resources.contains(_path) ? std::dynamic_pointer_cast<T>(resources.at(_path)) : std::shared_ptr<T>();
         }
+
+        template<typename T> mars_ref<T> get_cached_ref_resource(const std::string& _path) const {
+            return ref_resources.contains(_path) ? ref_resources.at(_path).cast_dynamic<T>() : mars_ref<T>();
+        }
+
     public:
         [[nodiscard]] resource_manager get_ptr() { return shared_from_this(); }
 
@@ -52,28 +59,29 @@ namespace mars_resources {
         * @param _resource reference to resource pointer
         * @return true if successfully loads or finds cached or false otherwise
         */
-        template<typename T> bool load_graphical_resource(const std::string& _path, std::shared_ptr<T>& _resource, const mars_graphics::graphics_engine& _instance) {
+        template<typename T> bool load_graphical_resource(const std::string& _path, mars_ref<T>& _resource, const mars_graphics::graphics_engine& _instance) {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base and graphics_base");
             static_assert(std::is_base_of<mars_graphics::graphics_component, T>::value, "invalid resource type, T must be derived from backend_base");
 
-            resources.lock();
+            ref_resources.lock();
 
-            auto temp_resource = get_cached_resource<T>(_path);
+            mars_ref<T> temp_resource = get_cached_ref_resource<T>(_path);
 
-            if (temp_resource != nullptr) {
-                _resource = std::static_pointer_cast<T>(resources[_path]);
-                resources.unlock();
+            if (temp_resource.is_alive()) {
+                _resource = ref_resources.at(_path).cast_static<T>();
+                ref_resources.unlock();
                 return true;
             }
 
             temp_resource = _instance->create<T>();
             if (!temp_resource->load_resource(_path)) {
-                resources.unlock();
+                ref_resources.unlock();
+                mars_debug::debug::alert("MARS RESOURCES - Failed to load resource -" + _path);
                 return false;
             }
 
-            resources[_path] = temp_resource;
-            resources.unlock();
+            ref_resources[_path] = temp_resource;
+            ref_resources.unlock();
 
             _resource = temp_resource;
             return true;
@@ -86,23 +94,24 @@ namespace mars_resources {
         * @param _resource reference to resource pointer
         * @return true if successfully loads or finds cached or false otherwise
         */
-        template<typename T> bool load_resource(const std::string& _path, std::shared_ptr<T>& _resource, const mars_graphics::graphics_engine& _instance) {
+        template<typename T> bool load_resource(const std::string& _path, mars_ref<T>& _resource, const mars_graphics::graphics_engine& _instance) {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base and graphics_base");
 
             auto temp_resource = get_cached_resource<T>(_path);
 
             if (temp_resource != nullptr) {
-                _resource = std::static_pointer_cast<T>(resources[_path]);
+                _resource = mars_ref<T>(std::static_pointer_cast<T>(resources[_path]));
                 return true;
             }
 
             temp_resource = std::make_shared<T>(_instance);
             if (!temp_resource->load_resource(_path)) {
+                mars_debug::debug::alert("MARS RESOURCES - Failed to load resource -" + _path);
                 return false;
             }
 
             resources[_path] = temp_resource;
-            _resource = temp_resource;
+            _resource = mars_ref<T>(temp_resource);
             return true;
         }
 
@@ -113,22 +122,24 @@ namespace mars_resources {
          * @param _resource reference to resource pointer
          * @return true if successfully loads or finds cached or false otherwise
          */
-        template<typename T> bool load_resource(const std::string& _path, std::shared_ptr<T>& _resource) {
+        template<typename T> bool load_resource(const std::string& _path, mars_ref<T>& _resource) {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base and resource_base");
 
             auto temp_resource = get_cached_resource<T>(_path);
 
             if (temp_resource != nullptr) {
-                _resource = std::static_pointer_cast<T>(resources[_path]);
+                _resource = mars_ref<T>(std::static_pointer_cast<T>(resources[_path]));
                 return true;
             }
 
             temp_resource = std::make_shared<T>();
-            if (!temp_resource->load_resource(_path))
+            if (!temp_resource->load_resource(_path)) {
+                mars_debug::debug::alert("MARS RESOURCES - Failed to load resource -" + _path);
                 return false;
+            }
 
             resources[_path] = temp_resource;
-            _resource = temp_resource;
+            _resource = mars_ref<T>(temp_resource);
             return true;
         }
 

@@ -52,21 +52,21 @@ namespace mars_engine {
             return shared_from_this();
         }
 
-        template<typename T> mars_mem::mars_ref<T> add_component(const std::shared_ptr<T>& _new_component) {
+        template<typename T> mars_ref<T> add_component(const std::shared_ptr<T>& _new_component) {
             static_assert(std::is_base_of<component, T>::value, "invalid component - component must have type mars_engine::component has a base");
             m_components.lock();
             m_components.push_back(_new_component);
             m_components.unlock();
             _new_component->set_object(get_ptr());
-            return mars_mem::mars_ref<T>(_new_component);
+            return mars_ref<T>(_new_component);
         }
 
-        template<class T> inline mars_mem::mars_ref<T> add_component() { return add_component<T>(std::make_shared<T>()); }
+        template<class T> inline mars_ref<T> add_component() { return add_component<T>(std::make_shared<T>()); }
 
-        template<typename T> mars_mem::mars_ref<T> get_bridge(const std::string& _bridge) {
+        template<typename T> mars_ref<T> get_bridge(const std::string& _bridge) {
             static_assert(std::is_base_of_v<bridge, T>, "MARS - Engine Object - Invalid bridge, base must have type mars_engine::object_bridge");
             if (m_bridges.contains(_bridge))
-                return mars_mem::mars_ref<bridge>(m_bridges[_bridge]).cast_static<T>();
+                return mars_ref<bridge>(m_bridges[_bridge]).cast_static<T>();
 
             auto new_bridge = std::make_shared<T>(get_ptr());
 
@@ -74,13 +74,13 @@ namespace mars_engine {
 
             if (m_bridges.contains(_bridge)) {
                 m_bridges.unlock();
-                return mars_mem::mars_ref<bridge>(m_bridges[_bridge]).cast_static<T>();
+                return mars_ref<bridge>(m_bridges[_bridge]).cast_static<T>();
             }
 
             m_bridges.insert(std::pair(_bridge, new_bridge));
             m_bridges.unlock();
 
-            return mars_mem::mars_ref<bridge>(new_bridge).cast_static<T>();
+            return mars_ref<bridge>(new_bridge).cast_static<T>();
         }
 
         void destroy() {
