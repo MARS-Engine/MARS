@@ -15,6 +15,9 @@ For a test sample, you can go [here](https://github.com/MARS-Engine/MARS-Samples
 - Rendering Thread - Complete but needs an overhaul
 - Physics - In development
 
+## MARS Layer System
+For some insight into how the MARS Layer System works you can [visit this repository](https://github.com/MARS-Engine/MARS-Object-Processing)
+
 ## OpenGL/DirectX/Metal
 OpenGL has started to become a bigger pain then excepted (due to multithreading) has the project is growing, therefor Vulkan is coming back as the main backend, OpenGL will probably never comeback, I have a idea of wrapping all function so that they are sent as commands to the graphics m_thread but honastly it's too much work, maybe in the future.
 
