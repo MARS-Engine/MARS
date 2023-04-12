@@ -4,11 +4,10 @@
 #include <MARS/memory/mars_ref.hpp>
 #include <MARS/debug/debug.hpp>
 #include "window.hpp"
-#include <deque>
+#include <pl/safe_deque.hpp>
 
 namespace mars_resources {
-    class _resource_manager;
-    typedef std::shared_ptr<_resource_manager> resource_manager;
+    class resource_manager;
 }
 
 namespace mars_graphics {
@@ -25,29 +24,27 @@ namespace mars_graphics {
     class renderer;
     class swapchain;
     class framebuffer;
-
-    class _graphics_engine;
-    typedef std::shared_ptr<_graphics_engine> graphics_engine;
+    class graphics_engine;
 
     class graphics_backend {
     protected:
-        mars_resources::resource_manager m_resources;
+        mars_ref<mars_resources::resource_manager> m_resources;
 
         window* raw_window = nullptr;
         bool m_enable_validation = false;
         command_buffer* m_primary_buffer = nullptr;
-        graphics_engine m_graphics;
+        mars_ref<graphics_engine> m_graphics;
         swapchain* m_swapchain = nullptr;
         renderer* m_renderer = nullptr;
 
-        std::deque<std::shared_ptr<buffer>> m_buffer_storage;
-        std::deque<std::shared_ptr<shader>> m_shader_storage;
-        std::deque<std::shared_ptr<shader_input>> m_shader_input_storage;
-        std::deque<std::shared_ptr<texture>> m_texture_storage;
-        std::deque<std::shared_ptr<pipeline>> m_pipeline_storage;
-        std::deque<std::shared_ptr<render_pass>> m_render_pass_storage;
-        std::deque<std::shared_ptr<shader_data>> m_shader_data_storage;
-        std::deque<std::shared_ptr<framebuffer>> m_framebuffer_storage;
+        pl::safe_deque<std::shared_ptr<buffer>> m_buffer_storage;
+        pl::safe_deque<std::shared_ptr<shader>> m_shader_storage;
+        pl::safe_deque<std::shared_ptr<shader_input>> m_shader_input_storage;
+        pl::safe_deque<std::shared_ptr<texture>> m_texture_storage;
+        pl::safe_deque<std::shared_ptr<pipeline>> m_pipeline_storage;
+        pl::safe_deque<std::shared_ptr<render_pass>> m_render_pass_storage;
+        pl::safe_deque<std::shared_ptr<shader_data>> m_shader_data_storage;
+        pl::safe_deque<std::shared_ptr<framebuffer>> m_framebuffer_storage;
 
         virtual mars_ref<buffer> generate_buffer() { return {}; }
         virtual mars_ref<shader> generate_shader() { return {}; }
@@ -64,8 +61,8 @@ namespace mars_graphics {
 
         light_manager* m_light = nullptr;
     public:
-        [[nodiscard]] inline mars_resources::resource_manager resources() const { return m_resources; }
-        inline void set_resources(const mars_resources::resource_manager& _resource_manager) { m_resources = _resource_manager; }
+        [[nodiscard]] inline mars_ref<mars_resources::resource_manager> resources() const { return m_resources; }
+        inline void set_resources(const mars_ref<mars_resources::resource_manager>& _resource_manager) { m_resources = _resource_manager; }
 
         [[nodiscard]] inline uint32_t index() const { return m_index; }
         [[nodiscard]] inline uint32_t current_frame() const { return m_current_frame; }
@@ -77,7 +74,7 @@ namespace mars_graphics {
         [[nodiscard]] inline swapchain* get_swapchain() const { return m_swapchain; }
         [[nodiscard]] inline renderer* get_renderer() const { return m_renderer; }
 
-        inline void set_graphics(const graphics_engine& _graphics) { m_graphics = _graphics; }
+        inline void set_graphics(const mars_ref<graphics_engine>& _graphics) { m_graphics = _graphics; }
 
         [[nodiscard]] inline light_manager* lights() const { return m_light; }
 

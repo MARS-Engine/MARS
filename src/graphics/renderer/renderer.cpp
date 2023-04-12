@@ -22,7 +22,7 @@ void renderer::create(const std::string& _path) {
 
     std::vector<std::string> _data;
 
-    _resource_manager::read_file(graphics()->resources()->find_path(_path, MARS_RESOURCE_TYPE_RENDERER), _data);
+    resource_manager::read_file(graphics()->resources()->find_path(_path, MARS_RESOURCE_TYPE_RENDERER), _data);
 
     std::string frame_name;
     mars_ref<texture> active_texture;

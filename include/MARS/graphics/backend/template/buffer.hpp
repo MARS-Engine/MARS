@@ -12,7 +12,7 @@ namespace mars_graphics {
         size_t m_frames;
         size_t m_size;
         MARS_MEMORY_TYPE m_mem_type;
-        void* m_current_data = nullptr;
+        const void* m_current_data = nullptr;
     public:
         using graphics_component::graphics_component;
 
@@ -25,9 +25,9 @@ namespace mars_graphics {
         virtual void unbind() { }
 
         virtual void copy_offset(size_t _offset, size_t _size, void* _data) { }
-        inline void copy_data(void* _data, size_t _index = 0) { update(_data); copy_data(_index); }
+        inline void copy_data(const void* _data, size_t _index = 0) { update(_data); copy_data(_index); }
         virtual void copy_data(size_t _index) { }
-        virtual void update(void* _data) {
+        virtual void update(const void* _data) {
             m_current_data = _data;
         }
 

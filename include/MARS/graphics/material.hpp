@@ -18,11 +18,11 @@ namespace mars_graphics {
         mars_ref<pipeline> m_pipeline;
         std::map<std::string, mars_ref<texture>> m_textures;
 
-        mars_graphics::graphics_engine m_graphics;
+        mars_ref<mars_graphics::graphics_engine> m_graphics;
 
         static std::map<std::string, MARS_MATERIAL_INPUT> mat_input_tokens;
     public:
-        material(const mars_graphics::graphics_engine& _instance) { m_graphics = _instance; }
+        explicit material(const mars_ref<mars_graphics::graphics_engine>& _instance) { m_graphics = _instance; }
 
         inline mars_ref<pipeline> get_pipeline() { return m_pipeline; }
 

@@ -7,48 +7,48 @@
 #include "MARS/memory/mars_ref.hpp"
 #include <memory>
 
+#include "object_engine.hpp"
 #include "transform_3d.hpp"
 #include "component.hpp"
 #include "bridge.hpp"
 
 namespace mars_engine {
-    class _object_engine;
-    typedef std::shared_ptr<_object_engine> object_engine;
+    class object_engine;
 
-    class _mars_object : public std::enable_shared_from_this<_mars_object> {
+    class mars_object : public std::enable_shared_from_this<mars_object> {
     private:
-        mars_object m_parent;
+        mars_ref<mars_object> m_parent;
 
-        mars_graphics::graphics_engine m_graphics;
-        object_engine m_engine;
+        mars_ref<mars_graphics::graphics_engine> m_graphics;
+        mars_ref<object_engine> m_engine;
 
-        pl::safe_deque<mars_object> m_children;
+        pl::safe_deque<mars_ref<mars_object>> m_children;
         pl::safe_vector<std::shared_ptr<component>> m_components;
         pl::safe_map<std::string, std::shared_ptr<bridge>> m_bridges;
 
         transform_3d m_transform;
     public:
-        mars_object parent() const { return m_parent; }
-        object_engine engine() const { return m_engine; }
-        mars_graphics::graphics_engine graphics() const { return m_graphics; }
+        mars_ref<mars_object> parent() const { return m_parent; }
+        mars_ref<object_engine> engine() const { return m_engine; }
+        mars_ref<mars_graphics::graphics_engine> graphics() const { return m_graphics; }
         transform_3d& transform() { return m_transform; }
         const pl::safe_vector<std::shared_ptr<component>>& components() const { return m_components; }
 
-        explicit _mars_object(const object_engine& _engine) {
+        explicit mars_object(const mars_ref<object_engine>& _engine) {
             m_engine = _engine;
             m_transform.set_parent(this);
         }
 
-        void set_parent(const mars_object& _parent) {
+        void set_parent(const mars_ref<mars_object>& _parent) {
             m_parent = _parent;
-            m_parent->m_children.push_back(get_ptr());
+            m_parent->m_children.push_back(mars_ref<mars_object>(get_ptr()));
         }
 
-        void set_graphics(const mars_graphics::graphics_engine& _graphics) {
+        void set_graphics(const mars_ref<mars_graphics::graphics_engine>& _graphics) {
             m_graphics = _graphics;
         }
 
-        [[nodiscard]] inline mars_object get_ptr() {
+        [[nodiscard]] inline std::shared_ptr<mars_object> get_ptr() {
             return shared_from_this();
         }
 
@@ -57,7 +57,8 @@ namespace mars_engine {
             m_components.lock();
             m_components.push_back(_new_component);
             m_components.unlock();
-            _new_component->set_object(get_ptr());
+            _new_component->set_object(mars_ref<mars_object>(get_ptr()));
+            m_engine->process_component(mars_ref<component>(_new_component));
             return mars_ref<T>(_new_component);
         }
 
@@ -68,7 +69,7 @@ namespace mars_engine {
             if (m_bridges.contains(_bridge))
                 return mars_ref<bridge>(m_bridges[_bridge]).cast_static<T>();
 
-            auto new_bridge = std::make_shared<T>(get_ptr());
+            auto new_bridge = std::make_shared<T>(mars_ref<mars_object>(get_ptr()));
 
             m_bridges.lock();
 
@@ -91,12 +92,6 @@ namespace mars_engine {
                 child->destroy();
         }
     };
-
-    using mars_object = std::shared_ptr<_mars_object>;
-
-    inline mars_object create_object(const object_engine& _engine) {
-        return std::make_shared<_mars_object>(_engine);
-    }
 }
 
 #endif

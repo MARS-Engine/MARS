@@ -7,8 +7,8 @@ namespace mars_math {
 
     template<typename T> requires arithmetic<T> class vector2 : public vector_base<T, 2> {
     public:
-        inline T x() { return this->get(0); }
-        inline T y() { return this->get(1); }
+        inline T x() const { return this->get(0); }
+        inline T y() const { return this->get(1); }
 
         inline void x(T value) { this->set(0, value); }
         inline void y(T value) { this->set(1, value); }

@@ -1,21 +1,20 @@
 #ifndef MARS_BRIDGE_
 #define MARS_BRIDGE_
 
-#include <memory>
+#include <MARS/memory/mars_ref.hpp>
 
 namespace mars_engine {
-    class _mars_object;
-    using mars_object = std::shared_ptr<_mars_object>;
+    class mars_object;
 
     class bridge : public std::enable_shared_from_this<bridge> {
     private:
-        mars_object m_object;
+        mars_ref<mars_object> m_object;
     public:
         inline std::shared_ptr<bridge> get_ptr() { return shared_from_this(); }
 
-        [[nodiscard]] inline mars_object get_engine_object() const { return m_object; }
+        [[nodiscard]] inline mars_ref<mars_object> get_engine_object() const { return m_object; }
 
-        explicit bridge(const mars_object& _object);
+        explicit bridge(const mars_ref<mars_object>& _object);
     };
 }
 

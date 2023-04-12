@@ -12,7 +12,7 @@ std::map<std::string, MARS_MATERIAL_INPUT> material::mat_input_tokens = {
 
 bool material::load_resource(const std::string &_path) {
     std::vector<std::string> lines;
-    if (!_resource_manager::read_file(_path, lines))
+    if (!resource_manager::read_file(_path, lines))
         mars_debug::debug::error("MARS - Material - Failed to find material - " + _path);
 
     for (const auto& line : lines) {

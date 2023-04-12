@@ -7,7 +7,7 @@ using namespace mars_graphics;
 pl::safe_map<std::type_index, std::shared_ptr<mars_shader_inputs>> pipeline_manager::m_input_map;
 pl::safe_map<std::pair<std::shared_ptr<mars_shader_inputs>, mars_ref<shader>>, std::shared_ptr<pipeline>> pipeline_manager::m_pipelines;
 
-mars_ref<pipeline> pipeline_manager::load_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_graphics::graphics_engine& _graphics, const mars_ref<render_pass>& _render_pass) {
+mars_ref<pipeline> pipeline_manager::load_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_ref<mars_graphics::graphics_engine>& _graphics, const mars_ref<render_pass>& _render_pass) {
     auto id = std::make_pair(_input, _shader);
     m_pipelines.lock();
     auto result = m_pipelines[id];
@@ -20,7 +20,7 @@ mars_ref<pipeline> pipeline_manager::load_pipeline(const std::shared_ptr<mars_sh
     return mars_ref<pipeline>(result);
 }
 
-mars_ref<pipeline> pipeline_manager::prepare_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_graphics::graphics_engine& _graphics, const mars_ref<render_pass>& _render_pass) {
+mars_ref<pipeline> pipeline_manager::prepare_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_ref<mars_graphics::graphics_engine>& _graphics, const mars_ref<render_pass>& _render_pass) {
     auto id = std::make_pair(_input, _shader);
     m_pipelines.lock();
     auto result = m_pipelines[id];

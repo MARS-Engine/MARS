@@ -8,6 +8,7 @@ template<typename T> class mars_ref {
 private:
     std::weak_ptr<T> m_data;
 public:
+    T* ptr() const { return m_data.lock().get(); }
     const std::weak_ptr<T>& get() const { return m_data; }
 
     mars_ref() = default;

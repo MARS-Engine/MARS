@@ -7,7 +7,7 @@ mars_math::vector3<float> transform_3d::get_world_position() const {
     auto next_parent = m_object->parent();
     mars_math::vector3<float> result = position();
 
-    while (next_parent != nullptr) {
+    while (next_parent.is_alive()) {
         result += m_object->transform().position();
         next_parent = m_object->parent();
     }
@@ -19,7 +19,7 @@ mars_math::quaternion<float> transform_3d::get_world_rotation() const {
     auto next_parent = m_object->parent();
     mars_math::quaternion<float> result = rotation();
 
-    while (next_parent != nullptr) {
+    while (next_parent.is_alive()) {
         result *= m_object->transform().rotation();
         next_parent = m_object->parent();
     }
@@ -37,7 +37,7 @@ void transform_3d::update() {
     if (m_enable_scale)
         m_transform_mat.scale(scale());
 
-    if (m_object->parent() != nullptr)
+    if (m_object->parent().is_alive())
         m_transform_mat *= m_object->parent()->transform().matrix();
 
     m_need_update = false;

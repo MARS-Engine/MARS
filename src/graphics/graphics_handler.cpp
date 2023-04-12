@@ -5,12 +5,12 @@
 using namespace std::chrono_literals;
 using namespace mars_graphics;
 
-graphics_engine graphics_handler::engine() {
-    return m_engine->get_ptr();
+mars_ref<graphics_engine> graphics_handler::engine() {
+    return mars_ref<graphics_engine>(m_engine->get_ptr());
 }
 
 void graphics_handler::worker_thread() {
-    m_engine->get_drawcalls()._for([](graphics_draw_call* _call) {
-        _call->draw_call();
-    });
+    for (auto& callback : m_engine->get_drawcalls()) {
+        callback.draw_call();
+    }
 }

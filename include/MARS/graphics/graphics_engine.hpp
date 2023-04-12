@@ -7,7 +7,7 @@
 #include <MARS/input/input_manager.hpp>
 #include "graphics_handler.hpp"
 #include "engine_camera.hpp"
-#include <pl/vector_ptr.hpp>
+#include <pl/safe_vector.hpp>
 
 namespace mars_graphics {
 
@@ -25,19 +25,17 @@ namespace mars_graphics {
         }
     };
 
-    typedef std::shared_ptr<_graphics_engine> graphics_engine;
-
-    class _graphics_engine : public std::enable_shared_from_this<_graphics_engine> {
+    class graphics_engine : public std::enable_shared_from_this<graphics_engine> {
     private:
         graphics_backend* m_instance = nullptr;
         camera m_camera;
         mars_input::input* m_input = nullptr;
         graphics_handler m_handler;
-        pl::vector_ptr<graphics_draw_call> m_drawcalls;
+        pl::safe_vector<graphics_draw_call> m_drawcalls;
     public:
-        graphics_engine get_ptr() { return shared_from_this(); }
+        std::shared_ptr<graphics_engine> get_ptr() { return shared_from_this(); }
 
-        [[nodiscard]] inline mars_resources::resource_manager resources() const { return backend()->resources(); }
+        [[nodiscard]] inline mars_ref<mars_resources::resource_manager> resources() const { return backend()->resources(); }
         [[nodiscard]] inline camera& get_camera() { return m_camera; }
         [[nodiscard]] inline bool is_running() const { return !m_instance->get_window()->should_close(); }
         [[nodiscard]] inline size_t current_frame() const { return m_instance->current_frame(); }
@@ -50,18 +48,20 @@ namespace mars_graphics {
 
         [[nodiscard]] inline std::string render_type() const { return m_instance->render_type(); }
 
-        [[nodiscard]] inline pl::vector_ptr<graphics_draw_call>& get_drawcalls() { return m_drawcalls; }
+        [[nodiscard]] inline pl::safe_vector<graphics_draw_call>& get_drawcalls() { return m_drawcalls; }
 
         inline void add_drawcall(const std::function<void()>& _draw_call) {
             auto call = graphics_draw_call(_draw_call);
+            m_drawcalls.lock();
             m_drawcalls.push_back(call);
+            m_drawcalls.unlock();
         }
 
         inline void window_update() {
             m_instance->get_window()->process(m_input);
         }
 
-        explicit _graphics_engine(graphics_backend* _instance, size_t _threads) : m_handler(this, _threads == 1 ? MARS_GRAPHICS_WORKER_TYPE_SINGLE_THREAD : MARS_GRAPHICS_WORKER_TYPE_MULTI_THREAD, _threads) {
+        explicit graphics_engine(graphics_backend* _instance, size_t _threads) : m_handler(this, _threads == 1 ? MARS_GRAPHICS_WORKER_TYPE_SINGLE_THREAD : MARS_GRAPHICS_WORKER_TYPE_MULTI_THREAD, _threads) {
             m_instance = _instance;
         }
 
@@ -86,7 +86,6 @@ namespace mars_graphics {
         inline void draw() {
 
             m_handler.execute();
-
         }
 
         inline void wait_draw() {
@@ -105,10 +104,6 @@ namespace mars_graphics {
             m_instance->wait_idle();
         }
     };
-
-    inline graphics_engine create_graphics_engine(graphics_backend* _instance, size_t _threads) {
-        return std::make_shared<_graphics_engine>(_instance, _threads);
-    }
 }
 
 #endif

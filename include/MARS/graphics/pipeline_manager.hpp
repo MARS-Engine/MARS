@@ -27,8 +27,8 @@ namespace mars_graphics {
             return m_input_map[type_index];
         }
 
-        static mars_ref<pipeline> load_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_graphics::graphics_engine& _graphics, const mars_ref<render_pass>& _render_pass = mars_ref<render_pass>());
-        static mars_ref<pipeline> prepare_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_graphics::graphics_engine& _graphics, const mars_ref<render_pass>& _render_pass = mars_ref<render_pass>());
+        static mars_ref<pipeline> load_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_ref<mars_graphics::graphics_engine>& _graphics, const mars_ref<render_pass>& _render_pass = mars_ref<render_pass>());
+        static mars_ref<pipeline> prepare_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_ref<mars_graphics::graphics_engine>& _graphics, const mars_ref<render_pass>& _render_pass = mars_ref<render_pass>());
 
         static void destroy();
     };

@@ -29,7 +29,8 @@ void v_shader_data::generate(const mars_ref<pipeline>& _pipeline, const mars_ref
     };
 
 
-    if (vkCreateDescriptorPool(cast_graphics<vulkan_backend>()->device()->raw_device(), &poolInfo, nullptr, &m_descriptor_pool))
+    auto r = vkCreateDescriptorPool(cast_graphics<vulkan_backend>()->device()->raw_device(), &poolInfo, nullptr, &m_descriptor_pool);
+    if (r != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Shader - Failed to create descriptor pool");
 
     std::vector<VkDescriptorSetLayout> layouts(graphics()->max_frames(), m_shader.cast_static<v_shader>()->raw_uniform_layout());

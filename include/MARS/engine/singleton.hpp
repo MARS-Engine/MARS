@@ -1,19 +1,18 @@
 #ifndef MARS_ENGINE_SINGLETON_
 #define MARS_ENGINE_SINGLETON_
 
-#include <memory>
+#include <MARS/memory/mars_ref.hpp>
 
 namespace mars_engine {
-    class _object_engine;
-    typedef std::shared_ptr<_object_engine> object_engine;
+    class object_engine;
 
     class singleton {
     private:
-        object_engine m_engine;
+        mars_ref<object_engine> m_engine;
     public:
-        [[nodiscard]] inline object_engine engine() const { return m_engine; }
+        [[nodiscard]] inline mars_ref<object_engine> engine() const { return m_engine; }
 
-        explicit singleton(object_engine _engine) { m_engine = _engine; }
+        explicit singleton(const mars_ref<object_engine>& _engine) { m_engine = _engine; }
     };
 }
 

@@ -18,7 +18,7 @@ namespace mars_layers {
 
     class update_layer {
     public:
-        virtual void update(mars_engine::tick& _tick) { }
+        virtual void update(const mars_engine::tick& _tick) { }
     };
 
     class post_update_layer {
@@ -36,11 +36,18 @@ namespace mars_layers {
         virtual void post_render() { }
     };
 
-    std::vector<mars_engine::engine_layer_component> load_layer_callback(const mars_engine::mars_object& _target);
-    std::vector<mars_engine::engine_layer_component> update_layer_callback(const mars_engine::mars_object& _target);
-    std::vector<mars_engine::engine_layer_component> post_update_layer_callback(const mars_engine::mars_object& _target);
-    std::vector<mars_engine::engine_layer_component> update_gpu_callback(const mars_engine::mars_object& _target);
-    std::vector<mars_engine::engine_layer_component> post_render_layer_callback(const mars_engine::mars_object& _target);
+    void load_layer_callback(const mars_engine::layer_component_param& _param);
+    void update_layer_callback(const mars_engine::layer_component_param& _param);
+    void post_update_layer_callback(const mars_engine::layer_component_param& _param);
+    void update_gpu_callback(const mars_engine::layer_component_param& _param);
+    void post_render_layer_callback(const mars_engine::layer_component_param& _param);
+
+
+    bool load_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val);
+    bool update_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val);
+    bool post_update_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val);
+    bool update_gpu_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val);
+    bool post_render_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val);
 }
 
 #endif

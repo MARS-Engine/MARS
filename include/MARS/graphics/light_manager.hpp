@@ -43,7 +43,7 @@ namespace mars_graphics {
         mars_ref<pipeline> m_pipeline;
         mars_ref<shader_data> m_data;
         mars_ref<shader_input> m_input;
-        mars_graphics::graphics_engine m_graphics;
+        mars_ref<mars_graphics::graphics_engine> m_graphics;
 
         scene_lights scene;
     public:
@@ -55,7 +55,7 @@ namespace mars_graphics {
         }
 
 
-        void load(const mars_graphics::graphics_engine& _graphics);
+        void load(const mars_ref<mars_graphics::graphics_engine>& _graphics);
         void draw_lights();
         void destroy();
     };

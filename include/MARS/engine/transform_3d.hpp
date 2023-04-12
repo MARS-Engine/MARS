@@ -6,14 +6,14 @@
 #include <MARS/math/quaternion.hpp>
 
 namespace mars_engine {
-    class _mars_object;
+    class mars_object;
 
 
     class transform_3d {
     private:
         bool m_need_update;
 
-        _mars_object* m_object = nullptr;
+        mars_object* m_object = nullptr;
 
         bool m_enable_scale;
         bool m_enable_rotation;
@@ -37,7 +37,7 @@ namespace mars_engine {
         inline void set_scale(const mars_math::vector3<float>& _val) { if (m_scale != _val) m_need_update = true; m_scale = _val; };
         inline void set_rotation(const mars_math::quaternion<float>& _val) { if (m_rotation != _val) m_need_update = true; m_rotation = _val; };
 
-        inline void set_parent(_mars_object* _parent) {
+        inline void set_parent(mars_object* _parent) {
             m_object = _parent;
         }
 

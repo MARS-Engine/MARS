@@ -1,101 +1,95 @@
 #include <MARS/engine/layers/main_layers.hpp>
 #include <MARS/engine/component.hpp>
+#include <MARS/engine/engine_worker.hpp>
 
 using namespace mars_layers;
 
-std::vector<mars_engine::engine_layer_component> mars_layers::load_layer_callback(const mars_engine::mars_object& _target) {
-    std::vector<mars_engine::engine_layer_component> list;
-
-    for (auto& comp : _target->components()) {
-        auto target = dynamic_cast<load_layer*>(comp.get());
-        if (target == nullptr)
-            continue;
-
-        auto new_component = mars_engine::engine_layer_component();
-        new_component.target = target;
-        new_component.parent = &_target;
-
-        new_component.callback = [](const mars_engine::layer_component_param& _param){
-            static_cast<load_layer*>(_param.component->target)->load();
-        };
-        list.push_back(new_component);
-    }
-
-    return list;
+void mars_layers::load_layer_callback(const mars_engine::layer_component_param& _param) {
+    std::atomic<size_t>& index = _param._worker->get_index();
+    for (size_t i = index.fetch_add(1); i < _param.layers->size(); i = index.fetch_add(1))
+        static_cast<load_layer*>(_param.layers->at(i).target)->load();
 }
 
-std::vector<mars_engine::engine_layer_component> mars_layers::update_layer_callback(const mars_engine::mars_object& _target) {
-    std::vector<mars_engine::engine_layer_component> list;
-
-    for (auto& comp : _target->components()) {
-        auto target = dynamic_cast<update_layer*>(comp.get());
-        if (target == nullptr)
-            continue;
-
-        auto new_component = mars_engine::engine_layer_component();
-        new_component.target = target;
-        new_component.parent = &_target;
-
-        new_component.callback = [](const mars_engine::layer_component_param& _param){ static_cast<update_layer*>(_param.component->target)->update(*_param.layer_tick); };
-        list.push_back(new_component);
-    }
-
-    return list;
+void mars_layers::update_layer_callback(const mars_engine::layer_component_param& _param) {
+    std::atomic<size_t>& index = _param._worker->get_index();
+    for (size_t i = index.fetch_add(1); i < _param.layers->size(); i = index.fetch_add(1))
+        static_cast<update_layer*>(_param.layers->at(i).target)->update(*_param.layer_tick);
 }
 
-std::vector<mars_engine::engine_layer_component> mars_layers::post_update_layer_callback(const mars_engine::mars_object& _target) {
-    std::vector<mars_engine::engine_layer_component> list;
-
-    for (auto& comp : _target->components()) {
-        auto target = dynamic_cast<post_update_layer*>(comp.get());
-        if (target == nullptr)
-            continue;
-
-        auto new_component = mars_engine::engine_layer_component();
-        new_component.target = target;
-        new_component.parent = &_target;
-
-        new_component.callback = [](const mars_engine::layer_component_param& _param){ static_cast<post_update_layer*>(_param.component->target)->post_update(); };
-        list.push_back(new_component);
-    }
-
-    return list;
+void mars_layers::post_update_layer_callback(const mars_engine::layer_component_param& _param) {
+    std::atomic<size_t>& index = _param._worker->get_index();
+    for (size_t i = index.fetch_add(1); i < _param.layers->size(); i = index.fetch_add(1))
+        static_cast<post_update_layer*>(_param.layers->at(i).target)->post_update();
 }
 
-std::vector<mars_engine::engine_layer_component> mars_layers::update_gpu_callback(const mars_engine::mars_object& _target) {
-    std::vector<mars_engine::engine_layer_component> list;
-
-    for (auto& comp : _target->components()) {
-        auto target = dynamic_cast<update_gpu*>(comp.get());
-        if (target == nullptr)
-            continue;
-
-        auto new_component = mars_engine::engine_layer_component();
-        new_component.target = target;
-        new_component.parent = &_target;
-
-        new_component.callback = [](const mars_engine::layer_component_param& _param){ static_cast<update_gpu*>(_param.component->target)->send_to_gpu(); };
-        list.push_back(new_component);
-    }
-
-    return list;
+void mars_layers::update_gpu_callback(const mars_engine::layer_component_param& _param) {
+    std::atomic<size_t>& index = _param._worker->get_index();
+    for (size_t i = index.fetch_add(1); i < _param.layers->size(); i = index.fetch_add(1))
+        static_cast<update_gpu*>(_param.layers->at(i).target)->send_to_gpu();
 }
 
-std::vector<mars_engine::engine_layer_component> mars_layers::post_render_layer_callback(const mars_engine::mars_object& _target) {
-    std::vector<mars_engine::engine_layer_component> list;
+void mars_layers::post_render_layer_callback(const mars_engine::layer_component_param& _param) {
+    std::atomic<size_t>& index = _param._worker->get_index();
+    for (size_t i = index.fetch_add(1); i < _param.layers->size(); i = index.fetch_add(1))
+        static_cast<post_render_layer*>(_param.layers->at(i).target)->post_render();
+}
 
-    for (auto& comp : _target->components()) {
-        auto target = dynamic_cast<post_render_layer*>(comp.get());
-        if (target == nullptr)
-            continue;
+bool mars_layers::load_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val) {
+    auto target = dynamic_cast<load_layer*>(_target.ptr());
 
-        auto new_component = mars_engine::engine_layer_component();
-        new_component.target = target;
-        new_component.parent = &_target;
+    if (target == nullptr)
+        return false;
 
-        new_component.callback = [](const mars_engine::layer_component_param& _param){ static_cast<post_render_layer*>(_param.component->target)->post_render(); };
-        list.push_back(new_component);
-    }
+    _val.target = target;
+    _val.parent = _target->object().ptr();
 
-    return list;
+    return true;
+}
+
+bool mars_layers::update_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val) {
+    auto target = dynamic_cast<update_layer*>(_target.ptr());
+
+    if (target == nullptr)
+        return false;
+
+    _val.target = target;
+    _val.parent = _target->object().ptr();
+
+    return true;
+}
+
+bool mars_layers::post_update_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val) {
+    auto target = dynamic_cast<post_update_layer*>(_target.ptr());
+
+    if (target == nullptr)
+        return false;
+
+    _val.target = target;
+    _val.parent = _target->object().ptr();
+
+    return true;
+}
+
+bool mars_layers::update_gpu_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val) {
+    auto target = dynamic_cast<update_gpu*>(_target.ptr());
+
+    if (target == nullptr)
+        return false;
+
+    _val.target = target;
+    _val.parent = _target->object().ptr();
+
+    return true;
+}
+
+bool mars_layers::post_render_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val) {
+    auto target = dynamic_cast<post_render_layer*>(_target.ptr());
+
+    if (target == nullptr)
+        return false;
+
+    _val.target = target;
+    _val.parent = _target->object().ptr();
+
+    return true;
 }

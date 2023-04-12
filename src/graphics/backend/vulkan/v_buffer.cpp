@@ -59,7 +59,8 @@ void v_buffer::create(size_t _size, MARS_MEMORY_TYPE _mem_type, size_t _frames) 
     allocInfo.allocationSize = mem_requirements.size;
     allocInfo.memoryTypeIndex = cast_graphics<vulkan_backend>()->device()->find_memory_type(mem_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-    if (vkAllocateMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), &allocInfo, nullptr, &m_memory) != VK_SUCCESS)
+    auto r = vkAllocateMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), &allocInfo, nullptr, &m_memory);
+    if (r != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Buffer - Failed to allocate buffer memory");
 
     vkBindBufferMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), m_buffer, m_memory, 0);
