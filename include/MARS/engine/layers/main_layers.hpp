@@ -41,13 +41,6 @@ namespace mars_layers {
     void post_update_layer_callback(const mars_engine::layer_component_param& _param);
     void update_gpu_callback(const mars_engine::layer_component_param& _param);
     void post_render_layer_callback(const mars_engine::layer_component_param& _param);
-
-
-    bool load_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val);
-    bool update_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val);
-    bool post_update_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val);
-    bool update_gpu_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val);
-    bool post_render_layer_validator(const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val);
 }
 
 #endif

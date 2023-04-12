@@ -5,6 +5,7 @@
 #include <functional>
 #include <typeindex>
 #include <thread>
+#include "component.hpp"
 #include <pl/safe_map.hpp>
 #include <pl/safe_vector.hpp>
 #include <pl/safe_deque.hpp>
@@ -159,7 +160,20 @@ namespace mars_engine {
             return new_ptr;
         }
 
-        template<typename T> inline void add_layer(const std::function<bool(const mars_ref<component>&, engine_layer_component&)>& _validator, void (*_callback)(const layer_component_param&), bool _single_time = false) {
+        template<typename T> inline void add_layer(void (*_callback)(const layer_component_param&), bool _single_time = false) {
+            auto _validator = [](const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val) {
+                auto target = dynamic_cast<T*>(_target.ptr());
+
+                if (target == nullptr)
+                    return false;
+
+                _val.target = target;
+                _val.parent = _target->object().ptr();
+
+                return true;
+            };
+
+
             auto type_index = std::type_index(typeid(T));
             m_layer_data.insert(std::make_pair(type_index, engine_layers(_validator, _callback, _single_time)));
             m_layer_calls.insert(std::pair(type_index, std::make_shared<std::vector<engine_layer_component>>()));
