@@ -19,7 +19,6 @@ namespace mars_engine {
     private:
         mars_ref<mars_object> m_parent;
 
-        mars_ref<mars_graphics::graphics_engine> m_graphics;
         mars_ref<object_engine> m_engine;
 
         pl::safe_deque<mars_ref<mars_object>> m_children;
@@ -30,9 +29,10 @@ namespace mars_engine {
     public:
         mars_ref<mars_object> parent() const { return m_parent; }
         mars_ref<object_engine> engine() const { return m_engine; }
-        mars_ref<mars_graphics::graphics_engine> graphics() const { return m_graphics; }
         transform_3d& transform() { return m_transform; }
         const pl::safe_vector<std::shared_ptr<component>>& components() const { return m_components; }
+
+        inline void set_engine(const mars_ref<object_engine>& _engine) { m_engine = _engine; }
 
         explicit mars_object(const mars_ref<object_engine>& _engine) {
             m_engine = _engine;
@@ -42,10 +42,6 @@ namespace mars_engine {
         void set_parent(const mars_ref<mars_object>& _parent) {
             m_parent = _parent;
             m_parent->m_children.push_back(mars_ref<mars_object>(get_ptr()));
-        }
-
-        void set_graphics(const mars_ref<mars_graphics::graphics_engine>& _graphics) {
-            m_graphics = _graphics;
         }
 
         [[nodiscard]] inline std::shared_ptr<mars_object> get_ptr() {

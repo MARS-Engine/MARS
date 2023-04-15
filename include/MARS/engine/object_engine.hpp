@@ -11,6 +11,7 @@
 #include <pl/safe_deque.hpp>
 #include <MARS/resources/resource_manager.hpp>
 #include "singleton.hpp"
+#include <MARS/graphics/graphics_engine.hpp>
 
 namespace mars_engine {
     class mars_object;
@@ -94,6 +95,7 @@ namespace mars_engine {
     class object_engine : public std::enable_shared_from_this<object_engine> {
     private:
         mars_ref<mars_resources::resource_manager> m_resources;
+        mars_ref<mars_graphics::graphics_engine> m_graphics;
 
         std::deque<std::shared_ptr<engine_worker>> m_workers;
 
@@ -107,15 +109,18 @@ namespace mars_engine {
         pl::safe_map<std::type_index, std::shared_ptr<singleton>> m_singletons;
         std::barrier<std::function<void()>> m_spawn_wait;
         std::atomic<bool> layers_waiting = false;
-
     public:
         explicit object_engine(size_t _active_workers) : m_spawn_wait(_active_workers, [&]() { spawn_wait_list(); layers_waiting.exchange(false); }) { }
 
         std::shared_ptr<object_engine> get_ptr() { return shared_from_this(); }
 
+        inline void set_graphics(const mars_ref<mars_graphics::graphics_engine>& _graphics) { m_graphics = _graphics; }
+
+        [[nodiscard]] mars_ref<mars_graphics::graphics_engine> graphics() const { return m_graphics; }
+
         inline void set_resources(const mars_ref<mars_resources::resource_manager>& _resource_manager) { m_resources = _resource_manager; }
 
-        mars_ref<mars_resources::resource_manager> resources() { return m_resources; }
+        [[nodiscard]]  mars_ref<mars_resources::resource_manager> resources() { return m_resources; }
 
         std::shared_ptr<std::vector<engine_layer_component>> get_components(std::type_index _layer) {
             if (!m_layer_calls.contains(_layer))

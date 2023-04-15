@@ -16,8 +16,15 @@ namespace mars_graphics {
 
 namespace mars_resources {
 
+    class resource_manager;
+
     class resource_base {
+    private:
+        mars_ref<resource_manager> m_resources;
     public:
+        void set_resources(const mars_ref<resource_manager>& _resources) { m_resources = _resources; }
+        [[nodiscard]] inline mars_ref<resource_manager> resources() const { return m_resources; }
+
         inline virtual bool load_resource(const std::string& _path) { return false; }
         inline virtual void clean() { }
     };
@@ -27,6 +34,7 @@ namespace mars_resources {
         pl::safe_map<std::string, std::shared_ptr<resource_base>> resources;
         pl::safe_map<std::string, mars_ref<resource_base>> ref_resources;
         std::map<mars_graphics::MARS_RESOURCE_TYPE, std::string> resources_locations = {
+                { mars_graphics::MARS_RESOURCE_TYPE_ENGINE, "engine/assets/" },
                 { mars_graphics::MARS_RESOURCE_TYPE_SHADER, "engine/assets/shaders/" },
                 { mars_graphics::MARS_RESOURCE_TYPE_TEXTURE, "engine/assets/textures/" },
                 { mars_graphics::MARS_RESOURCE_TYPE_MATERIAL, "engine/assets/materials/" },
@@ -74,6 +82,7 @@ namespace mars_resources {
             }
 
             temp_resource = _instance->create<T>();
+            temp_resource->set_resources(mars_ref<resource_manager>(shared_from_this()));
             if (!temp_resource->load_resource(_path)) {
                 ref_resources.unlock();
                 mars_debug::debug::alert("MARS RESOURCES - Failed to load resource -" + _path);
@@ -105,6 +114,7 @@ namespace mars_resources {
             }
 
             temp_resource = std::make_shared<T>(_instance);
+            temp_resource->set_resources(mars_ref<resource_manager>(shared_from_this()));
             if (!temp_resource->load_resource(_path)) {
                 mars_debug::debug::alert("MARS RESOURCES - Failed to load resource -" + _path);
                 return false;
@@ -133,6 +143,7 @@ namespace mars_resources {
             }
 
             temp_resource = std::make_shared<T>();
+            temp_resource->set_resources(mars_ref<resource_manager>(shared_from_this()));
             if (!temp_resource->load_resource(_path)) {
                 mars_debug::debug::alert("MARS RESOURCES - Failed to load resource -" + _path);
                 return false;

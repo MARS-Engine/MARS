@@ -20,7 +20,8 @@ namespace mars_engine {
 
         transform_3d& transform();
 
-        inline mars_ref<mars_object> object() { return m_object; }
+        [[nodiscard]] inline mars_ref<mars_object> object() const { return m_object; }
+
         [[nodiscard]] inline mars_input::input* get_input() const { return mars_input::input_manager::get_input(graphics()->backend()->get_window()); }
 
         virtual void on_set_object() { }

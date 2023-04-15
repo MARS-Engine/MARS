@@ -13,7 +13,7 @@ mars_ref<object_engine> component::engine() const {
 }
 
 mars_ref<mars_graphics::graphics_engine> component::graphics() const {
-    return m_object->graphics();
+    return m_object->engine()->graphics();
 }
 
 transform_3d &component::transform() {

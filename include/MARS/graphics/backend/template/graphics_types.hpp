@@ -20,6 +20,7 @@ namespace mars_graphics {
     };
 
     enum MARS_RESOURCE_TYPE {
+        MARS_RESOURCE_TYPE_ENGINE,
         MARS_RESOURCE_TYPE_SHADER,
         MARS_RESOURCE_TYPE_TEXTURE,
         MARS_RESOURCE_TYPE_MATERIAL,

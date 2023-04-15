@@ -6,7 +6,7 @@ using namespace mars_resources;
 bool ram_texture::load_resource(const std::string& _path) {
     m_path = _path;
     int width, height;
-    m_data = stbi_load(_path.c_str(), &width, &height, &m_channels, STBI_rgb_alpha);
+    m_data = stbi_load(resources()->find_path(_path.c_str(), mars_graphics::MARS_RESOURCE_TYPE_ENGINE).c_str(), &width, &height, &m_channels, STBI_rgb_alpha);
     m_channels = 4;
 
     if (m_data == nullptr) {

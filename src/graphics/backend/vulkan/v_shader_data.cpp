@@ -124,4 +124,5 @@ void v_shader_data::destroy() {
 
     for (auto& uni : m_uniforms)
         uni.second->destroy();
+    m_uniforms.clear();
 }

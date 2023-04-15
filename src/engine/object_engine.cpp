@@ -11,6 +11,7 @@ std::shared_ptr<engine_worker> object_engine::create_worker(size_t _cores) {
 
 mars_ref<mars_object> object_engine::create_obj() {
     auto obj  = std::make_shared<mars_object>(mars_ref<object_engine>(shared_from_this()));
+    obj->set_engine(mars_ref<object_engine>(get_ptr()));
     m_objects.push_back(obj);
     return mars_ref<mars_object>(obj);
 }
@@ -52,8 +53,6 @@ void object_engine::process_component(const mars_ref<mars_engine::component>& _c
 }
 
 mars_ref<mars_object> object_engine::spawn(const mars_ref<mars_object>& _obj, const mars_ref<mars_graphics::graphics_engine>& _graphics, const mars_ref<mars_object>& _parent) {
-    _obj->set_graphics(_graphics);
-
     m_objects.lock();
     m_objects.push_back(_obj.get().lock());
     m_objects.unlock();

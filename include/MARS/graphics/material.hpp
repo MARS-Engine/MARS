@@ -30,7 +30,7 @@ namespace mars_graphics {
             m_shader->bind();
         }
 
-        inline mars_ref<shader_data> generate_shader_data() {
+        [[nodiscard]] inline mars_ref<shader_data> generate_shader_data() const {
             auto data = m_graphics->create<shader_data>();
             data->set_textures(m_textures);
             data->generate(m_pipeline, m_shader);

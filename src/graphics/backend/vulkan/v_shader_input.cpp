@@ -61,4 +61,5 @@ void v_shader_input::destroy() {
         buffer->destroy();
         delete buffer;
     }
+    m_buffers.clear();
 }
