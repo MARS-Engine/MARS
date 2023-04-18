@@ -42,6 +42,8 @@ namespace mars_engine {
         engine_worker* _worker;
         tick* layer_tick;
         std::shared_ptr<std::vector<engine_layer_component>> layers;
+        long being;
+        long length;
     };
 
     struct engine_layer_component {
@@ -81,11 +83,11 @@ namespace mars_engine {
 
     struct engine_layers {
         tick m_tick;
-        void (*m_callback)(const layer_component_param&);
+        void (*m_callback)(layer_component_param&&);
         std::function<bool(const mars_ref<component>&, engine_layer_component&)> m_validator;
         bool m_single_time;
 
-        explicit engine_layers(const std::function<bool(const mars_ref<component>&, engine_layer_component&)>& _validor, void (*_callback)(const layer_component_param&), bool _single_time = false) {
+        explicit engine_layers(const std::function<bool(const mars_ref<component>&, engine_layer_component&)>& _validor, void (*_callback)(layer_component_param&&), bool _single_time = false) {
             m_validator = _validor;
             m_callback = _callback;
             m_single_time = _single_time;
@@ -165,7 +167,7 @@ namespace mars_engine {
             return new_ptr;
         }
 
-        template<typename T> inline void add_layer(void (*_callback)(const layer_component_param&), bool _single_time = false) {
+        template<typename T> inline void add_layer(void (*_callback)(layer_component_param&&), bool _single_time = false) {
             auto _validator = [](const mars_ref<mars_engine::component>& _target, mars_engine::engine_layer_component& _val) {
                 auto target = dynamic_cast<T*>(_target.ptr());
 

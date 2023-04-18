@@ -17,8 +17,9 @@ namespace mars_engine {
         std::mutex m_mtx;
         std::condition_variable m_cv;
 
+        size_t m_cores;
         std::atomic<bool> m_running = true;
-        std::atomic<size_t> m_index = 0;
+        std::atomic<long> m_index;
         std::atomic<bool> m_working = false;
 
         std::barrier<std::function<void()>> m_barriers;
@@ -40,11 +41,10 @@ namespace mars_engine {
 
         void work();
     public:
-        std::atomic<size_t>& get_index() { return m_index; }
 
         inline std::shared_ptr<engine_worker> get_ptr() { return shared_from_this(); }
 
-        engine_worker(const mars_ref<object_engine>& _engine, size_t _cores) : m_engine(_engine), m_barriers(_cores, [&]() { on_finish(); }) {
+        engine_worker(const mars_ref<object_engine>& _engine, size_t _cores) : m_cores(_cores), m_engine(_engine), m_barriers(_cores, [&]() { on_finish(); }) {
             m_running = true;
 
             for (size_t i = 0; i < _cores; i++)

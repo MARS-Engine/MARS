@@ -15,13 +15,17 @@ void engine_worker::work() {
 
         auto components = m_engine->get_components(m_layer);
 
-        layer_component_param param {
+        long size = std::ceil((long double)components->size() / (long double)m_cores);
+
+        long begin = m_index.fetch_add((long)size);
+
+        m_engine->get_layer(m_layer)->m_callback({
             ._worker = this,
             .layer_tick = &m_engine->get_layer(m_layer)->m_tick,
             .layers = components,
-        };
-
-        m_engine->get_layer(m_layer)->m_callback(param);
+            .being = begin,
+            .length = (long)std::min((size_t)size, components->size() - begin)
+        });
 
         m_barriers.arrive_and_wait();
     }

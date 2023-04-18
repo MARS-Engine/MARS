@@ -3,7 +3,6 @@
 
 #include <memory>
 
-
 template<typename T> class mars_ref {
 private:
     std::weak_ptr<T> m_data;
@@ -32,7 +31,7 @@ public:
     }
 
     [[nodiscard]] bool is_alive() const noexcept {
-        return m_data.lock().get() != nullptr;
+        return !m_data.expired();
     }
 
     T* operator->() const {

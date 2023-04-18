@@ -36,11 +36,11 @@ namespace mars_layers {
         virtual void post_render() { }
     };
 
-    void load_layer_callback(const mars_engine::layer_component_param& _param);
-    void update_layer_callback(const mars_engine::layer_component_param& _param);
-    void post_update_layer_callback(const mars_engine::layer_component_param& _param);
-    void update_gpu_callback(const mars_engine::layer_component_param& _param);
-    void post_render_layer_callback(const mars_engine::layer_component_param& _param);
+    void load_layer_callback(mars_engine::layer_component_param&& _param);
+    void update_layer_callback(mars_engine::layer_component_param&& _param);
+    void post_update_layer_callback(mars_engine::layer_component_param&& _param);
+    void update_gpu_callback(mars_engine::layer_component_param&& _param);
+    void post_render_layer_callback(mars_engine::layer_component_param&& _param);
 }
 
 #endif
