@@ -22,7 +22,7 @@ void v_texture::copy_buffer_to_image(v_buffer& buffer, VkImage _image) {
                 .layerCount = 1,
         },
         .imageOffset = {0, 0, 0},
-        .imageExtent = { static_cast<uint32_t>(m_size.x()), static_cast<uint32_t>(m_size.y()), 1 },
+        .imageExtent = { static_cast<uint32_t>(m_size.x), static_cast<uint32_t>(m_size.y), 1 },
     };
 
     vkCmdCopyBufferToImage(commandBuffer, buffer.vulkan_buffer(), m_image->raw_image(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
@@ -112,7 +112,7 @@ bool v_texture::load_resource(const std::string &_texture_path) {
     m_image->set_usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 
     v_buffer m_buffer(graphics());
-    m_buffer.create(m_size.x() * m_size.y() * m_channels, MARS_MEMORY_TYPE_TRANSFER, 1);
+    m_buffer.create(m_size.x * m_size.y * m_channels, MARS_MEMORY_TYPE_TRANSFER, 1);
     m_buffer.update(m_data);
     m_buffer.copy_data(0);
 

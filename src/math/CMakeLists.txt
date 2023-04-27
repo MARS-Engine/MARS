@@ -1,1 +1,0 @@
-target_sources(MARS PUBLIC vector_base.cpp)

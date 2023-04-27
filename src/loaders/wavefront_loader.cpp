@@ -34,12 +34,12 @@ bool mars_loader::wavefront_load(const std::string& _path, wavefront_mesh* _mesh
                 {
                         attrib.vertices[3 * index.vertex_index + 0],
                         attrib.vertices[3 * index.vertex_index + 1],
-                        attrib.vertices[3 * index.vertex_index + 2]
+                        attrib.vertices[3 * index.vertex_index + 2],
                 },
                 {
                         attrib.normals[3 * index.normal_index + 0],
                         attrib.normals[3 * index.normal_index + 1],
-                        attrib.normals[3 * index.normal_index + 2]
+                        attrib.normals[3 * index.normal_index + 2],
                 },
                 {
                             attrib.texcoords[2 * index.texcoord_index + 0],
@@ -47,20 +47,20 @@ bool mars_loader::wavefront_load(const std::string& _path, wavefront_mesh* _mesh
                 }
             };
 
-            if (vertex.vertex.x() < _mesh->volume.min_extent.x())
-                _mesh->volume.min_extent.x(vertex.vertex.x());
-            if (vertex.vertex.x() > _mesh->volume.max_extent.x())
-                _mesh->volume.max_extent.x(vertex.vertex.x());
+            if (vertex.vertex.x < _mesh->volume.min_extent.x)
+                _mesh->volume.min_extent.x = vertex.vertex.x;
+            if (vertex.vertex.x > _mesh->volume.max_extent.x)
+                _mesh->volume.max_extent.x = vertex.vertex.x;
 
-            if (vertex.vertex.y() < _mesh->volume.min_extent.y())
-                _mesh->volume.min_extent.y(vertex.vertex.y());
-            if (vertex.vertex.y() > _mesh->volume.max_extent.y())
-                _mesh->volume.max_extent.y(vertex.vertex.y());
+            if (vertex.vertex.y < _mesh->volume.min_extent.y)
+                _mesh->volume.min_extent.y = vertex.vertex.y;
+            if (vertex.vertex.y > _mesh->volume.max_extent.y)
+                _mesh->volume.max_extent.y = vertex.vertex.y;
 
-            if (vertex.vertex.z() < _mesh->volume.min_extent.z())
-                _mesh->volume.min_extent.z(vertex.vertex.z());
-            if (vertex.vertex.z() > _mesh->volume.max_extent.z())
-                _mesh->volume.max_extent.z(vertex.vertex.z());
+            if (vertex.vertex.z < _mesh->volume.min_extent.z)
+                _mesh->volume.min_extent.z = vertex.vertex.z;
+            if (vertex.vertex.z > _mesh->volume.max_extent.z)
+                _mesh->volume.max_extent.z = vertex.vertex.z;
 
             //unorderd_map might be faster but im to lazy (and dumb) to add hash functions, parallel could also be used to make it even faster
             auto loc = std::find(_mesh->vertices.begin(), _mesh->vertices.end(), vertex);

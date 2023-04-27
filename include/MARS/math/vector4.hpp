@@ -1,36 +1,93 @@
 #ifndef MARS_VECTOR4_
 #define MARS_VECTOR4_
 
-#include "vector_base.hpp"
+#include "math_concept.hpp"
 #include "vector3.hpp"
 #include "vector2.hpp"
+#include <MARS/debug/debug.hpp>
 
 namespace mars_math {
 
-    template<typename T = float> requires arithmetic<T> class vector4 : public vector_base<T, 4> {
+    template<typename T = float> requires arithmetic<T> class vector4 {
     public:
-        [[nodiscard]] inline T x() const { return this->get(0); }
-        [[nodiscard]] inline T y() const { return this->get(1); }
-        [[nodiscard]] inline T z() const { return this->get(2); }
-        [[nodiscard]] inline T w() const { return this->get(3); }
+        T x = 0;
+        T y = 0;
+        T z = 0;
+        T w = 0;
 
-        inline void x(T value) { this->set(0, value); }
-        inline void y(T value) { this->set(1, value); }
-        inline void z(T value) { this->set(2, value); }
-        inline void w(T value) { this->set(3, value); }
+        [[nodiscard]] inline vector2<T> xy() const { return {x, y }; };
+        [[nodiscard]] inline vector2<T> zw() const { return {z, w }; };
+        [[nodiscard]] inline vector3<T> xyz() const { return {x, y, z }; };
 
-        [[nodiscard]] inline vector2<T> xy() const { return { x(), y() }; };
-        [[nodiscard]] inline vector2<T> zw() const { return { z(), w() }; };
-        [[nodiscard]] inline vector3<T> xyz() const { return { x(), y(), z() }; };
-        inline void xyz(vector3<T> _val) { x(_val.x()); y(_val.y()); z(_val.z()); };
+        inline void xyz(vector3<T> _val) { x = _val.x; y = _val.y; z = _val.z; };
 
-        vector4(const vector_base<T, 4>& _val) : vector_base<T, 4>(_val) { }
-        vector4() { this->set(0, 0); this->set(1, 0); this->set(2, 0); this->set(3, 0); }
-        vector4(T _xyzw) { this->set(0, _xyzw); this->set(1, _xyzw); this->set(2, _xyzw); this->set(3, _xyzw); }
-        vector4(T _x, T _y) { this->set(0, _x); this->set(1, _y); this->set(2, 0); this->set(3, 0); }
-        vector4(T _x, T _y, T _z) { this->set(0, _x); this->set(1, _y); this->set(2, _z); this->set(3, 0); }
-        vector4(T _x, T _y, T _z, T _w) { this->set(0, _x); this->set(1, _y); this->set(2, _z); this->set(3, _w); }
-        vector4(vector3<T> _xyz, T _w) { this->set(0, _xyz.x()); this->set(1, _xyz.y()); this->set(2, _xyz.z()); this->set(3, _w); }
+        vector4() = default;
+
+        explicit vector4(T _xyzw) { x = _xyzw; y = _xyzw; z = _xyzw; w = _xyzw; }
+        vector4(T _x, T _y) { x = _x; y = _y; z = 0; w = 0; }
+        vector4(T _x, T _y, T _z) { x = _x; y = _y; z = _z; w = 0; }
+        vector4(T _x, T _y, T _z, T _w) { x = _x; y = _y; z = _z; w = _w; }
+        vector4(vector3<T> _xyz, T _w) { x = _xyz.x; y = _xyz.y; z = _xyz.z; w = _w; }
+
+        vector4<T> operator+(const vector4<T>& _right) const {
+            return { x + _right.x, y  + _right.y, z + _right.z, w + _right.w };
+        }
+
+        vector4<T> operator*(const vector4<T>& _right) const {
+            return { x * _right.x, y  * _right.y, z * _right.z, w * _right.w };
+        }
+
+        vector4<T> operator/(const vector4<T>& _right) const {
+            return { x / _right.x, y  / _right.y, z / _right.z, w / _right.w };
+        }
+
+        template<typename C> requires multipliable<T, C> vector4<T> operator*(const C& _right) const {
+            return { x * _right, y * _right, z * _right, w * _right };
+        }
+
+        template<typename C> requires addable<T, C> vector4<T> operator+(const C& _right) const {
+            return { x + _right, y  + _right, z + _right, w + _right };
+        }
+
+        T& operator[](size_t _index) noexcept {
+            switch (_index) {
+                case 0:
+                    return x;
+                case 1:
+                    return y;
+                case 2:
+                    return z;
+                case 3:
+                    return w;
+                default:
+                    mars_debug::debug::alert("MARS - MATH - Out of bound index");
+                    return x;
+            }
+        }
+
+        T operator[](size_t _index) const noexcept {
+            switch (_index) {
+                case 0:
+                    return x;
+                case 1:
+                    return y;
+                case 2:
+                    return z;
+                case 3:
+                    return w;
+                default:
+                    mars_debug::debug::alert("MARS - MATH - Out of bound index");
+                    return x;
+            }
+        }
+
+        bool operator==(const vector4<T>& _right) const noexcept {
+            return x == _right.x && y == _right.y && z == _right.z && w == _right.w;
+        }
+
+        bool operator!=(const vector4<T>& _right) const noexcept {
+            return !operator==(_right);
+        }
     };
 }
 

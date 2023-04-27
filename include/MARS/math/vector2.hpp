@@ -1,22 +1,37 @@
 #ifndef MARS_VECTOR2_
 #define MARS_VECTOR2_
 
-#include "vector_base.hpp"
+#include "math_concept.hpp"
 
 namespace mars_math {
 
-    template<typename T> requires arithmetic<T> class vector2 : public vector_base<T, 2> {
+    template<typename T> requires arithmetic<T> class vector2 {
     public:
-        inline T x() const { return this->get(0); }
-        inline T y() const { return this->get(1); }
+        T x = 0;
+        T y = 0;
 
-        inline void x(T value) { this->set(0, value); }
-        inline void y(T value) { this->set(1, value); }
+        vector2() = default;
+        vector2(T _x, T _y) { x = _x; y = _y; }
 
-        vector2(const vector_base<T, 2>& _val) : vector_base<T, 2>(_val) { }
+        vector2& operator+=(const vector2<T>& _right) noexcept {
+            x += _right.x;
+            y += _right.y;
+            return *this;
+        }
 
-        vector2() : vector_base<T, 2>() { this->set(0, 0); this->set(1, 0); }
-        vector2(T _x, T _y)  : vector_base<T, 2>() { this->set(0, _x); this->set(1, _y); }
+        template<typename C> requires addable<T, C> vector2& operator+=(const C& _right) noexcept {
+            x += _right;
+            y += _right;
+            return *this;
+        }
+
+        bool operator==(const vector2<T>& _right) const noexcept {
+            return x == _right.x && y == _right.y;
+        }
+
+        bool operator!=(const vector2<T>& _right) const noexcept {
+            return !operator==(_right);
+        }
     };
 }
 

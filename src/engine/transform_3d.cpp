@@ -28,17 +28,18 @@ mars_math::quaternion<float> transform_3d::get_world_rotation() const {
 }
 
 void transform_3d::update() {
-    m_transform_mat = mars_math::matrix4<float>(1);
-    m_transform_mat.translate(position());
+    auto result = mars_math::matrix4<float>(1);
+    result.translate(position());
 
     if (m_enable_rotation)
-        m_transform_mat *= mars_math::matrix4<float>::from_quaternion(rotation());
+        result *= mars_math::matrix4<float>::from_quaternion(rotation());
 
     if (m_enable_scale)
-        m_transform_mat.scale(scale());
+        result.scale(scale());
 
     if (m_object->parent().is_alive())
-        m_transform_mat *= m_object->parent()->transform().matrix();
+        result *= m_object->parent()->transform().matrix();
 
+    m_transform_mat = result;
     m_need_update = false;
 }

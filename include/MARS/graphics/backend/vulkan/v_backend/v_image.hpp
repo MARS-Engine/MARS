@@ -27,7 +27,7 @@ namespace mars_graphics  {
         void set_format(VkFormat _format) { m_format = _format; }
 
         void set_size(const mars_math::vector2<uint32_t>& _size) { m_size = _size; }
-        void set_size(mars_math::vector2<size_t> _size) { m_size = { static_cast<uint32_t>(_size.x()), static_cast<uint32_t>(_size.y()) }; }
+        void set_size(mars_math::vector2<size_t> _size) { m_size = { static_cast<uint32_t>(_size.x), static_cast<uint32_t>(_size.y) }; }
 
         void create_image(VkImageAspectFlags _aspect_flag);
         void create_image_view();

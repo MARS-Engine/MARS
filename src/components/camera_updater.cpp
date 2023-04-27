@@ -10,10 +10,10 @@ void camera_updater::post_update() {
 
     switch (m_camera_mode) {
         case MARS_CAMERA_MODE_PERSPECTIVE:
-            graphics()->get_camera().set_projection(matrix4<float>::perspective_fov_lh(m_fov, size.x(), size.y(), 0.1f , 1000));
+            graphics()->get_camera().set_projection(matrix4<float>::perspective_fov_lh(m_fov, size.x, size.y, 0.1f , 1000));
             break;
         case MARS_CAMERA_MODE_ORTHOGRAPHIC:
-            graphics()->get_camera().set_projection(matrix4<float>::ortho_lh(0.f, size.x(), size.y(), 0.f, 0.1f , 1000.f));
+            graphics()->get_camera().set_projection(matrix4<float>::ortho_lh(0.f, size.x, size.y, 0.f, 0.1f , 1000.f));
             break;
     }
 

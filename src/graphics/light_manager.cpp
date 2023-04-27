@@ -65,7 +65,7 @@ void light_manager::draw_lights() {
     update_buffer.clear();
     update_buffer.unlock();
 
-    mars_math::vector4<float> pos = {m_graphics->get_camera().position().x(), m_graphics->get_camera().position().y(), m_graphics->get_camera().position().z(), 0 };
+    mars_math::vector4<float> pos = {m_graphics->get_camera().position().x, m_graphics->get_camera().position().y, m_graphics->get_camera().position().z, 0 };
 
     auto camera_uni =  m_data->get_uniform("camera");
 

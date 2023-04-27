@@ -32,8 +32,8 @@ void v_framebuffer::create(swapchain* _swapchain) {
     VkFramebufferCreateInfo framebufferInfo {
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
             .renderPass = m_render_pass.cast_static<v_render_pass>()->raw_render_pass(),
-            .width = static_cast<uint32_t>(m_size.x()),
-            .height = static_cast<uint32_t>(m_size.y()),
+            .width = static_cast<uint32_t>(m_size.x),
+            .height = static_cast<uint32_t>(m_size.y),
             .layers = 1
     };
 
@@ -83,8 +83,8 @@ void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<m
             .renderPass = m_render_pass.cast_static<v_render_pass>()->raw_render_pass(),
             .attachmentCount = static_cast<uint32_t>(attachments.size()),
             .pAttachments = attachments.data(),
-            .width = static_cast<uint32_t>(m_size.x()),
-            .height = static_cast<uint32_t>(m_size.y()),
+            .width = static_cast<uint32_t>(m_size.x),
+            .height = static_cast<uint32_t>(m_size.y),
             .layers = 1
     };
 

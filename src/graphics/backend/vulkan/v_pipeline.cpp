@@ -14,12 +14,12 @@ void v_pipeline::bind() {
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
     VkViewport viewport{};
-    viewport.x = (float)m_viewport.position.x();
-    viewport.y = m_flip_y ? (float)(m_viewport.position.y() + m_viewport.size.y()) : (float)m_viewport.position.y();
-    viewport.width = (float) m_viewport.size.x();
-    viewport.height = m_flip_y ? -(float) m_viewport.size.y() : (float)m_viewport.size.y();
-    viewport.minDepth = m_viewport.depth.x();
-    viewport.maxDepth = m_viewport.depth.y();
+    viewport.x = (float)m_viewport.position.x;
+    viewport.y = m_flip_y ? (float)(m_viewport.position.y + m_viewport.size.y) : (float)m_viewport.position.y;
+    viewport.width = (float) m_viewport.size.x;
+    viewport.height = m_flip_y ? -(float) m_viewport.size.y : (float)m_viewport.size.y;
+    viewport.minDepth = m_viewport.depth.x;
+    viewport.maxDepth = m_viewport.depth.y;
     vkCmdSetViewport(command_buffer, 0, 1, &viewport);
 
     vkCmdSetScissor(command_buffer, 0, 1, &m_scissor);
@@ -54,9 +54,9 @@ void v_pipeline::create() {
 
     VkViewport viewport = {
             .x = 0.0f,
-            .y = (float) graphics()->get_window()->size().y(),
-            .width = (float) graphics()->get_window()->size().x(),
-            .height = -(float) graphics()->get_window()->size().y(),
+            .y = (float) graphics()->get_window()->size().y,
+            .width = (float) graphics()->get_window()->size().x,
+            .height = -(float) graphics()->get_window()->size().y,
             .minDepth = 0.0f,
             .maxDepth = 1.0f
     };

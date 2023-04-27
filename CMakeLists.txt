@@ -25,6 +25,7 @@ target_link_libraries(MARS ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(MARS ${Vulkan_LIBRARIES})
 target_link_libraries(MARS ${OPENGL_LIBRARIES})
 target_link_libraries(MARS SDL2main SDL2)
+target_link_libraries(MARS atomic)
 
 add_subdirectory(src)
 

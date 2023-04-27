@@ -11,8 +11,8 @@ void v_image::create_image(VkImageAspectFlags _aspect_flag) {
             .imageType = VK_IMAGE_TYPE_2D,
             .format = m_format,
             .extent = {
-                    .width = m_size.x(),
-                    .height = m_size.y(),
+                    .width = m_size.x,
+                    .height = m_size.y,
                     .depth = 1,
             },
             .mipLevels = 1,
