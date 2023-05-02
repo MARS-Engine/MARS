@@ -62,4 +62,5 @@ mars_ref<mars_object> object_engine::spawn(const mars_ref<mars_object>& _obj, co
 void object_engine::clean() {
     for (auto& object : *m_objects.lock().get())
         object->destroy();
+    m_singletons.clear();
 }

@@ -26,7 +26,7 @@ namespace mars_graphics {
         inline VkSampler raw_sampler() { return m_sampler; }
 
         void load_from_file(const std::string &_path) override;
-        void copy_buffer_to_image(mars_graphics::buffer* _buffer, const mars_math::vector4<uint32_t> &_rect) override;
+        void copy_buffer_to_image(const std::shared_ptr<buffer>& _buffer, const mars_math::vector4<uint32_t> &_rect) override;
 
         void initialize() override;
         void complete() override;

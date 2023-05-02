@@ -7,6 +7,7 @@
 #include <pl/safe_deque.hpp>
 
 #include "builders/texture_builder.hpp"
+#include "builders/buffer_builder.hpp"
 
 namespace mars_resources {
     class resource_manager;
@@ -40,16 +41,13 @@ namespace mars_graphics {
         swapchain* m_swapchain = nullptr;
         renderer* m_renderer = nullptr;
 
-        pl::safe_deque<std::shared_ptr<buffer>> m_buffer_storage;
         pl::safe_deque<std::shared_ptr<shader>> m_shader_storage;
         pl::safe_deque<std::shared_ptr<shader_input>> m_shader_input_storage;
-        pl::safe_deque<std::shared_ptr<texture>> m_texture_storage;
         pl::safe_deque<std::shared_ptr<pipeline>> m_pipeline_storage;
         pl::safe_deque<std::shared_ptr<render_pass>> m_render_pass_storage;
         pl::safe_deque<std::shared_ptr<shader_data>> m_shader_data_storage;
         pl::safe_deque<std::shared_ptr<framebuffer>> m_framebuffer_storage;
 
-        virtual mars_ref<buffer> generate_buffer() { return {}; }
         virtual mars_ref<shader> generate_shader() { return {}; }
         virtual mars_ref<shader_input> generate_shader_input() { return {}; }
         virtual mars_ref<pipeline> generate_pipeline() { return {}; }
@@ -57,7 +55,8 @@ namespace mars_graphics {
         virtual mars_ref<shader_data> generate_shader_data() { return {}; }
         virtual mars_ref<framebuffer> generate_framebuffer() { return {}; }
 
-        virtual texture_builder texture_build() { return texture_builder(nullptr); }
+        virtual texture_builder texture_build() { return texture_builder{ nullptr }; }
+        virtual buffer_builder buffer_build() { return buffer_builder{ nullptr }; }
 
         uint32_t m_index = 0;
         uint32_t m_current_frame = 0;
@@ -99,7 +98,6 @@ namespace mars_graphics {
     };
 
     /* template specialization */
-    template<> inline mars_ref<buffer> graphics_backend::create<buffer>() { return generate_buffer(); }
     template<> inline mars_ref<shader> graphics_backend::create<shader>() { return generate_shader(); }
     template<> inline mars_ref<shader_input> graphics_backend::create<shader_input>() { return generate_shader_input(); }
     template<> inline mars_ref<pipeline> graphics_backend::create<pipeline>() { return generate_pipeline(); }
@@ -108,6 +106,7 @@ namespace mars_graphics {
     template<> inline mars_ref<framebuffer> graphics_backend::create<framebuffer>() { return generate_framebuffer(); }
 
     template<> inline texture_builder graphics_backend::builder<texture_builder>() { return texture_build(); }
+    template<> inline buffer_builder graphics_backend::builder<buffer_builder>() { return buffer_build(); }
 }
 
 #endif

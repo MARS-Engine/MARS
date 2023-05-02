@@ -50,15 +50,12 @@ namespace mars_graphics {
             return mars_ref<shader_data>(m_shader_data_storage.lock()->emplace_back(std::make_shared<v_shader_data>(shared_from_this())));
         }
 
-        mars_ref<buffer> generate_buffer() override {
-            return mars_ref<buffer>(m_buffer_storage.lock()->emplace_back(std::make_shared<v_buffer>(shared_from_this())));
-        }
-
         mars_ref<framebuffer> generate_framebuffer() override {
             return mars_ref<framebuffer>(m_framebuffer_storage.lock()->emplace_back(std::make_shared<v_framebuffer>(shared_from_this())));
         }
 
         texture_builder texture_build() override { return texture_builder{ std::make_shared<v_texture>(shared_from_this()) }; }
+        buffer_builder buffer_build() override { return buffer_builder{ std::make_shared<v_buffer>(shared_from_this()) }; }
     public:
         [[nodiscard]] inline v_instance* instance() const { return m_vulkan_instance; }
         [[nodiscard]] inline v_window* get_vulkan_window() const { return dynamic_cast<v_window*>(get_window()); }

@@ -46,7 +46,8 @@ void light_manager::load(const mars_ref<mars_graphics::graphics_engine>& _graphi
     m_input->bind();
 
     auto vertex = m_input->add_buffer(sizeof(quadVertices), MARS_MEMORY_TYPE_VERTEX);
-    vertex->copy_data(&quadVertices);
+    vertex->update(&quadVertices);
+    vertex->copy_data(0);
 
     m_input->load_input(vertex2::get_description());
 

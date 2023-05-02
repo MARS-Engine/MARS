@@ -9,7 +9,7 @@ namespace mars_graphics {
 
     class v_uniform : public uniform {
     public:
-        inline VkBuffer& get_buffer(size_t _index) { return m_buffer.cast_static<v_buffer>()->vulkan_buffer(); }
+        inline VkBuffer& get_buffer(size_t _index) { return m_buffer->cast<v_buffer>()->vulkan_buffer(); }
 
         using uniform::uniform;
 

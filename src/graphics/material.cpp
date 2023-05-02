@@ -41,5 +41,5 @@ bool material::load_resource(const std::string &_path) {
 }
 
 void material::clean() {
-
+    m_textures.clear();
 }

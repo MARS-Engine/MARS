@@ -21,7 +21,7 @@ namespace mars_graphics {
 
         inline void set_data(const texture_data& _data) { m_data = _data; }
 
-        virtual void copy_buffer_to_image(buffer* _buffer, const mars_math::vector4<uint32_t>& _rect) { }
+        virtual void copy_buffer_to_image(const std::shared_ptr<buffer>& _buffer, const mars_math::vector4<uint32_t>& _rect) { }
         virtual void load_from_file(const std::string& _path) { }
 
         virtual void initialize() { }

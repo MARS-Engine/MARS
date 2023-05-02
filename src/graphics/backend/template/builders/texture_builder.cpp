@@ -10,7 +10,7 @@ texture_builder& texture_builder::initialize() {
     return *this;
 }
 
-texture_builder& texture_builder::copy_buffer_to_image(buffer* _buffer, const mars_math::vector4<uint32_t>& _rect) {
+texture_builder& texture_builder::copy_buffer_to_image(const std::shared_ptr<buffer>& _buffer, const mars_math::vector4<uint32_t>& _rect) {
     m_ref->copy_buffer_to_image(_buffer, _rect);
     return *this;
 }

@@ -15,25 +15,23 @@ void v_buffer::copy_buffer(v_buffer *_src) {
     VkCommandBuffer commandBuffer = cast_graphics<vulkan_backend>()->get_single_time_command();
 
     VkBufferCopy copyRegion{};
-    copyRegion.size = _src->m_size;
+    copyRegion.size = _src->m_data.size;
     vkCmdCopyBuffer(commandBuffer, _src->m_buffer, m_buffer, 1, &copyRegion);
 
     cast_graphics<vulkan_backend>()->end_single_time_command(commandBuffer);
 }
 
 void v_buffer::copy_data(size_t _index) {
-    memcpy(reinterpret_cast<char*>(gpu_data) + _index * m_size, m_current_data, m_size);
+    memcpy(reinterpret_cast<char*>(gpu_data) + _index * m_data.size, m_current_data, m_data.size);
 }
 
-void v_buffer::create(size_t _size, MARS_MEMORY_TYPE _mem_type, size_t _frames)  {
-    buffer::create(_size, _mem_type, _frames);
-
+void v_buffer::create()  {
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = _size * _frames;
+    bufferInfo.size = m_data.size * m_data.frames;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    switch (_mem_type) {
+    switch (m_data.mem_type) {
         case MARS_MEMORY_TYPE_VERTEX:
             bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
             break;
@@ -64,10 +62,10 @@ void v_buffer::create(size_t _size, MARS_MEMORY_TYPE _mem_type, size_t _frames) 
         mars_debug::debug::error("MARS - Vulkan - Buffer - Failed to allocate buffer memory");
 
     vkBindBufferMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), m_buffer, m_memory, 0);
-    vkMapMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), m_memory, 0, _size * _frames, 0, &gpu_data);
+    vkMapMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), m_memory, 0, m_data.size * m_data.frames, 0, &gpu_data);
 }
 
-void v_buffer::destroy() {
+v_buffer::~v_buffer() {
     if (gpu_data != nullptr)
         vkUnmapMemory(cast_graphics<vulkan_backend>()->device()->raw_device(), m_memory);
 

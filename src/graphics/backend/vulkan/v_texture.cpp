@@ -84,9 +84,9 @@ void v_texture::create_sampler() {
     }
 }
 
-void v_texture::copy_buffer_to_image(mars_graphics::buffer* _buffer, const mars_math::vector4<uint32_t> &_rect) {
+void v_texture::copy_buffer_to_image(const std::shared_ptr<buffer>& _buffer, const mars_math::vector4<uint32_t> &_rect) {
     transition_image_layout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    m_image->copy_buffer_to_image(dynamic_cast<v_buffer*>(_buffer), _rect);
+    m_image->copy_buffer_to_image(_buffer->cast<v_buffer>(), _rect);
     transition_image_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, MARS2VK(m_data.layout));
 }
 
@@ -104,20 +104,17 @@ void v_texture::load_from_file(const std::string &_path) {
     m_image->set_size(m_data.size);
     m_image->set_usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 
-    v_buffer m_buffer(graphics());
-    m_buffer.create(m_data.size.x * m_data.size.y * ram->channels(), MARS_MEMORY_TYPE_TRANSFER, 1);
-    m_buffer.update(ram->data());
-    m_buffer.copy_data(0);
+    auto buffer = graphics()->builder<buffer_builder>().set_size(m_data.size.x * m_data.size.y * ram->channels()).set_type(MARS_MEMORY_TYPE_TRANSFER).build();
+    buffer->update(ram->data());
+    buffer->copy_data(0);
 
     m_image->create_image(VK_IMAGE_ASPECT_COLOR_BIT);
 
 
-    copy_buffer_to_image(&m_buffer, { 0, 0, (uint32_t)m_data.size.x, (uint32_t)m_data.size.y});
+    copy_buffer_to_image(buffer, { 0, 0, (uint32_t)m_data.size.x, (uint32_t)m_data.size.y});
 
     m_image->create_image_view();
     create_sampler();
-
-    m_buffer.destroy();
 }
 
 void v_texture::initialize() {

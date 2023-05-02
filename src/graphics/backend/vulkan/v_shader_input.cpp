@@ -5,7 +5,7 @@ using namespace mars_graphics;
 
 void v_shader_input::bind() {
     for (auto& buffer : m_buffers) {
-        auto og_buffer =  (v_buffer*)buffer;
+        auto og_buffer =  buffer->cast<v_buffer>();
 
         VkBuffer vertexBuffers[] = { og_buffer->vulkan_buffer() };
         VkDeviceSize offsets[] = {0};
@@ -49,17 +49,12 @@ void v_shader_input::load_input(const std::shared_ptr<mars_shader_inputs>& _inpu
     }
 }
 
-buffer* v_shader_input::add_buffer(size_t _input_size, MARS_MEMORY_TYPE _input_type) {
-    auto new_buffer = new v_buffer(graphics());
-    new_buffer->create(_input_size, _input_type, 1);
+std::shared_ptr<buffer> v_shader_input::add_buffer(size_t _input_size, MARS_MEMORY_TYPE _input_type) {
+    auto new_buffer = graphics()->builder<buffer_builder>().set_size(_input_size).set_type(_input_type).build();
     m_buffers.push_back(new_buffer);
     return new_buffer;
 }
 
 void v_shader_input::destroy() {
-    for (auto& buffer : m_buffers) {
-        buffer->destroy();
-        delete buffer;
-    }
     m_buffers.clear();
 }

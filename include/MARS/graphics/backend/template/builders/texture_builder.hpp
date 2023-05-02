@@ -46,7 +46,7 @@ namespace mars_graphics {
         }
 
         texture_builder& initialize();
-        texture_builder& copy_buffer_to_image(buffer* _buffer, const mars_math::vector4<uint32_t>& _rect);
+        texture_builder& copy_buffer_to_image(const std::shared_ptr<buffer>& _buffer, const mars_math::vector4<uint32_t>& _rect);
         texture_builder& load_from_file(const std::string& _path);
 
         std::shared_ptr<texture> build();

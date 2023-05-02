@@ -7,10 +7,7 @@
 using namespace mars_graphics;
 
 void v_uniform::destroy() {
-    if (!m_buffer.is_alive())
-        return;
-
-    m_buffer->destroy();
+    m_buffer = nullptr;
 }
 
 void v_shader_data::bind() {
@@ -55,10 +52,7 @@ void v_shader_data::generate(const mars_ref<pipeline>& _pipeline, const mars_ref
             continue;
         }
 
-        mars_ref<buffer> new_buffer = graphics()->create<buffer>();
-        new_buffer->create(uniforms[i]->size * sizeof(float), MARS_MEMORY_TYPE_UNIFORM, graphics()->max_frames());
-
-        auto uni = new v_uniform(uniforms[i], i, _shader, new_buffer);
+        auto uni = new v_uniform(uniforms[i], i, _shader, graphics()->builder<buffer_builder>().set_size(uniforms[i]->size * sizeof(float)).set_type(MARS_MEMORY_TYPE_UNIFORM).set_frames(graphics()->max_frames()).build());
         m_uniforms.insert(std::make_pair(uniforms[i]->name, (uniform*)uni));
     }
 
@@ -125,4 +119,5 @@ void v_shader_data::destroy() {
     for (auto& uni : m_uniforms)
         uni.second->destroy();
     m_uniforms.clear();
+    m_textures.clear();
 }

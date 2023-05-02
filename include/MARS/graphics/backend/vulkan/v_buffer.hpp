@@ -16,6 +16,8 @@ namespace mars_graphics {
     public:
         using buffer::buffer;
 
+        ~v_buffer();
+
         inline VkBuffer& vulkan_buffer() { return m_buffer; }
         inline VkDeviceMemory vulkan_memory() { return m_memory; }
 
@@ -26,8 +28,7 @@ namespace mars_graphics {
 
         void copy_buffer(v_buffer* _src);
 
-        void create(size_t _size, MARS_MEMORY_TYPE _mem_type, size_t _frames) override;
-        void destroy() override;
+        void create() override;
     };
 }
 

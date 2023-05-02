@@ -155,6 +155,13 @@ void vulkan_backend::destroy() {
     instance_renderer()->destroy();
     delete m_renderer;
 
+    m_shader_storage.lock()->clear();
+    m_shader_input_storage.lock()->clear();
+    m_pipeline_storage.lock()->clear();
+    m_render_pass_storage.lock()->clear();
+    m_shader_data_storage.lock()->clear();
+    m_framebuffer_storage.lock()->clear();
+
     m_device->destroy();
     delete m_device;
 
@@ -164,15 +171,6 @@ void vulkan_backend::destroy() {
 
     raw_window->destroy();
     delete raw_window;
-
-    m_buffer_storage.lock()->clear();
-    m_shader_storage.lock()->clear();
-    m_shader_input_storage.lock()->clear();
-    m_texture_storage.lock()->clear();
-    m_pipeline_storage.lock()->clear();
-    m_render_pass_storage.lock()->clear();
-    m_shader_data_storage.lock()->clear();
-    m_framebuffer_storage.lock()->clear();
 }
 
 void vulkan_backend::wait_idle() {

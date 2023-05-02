@@ -94,4 +94,6 @@ void renderer::destroy() {
 
         frame.second.buffers.clear();
     }
+
+    m_framebuffers.clear();
 }
