@@ -44,7 +44,30 @@ void v_image::create_image(VkImageAspectFlags _aspect_flag) {
     vkBindImageMemory(device, m_image, m_image_memory, 0);
 }
 
+void v_image::copy_buffer_to_image(v_buffer* buffer, const mars_math::vector4<uint32_t>& _rect) {
+    VkCommandBuffer commandBuffer = graphics()->get_single_time_command();
+
+    VkBufferImageCopy region {
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .mipLevel = 0,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1,
+            },
+            .imageOffset = { static_cast<int32_t>(_rect.x) , static_cast<int32_t>(_rect.y), 0},
+            .imageExtent = { _rect.z, _rect.w, 1 },
+    };
+
+    vkCmdCopyBufferToImage(commandBuffer, buffer->vulkan_buffer(), m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+    graphics()->end_single_time_command(commandBuffer);
+}
+
 void v_image::create_image_view() {
+
     VkImageViewCreateInfo view_info {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = m_image,

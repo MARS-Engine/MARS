@@ -81,8 +81,8 @@ void v_shader_data::generate(const mars_ref<pipeline>& _pipeline, const mars_ref
 
         for (auto& tex : m_textures) {
             VkDescriptorImageInfo info {
-                .sampler = tex.second.cast_static<v_texture>()->raw_sampler(),
-                .imageView = tex.second.cast_static<v_texture>()->raw_image_view(),
+                .sampler = tex.second->cast<v_texture>()->raw_sampler(),
+                .imageView = tex.second->cast<v_texture>()->raw_image_view(),
                 .imageLayout = MARS2VK(tex.second->layout()),
             };
 

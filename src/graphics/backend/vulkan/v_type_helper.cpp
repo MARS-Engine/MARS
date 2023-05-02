@@ -4,6 +4,8 @@ VkFormat mars_graphics::MARS2VK(MARS_FORMAT _format) {
     switch (_format) {
         case MARS_FORMAT_UNDEFINED:
             return VK_FORMAT_UNDEFINED;
+        case MARS_FORMAT_S_R8:
+            return VK_FORMAT_R8_SRGB;
         case MARS_FORMAT_S_RGB8:
             return VK_FORMAT_R8G8B8_SRGB;
         case MARS_FORMAT_S_RGBA8:
@@ -31,6 +33,8 @@ VkImageUsageFlagBits mars_graphics::MARS2VK(MARS_TEXTURE_USAGE _usage) {
             return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         case MARS_TEXTURE_USAGE_DEPTH:
             return VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        case MARS_TEXTURE_USAGE_TRANSFER:
+            return VK_IMAGE_USAGE_TRANSFER_DST_BIT;
         default:
             return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     }

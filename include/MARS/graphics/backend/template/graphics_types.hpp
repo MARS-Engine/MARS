@@ -60,6 +60,7 @@ namespace mars_graphics {
 
     enum MARS_FORMAT {
         MARS_FORMAT_UNDEFINED,
+        MARS_FORMAT_S_R8,
         MARS_FORMAT_S_RGB8,
         MARS_FORMAT_S_RGBA8,
         MARS_FORMAT_SBGRA_8,
@@ -72,7 +73,8 @@ namespace mars_graphics {
 
     enum MARS_TEXTURE_USAGE {
         MARS_TEXTURE_USAGE_COLOR,
-        MARS_TEXTURE_USAGE_DEPTH
+        MARS_TEXTURE_USAGE_DEPTH,
+        MARS_TEXTURE_USAGE_TRANSFER
     };
 
     enum MARS_TEXTURE_LAYOUT {

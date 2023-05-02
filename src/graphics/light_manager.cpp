@@ -25,16 +25,16 @@ void light_manager::load(const mars_ref<mars_graphics::graphics_engine>& _graphi
     if (!m_graphics->resources()->load_graphical_resource(m_graphics->resources()->find_path("light.mshader", MARS_RESOURCE_TYPE_SHADER, m_graphics->render_type()), light_shader, m_graphics))
         mars_debug::debug::error("MARS - Vulkan - Backend - Failed to find light shader");
 
-    m_pipeline = pipeline_manager::prepare_pipeline(pipeline_manager::get_input<vertex2>(), light_shader, m_graphics, m_graphics->backend()->get_renderer()->get_framebuffer("light_render")->get_render_pass());
+    m_pipeline = pipeline_manager::prepare_pipeline(pipeline_manager::get_input<vertex2>(), light_shader, m_graphics, m_graphics->backend().lock()->get_renderer()->get_framebuffer("light_render")->get_render_pass());
     m_pipeline->set_viewport({ 0, 0 }, {1920, 1080 }, {0, 1 });
     m_pipeline->set_flip_y(false);
     m_pipeline->set_topology(MARS_TOPOLOGY_TRIANGLE_STRIP);
     m_pipeline->create();
 
-    std::map<std::string, mars_ref<texture>> input_textures {
-            {"gPosition",   m_graphics->backend()->get_renderer()->get_framebuffer("main_render")->get_texture(0)},
-            {"gNormal",     m_graphics->backend()->get_renderer()->get_framebuffer("main_render")->get_texture(1)},
-            {"gAlbedoSpec", m_graphics->backend()->get_renderer()->get_framebuffer("main_render")->get_texture(2)}
+    std::map<std::string, std::shared_ptr<texture>> input_textures {
+            {"gPosition",   m_graphics->backend().lock()->get_renderer()->get_framebuffer("main_render")->get_texture(0)},
+            {"gNormal",     m_graphics->backend().lock()->get_renderer()->get_framebuffer("main_render")->get_texture(1)},
+            {"gAlbedoSpec", m_graphics->backend().lock()->get_renderer()->get_framebuffer("main_render")->get_texture(2)}
     };
 
     m_data = m_graphics->create<shader_data>();
@@ -54,16 +54,19 @@ void light_manager::load(const mars_ref<mars_graphics::graphics_engine>& _graphi
 }
 
 void light_manager::draw_lights() {
-    if (m_graphics->backend()->get_renderer()->get_render_type() == "forward")
+    if (m_graphics->backend().lock()->get_renderer()->get_render_type() == "forward")
         return;
 
-    m_graphics->backend()->get_renderer()->get_framebuffer("light_render")->get_render_pass()->begin();
+    m_graphics->backend().lock()->get_renderer()->get_framebuffer("light_render")->get_render_pass()->begin();
     m_pipeline->bind();
     light_shader->bind();
-    update_buffer.lock();
-    lights.insert(lights.end(), update_buffer.begin(), update_buffer.end());
-    update_buffer.clear();
-    update_buffer.unlock();
+
+    auto buffer_vec = update_buffer.lock();
+    auto lights_vec = lights.lock();
+
+    lights_vec->insert(lights_vec->end(), buffer_vec->begin(), buffer_vec->end());
+
+    buffer_vec->clear();
 
     mars_math::vector4<float> pos = {m_graphics->get_camera().position().x, m_graphics->get_camera().position().y, m_graphics->get_camera().position().z, 0 };
 
@@ -71,7 +74,7 @@ void light_manager::draw_lights() {
 
     camera_uni->bind(m_graphics->current_frame());
     camera_uni->update(&pos);
-    camera_uni->copy_data(m_graphics->backend()->current_frame());
+    camera_uni->copy_data(m_graphics->backend().lock()->current_frame());
     auto light_uniform = m_data->get_uniform("lights");
     light_uniform->bind(m_graphics->current_frame());
     m_data->bind();
@@ -79,22 +82,22 @@ void light_manager::draw_lights() {
 
     //dwqd
     int active_lights = 0;
-    for (size_t i = 0; i < lights.size(); i++) {
-        scene.lights[active_lights++] = *lights[i];
+    for (size_t i = 0; i < lights_vec->size(); i++) {
+        scene.lights[active_lights++] = *lights_vec->at(i);
         scene.active_lights = active_lights;
 
-        if (active_lights == 32 || lights.size() == i + 1) {
+        if (active_lights == 32 || lights_vec->size() == i + 1) {
             active_lights = 0;
             light_uniform->update(&scene);
-            light_uniform->copy_data(m_graphics->backend()->current_frame());
+            light_uniform->copy_data(m_graphics->backend().lock()->current_frame());
             m_graphics->primary_buffer()->draw(0, 4);
         }
     }
-    m_graphics->backend()->get_renderer()->get_framebuffer("light_render")->get_render_pass()->end();
+    m_graphics->backend().lock()->get_renderer()->get_framebuffer("light_render")->get_render_pass()->end();
 }
 
 void light_manager::destroy() {
-    if (m_graphics->backend()->get_renderer()->get_render_type() == "forward")
+    if (m_graphics->backend().lock()->get_renderer()->get_render_type() == "forward")
         return;
 
     m_data->destroy();

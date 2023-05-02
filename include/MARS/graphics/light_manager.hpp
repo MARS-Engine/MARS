@@ -49,9 +49,7 @@ namespace mars_graphics {
     public:
 
         inline void add_light(point_light* _light) {
-            update_buffer.lock();
-            update_buffer.push_back(_light);
-            update_buffer.unlock();
+            update_buffer.lock()->push_back(_light);
         }
 
 

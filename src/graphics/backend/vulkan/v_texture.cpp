@@ -3,31 +3,16 @@
 #include <MARS/graphics/backend/vulkan/v_backend/v_device.hpp>
 #include <MARS/graphics/backend/vulkan/v_backend/v_image.hpp>
 #include <MARS/graphics/backend/vulkan/v_type_helper.hpp>
+#include <MARS/resources/ram_texture.hpp>
 
 using namespace mars_graphics;
 
 VkImageView v_texture::raw_image_view() { return m_image->raw_image_view(); }
 
-void v_texture::copy_buffer_to_image(v_buffer& buffer, VkImage _image) {
-    VkCommandBuffer commandBuffer = cast_graphics<vulkan_backend>()->get_single_time_command();
-
-    VkBufferImageCopy region {
-        .bufferOffset = 0,
-        .bufferRowLength = 0,
-        .bufferImageHeight = 0,
-        .imageSubresource = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .mipLevel = 0,
-                .baseArrayLayer = 0,
-                .layerCount = 1,
-        },
-        .imageOffset = {0, 0, 0},
-        .imageExtent = { static_cast<uint32_t>(m_size.x), static_cast<uint32_t>(m_size.y), 1 },
-    };
-
-    vkCmdCopyBufferToImage(commandBuffer, buffer.vulkan_buffer(), m_image->raw_image(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-
-    cast_graphics<vulkan_backend>()->end_single_time_command(commandBuffer);
+void v_texture::copy_buffer_to_image(v_buffer* buffer, const mars_math::vector4<uint32_t>& _rect) {
+    transition_image_layout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    m_image->copy_buffer_to_image(buffer, _rect);
+    transition_image_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, MARS2VK(m_data.layout));
 }
 
 void v_texture::transition_image_layout(VkImageLayout oldLayout, VkImageLayout newLayout) {
@@ -99,65 +84,75 @@ void v_texture::create_sampler() {
     }
 }
 
-bool v_texture::load_resource(const std::string &_texture_path) {
-    if (!load_texture(_texture_path)) {
-        free_og_texture();
-        return false;
-    }
+void v_texture::copy_buffer_to_image(mars_graphics::buffer* _buffer, const mars_math::vector4<uint32_t> &_rect) {
+    transition_image_layout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    m_image->copy_buffer_to_image(dynamic_cast<v_buffer*>(_buffer), _rect);
+    transition_image_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, MARS2VK(m_data.layout));
+}
+
+void v_texture::load_from_file(const std::string &_path) {
+    mars_ref<mars_resources::ram_texture> ram;
+
+    if (!graphics()->resources()->load_resource<mars_resources::ram_texture>(_path, ram))
+        ram->clean();
+
+    m_data.size = ram->size();
 
     m_image = new v_image(cast_graphics<vulkan_backend>());
 
-    m_image->set_format((VkFormat)(VK_FORMAT_R8_SRGB + m_channels * 7));
-    m_image->set_size(m_size);
+    m_image->set_format((VkFormat)(VK_FORMAT_R8_SRGB + ram->channels() * 7));
+    m_image->set_size(m_data.size);
     m_image->set_usage(VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 
     v_buffer m_buffer(graphics());
-    m_buffer.create(m_size.x * m_size.y * m_channels, MARS_MEMORY_TYPE_TRANSFER, 1);
-    m_buffer.update(m_data);
+    m_buffer.create(m_data.size.x * m_data.size.y * ram->channels(), MARS_MEMORY_TYPE_TRANSFER, 1);
+    m_buffer.update(ram->data());
     m_buffer.copy_data(0);
 
     m_image->create_image(VK_IMAGE_ASPECT_COLOR_BIT);
 
-    transition_image_layout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copy_buffer_to_image(m_buffer, m_image->raw_image());
-    transition_image_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, MARS2VK(m_layout));
+
+    copy_buffer_to_image(&m_buffer, { 0, 0, (uint32_t)m_data.size.x, (uint32_t)m_data.size.y});
 
     m_image->create_image_view();
     create_sampler();
 
     m_buffer.destroy();
-    free_og_texture();
-    return true;
 }
 
-void v_texture::create(MARS_FORMAT _format, MARS_TEXTURE_USAGE _usage) {
-    m_format = _format;
-    m_usage = _usage;
+void v_texture::initialize() {
 
     VkImageAspectFlags aspectMask = 0;
 
-    if (MARS2VK(_usage) & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+    if (MARS2VK(m_data.usage) & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT)
         aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-    if (MARS2VK(_usage) & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+    if (MARS2VK(m_data.usage) & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
         aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-        if (MARS2VK(m_format) >= VK_FORMAT_D16_UNORM_S8_UINT)
+        if (MARS2VK(m_data.format) >= VK_FORMAT_D16_UNORM_S8_UINT)
             aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
     }
 
     m_image = new v_image(cast_graphics<vulkan_backend>());
-    m_image->set_format(MARS2VK(_format));
-    m_image->set_usage(MARS2VK(_usage));
-    m_image->set_size(m_size);
+    m_image->set_format(MARS2VK(m_data.format));
+    m_image->set_usage(MARS2VK(m_data.usage));
+    m_image->set_size(m_data.size);
     m_image->create_image(aspectMask);
+}
+
+void v_texture::complete() {
     m_image->create_image_view();
     create_sampler();
 }
 
-void v_texture::clean() {
-    auto device = cast_graphics<vulkan_backend>()->device()->raw_device();
-    vkDestroySampler(device, m_sampler, nullptr);
+v_texture::~v_texture() {
+    if (m_sampler != nullptr) {
+        auto device = cast_graphics<vulkan_backend>()->device()->raw_device();
+        vkDestroySampler(device, m_sampler, nullptr);
+    }
 
-    m_image->destroy();
-    delete m_image;
+    if (m_image != nullptr) {
+        m_image->destroy();
+        delete m_image;
+    }
 }

@@ -32,9 +32,7 @@ bool material::load_resource(const std::string &_path) {
                     mars_debug::debug::error("MARS - Failed to load shader - " + m_graphics->resources()->find_path(data[0], MARS_RESOURCE_TYPE_SHADER, m_graphics->render_type()));
                 break;
             case MARS_MATERIAL_INPUT_TEXTURE:
-                mars_ref<texture> new_texture;
-                m_graphics->resources()->load_graphical_resource<texture>(m_graphics->resources()->find_path(data[0], MARS_RESOURCE_TYPE_TEXTURE), new_texture, m_graphics);
-                m_textures[data[2]] = new_texture;
+                m_textures[data[2]] = m_graphics->builder<texture_builder>().load_from_file(data[0]).build();
                 break;
         }
     }

@@ -64,16 +64,16 @@ void vulkan_backend::create_with_window(const std::string &_title, const mars_ma
     m_device = devices[0];
     m_device->create();
 
-    m_swapchain = new v_swapchain(this);
+    m_swapchain = new v_swapchain(shared_from_this());
     m_swapchain->create();
 
-    m_renderer = new renderer(this);
+    m_renderer = new renderer(shared_from_this());
     m_renderer->create(_renderer);
 
     m_command_pool = new v_command_pool(this);
     m_command_pool->create();
 
-    auto main_buffer = new v_command_buffer(this);
+    auto main_buffer = new v_command_buffer(shared_from_this());
     main_buffer->create();
     m_primary_buffer = main_buffer;
 
@@ -165,14 +165,14 @@ void vulkan_backend::destroy() {
     raw_window->destroy();
     delete raw_window;
 
-    m_buffer_storage.clear();
-    m_shader_storage.clear();
-    m_shader_input_storage.clear();
-    m_texture_storage.clear();
-    m_pipeline_storage.clear();
-    m_render_pass_storage.clear();
-    m_shader_data_storage.clear();
-    m_framebuffer_storage.clear();
+    m_buffer_storage.lock()->clear();
+    m_shader_storage.lock()->clear();
+    m_shader_input_storage.lock()->clear();
+    m_texture_storage.lock()->clear();
+    m_pipeline_storage.lock()->clear();
+    m_render_pass_storage.lock()->clear();
+    m_shader_data_storage.lock()->clear();
+    m_framebuffer_storage.lock()->clear();
 }
 
 void vulkan_backend::wait_idle() {

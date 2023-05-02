@@ -40,7 +40,7 @@ namespace mars_graphics {
     class shader_data : public graphics_component {
     protected:
         std::map<std::string, std::shared_ptr<uniform>> m_uniforms;
-        std::map<std::string, mars_ref<texture>> m_textures;
+        std::map<std::string, std::shared_ptr<texture>> m_textures;
         mars_ref<shader> m_shader;
         mars_ref<pipeline> m_pipeline;
         std::shared_ptr<shader_data> m_next = nullptr;
@@ -51,11 +51,11 @@ namespace mars_graphics {
         using graphics_component::graphics_component;
 
         std::map<std::string, std::shared_ptr<uniform>>& get_uniforms() { return m_uniforms; }
-        std::map<std::string, mars_ref<texture>>& get_textures() { return m_textures; }
+        std::map<std::string, std::shared_ptr<texture>>& get_textures() { return m_textures; }
 
         virtual void generate(const mars_ref<pipeline>& _pipeline, const mars_ref<shader>& _shader) { }
 
-        void set_textures(const std::map<std::string, mars_ref<texture>>& _textures) {
+        void set_textures(const std::map<std::string, std::shared_ptr<texture>>& _textures) {
             m_textures = _textures;
         }
 

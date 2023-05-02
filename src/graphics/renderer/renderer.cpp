@@ -25,7 +25,7 @@ void renderer::create(const std::string& _path) {
     resource_manager::read_file(graphics()->resources()->find_path(_path, MARS_RESOURCE_TYPE_RENDERER), _data);
 
     std::string frame_name;
-    mars_ref<texture> active_texture;
+    auto builder = graphics()->builder<texture_builder>();
     bool has_forward = false;
     for (size_t i = 0; auto& line : _data) {
         std::transform(line.begin(), line.end(), line.begin(), ::tolower);
@@ -61,16 +61,14 @@ void renderer::create(const std::string& _path) {
                     m_framebuffers[frame_name].frame->set_load_previous(true);
                 break;
             case RENDERER_TEXTURE_TYPE_COLOR:
-                active_texture = graphics()->create<texture>();
-                active_texture->set_size(size);
-                active_texture->create(MARS_FORMAT_SBGRA_8, MARS_TEXTURE_USAGE_COLOR);
-                m_framebuffers[frame_name].buffers.push_back(active_texture);
+                builder = graphics()->builder<texture_builder>();
+                builder.set_size(size).set_format(MARS_FORMAT_SBGRA_8).set_usage(MARS_TEXTURE_USAGE_COLOR);
+                m_framebuffers[frame_name].buffers.push_back(builder.build());
                 break;
             case RENDERER_TEXTURE_TYPE_POSITION:
-                active_texture = graphics()->create<texture>();
-                active_texture->set_size(size);
-                active_texture->create(MARS_FORMAT_F_RGBA16, MARS_TEXTURE_USAGE_COLOR);
-                m_framebuffers[frame_name].buffers.push_back(active_texture);
+                builder = graphics()->builder<texture_builder>();
+                builder.set_size(size).set_format(MARS_FORMAT_F_RGBA16).set_usage(MARS_TEXTURE_USAGE_COLOR);
+                m_framebuffers[frame_name].buffers.push_back(builder.build());
                 break;
             case RENDERER_TEXTURE_TYPE_FORWARD:
                 has_forward = true;
@@ -94,7 +92,6 @@ void renderer::destroy() {
     for (auto& frame : m_framebuffers) {
         frame.second.frame->destroy();
 
-        for (auto& texture : frame.second.buffers)
-            texture->clean();
+        frame.second.buffers.clear();
     }
 }

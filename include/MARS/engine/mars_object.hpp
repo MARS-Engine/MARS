@@ -41,7 +41,7 @@ namespace mars_engine {
 
         void set_parent(const mars_ref<mars_object>& _parent) {
             m_parent = _parent;
-            m_parent->m_children.push_back(mars_ref<mars_object>(get_ptr()));
+            m_parent->m_children.lock()->push_back(mars_ref<mars_object>(get_ptr()));
         }
 
         [[nodiscard]] inline std::shared_ptr<mars_object> get_ptr() {
@@ -50,9 +50,7 @@ namespace mars_engine {
 
         template<typename T> mars_ref<T> add_component(const std::shared_ptr<T>& _new_component) {
             static_assert(std::is_base_of<component, T>::value, "invalid component - component must have type mars_engine::component has a base");
-            m_components.lock();
-            m_components.push_back(_new_component);
-            m_components.unlock();
+            m_components.lock()->push_back(_new_component);
             _new_component->set_object(mars_ref<mars_object>(get_ptr()));
             m_engine->process_component(mars_ref<component>(_new_component));
             return mars_ref<T>(_new_component);
@@ -81,10 +79,10 @@ namespace mars_engine {
         }
 
         void destroy() {
-            for (auto& component : m_components)
+            for (auto& component : *m_components.lock().get())
                 component->destroy();
 
-            for (auto& child : m_children)
+            for (auto& child : *m_children.lock().get())
                 child->destroy();
         }
     };

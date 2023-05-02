@@ -12,12 +12,13 @@ std::shared_ptr<engine_worker> object_engine::create_worker(size_t _cores) {
 mars_ref<mars_object> object_engine::create_obj() {
     auto obj  = std::make_shared<mars_object>(mars_ref<object_engine>(shared_from_this()));
     obj->set_engine(mars_ref<object_engine>(get_ptr()));
-    m_objects.push_back(obj);
+    m_objects.lock()->push_back(obj);
     return mars_ref<mars_object>(obj);
 }
 
 void object_engine::spawn_wait_list() {
-    for (auto& _obj : m_destroy_list) {
+    auto destroy_list = m_destroy_list.lock();
+    for (auto& _obj : *destroy_list.get()) {
         for (auto& layer : m_layer_data) {
             m_layer_calls.at(layer.first)->erase(std::remove_if(m_layer_calls.at(layer.first)->begin(), m_layer_calls.at(layer.first)->end(), [&](const engine_layer_component& val) {
                 return val.parent == _obj.get();
@@ -28,10 +29,11 @@ void object_engine::spawn_wait_list() {
             }), m_wait_list.at(layer.first)->end());
         }
 
-        m_objects.erase(std::find(m_objects.begin(), m_objects.end(), _obj));
+        auto objects = m_objects.lock();
+        objects->erase(std::find(objects->begin(), objects->end(), _obj));
     }
 
-    m_destroy_list.clear();
+    destroy_list->clear();
 
     for (auto& layer : m_layer_data) {
         if (m_wait_list.at(layer.first)->empty())
@@ -53,14 +55,11 @@ void object_engine::process_component(const mars_ref<mars_engine::component>& _c
 }
 
 mars_ref<mars_object> object_engine::spawn(const mars_ref<mars_object>& _obj, const mars_ref<mars_graphics::graphics_engine>& _graphics, const mars_ref<mars_object>& _parent) {
-    m_objects.lock();
-    m_objects.push_back(_obj.get().lock());
-    m_objects.unlock();
-
+    m_objects.lock()->push_back(_obj.get().lock());
     return _obj;
 }
 
 void object_engine::clean() {
-    for (auto& object : m_objects)
+    for (auto& object : *m_objects.lock().get())
         object->destroy();
 }

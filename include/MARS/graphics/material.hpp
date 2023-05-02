@@ -16,7 +16,7 @@ namespace mars_graphics {
     private:
         mars_ref<shader> m_shader;
         mars_ref<pipeline> m_pipeline;
-        std::map<std::string, mars_ref<texture>> m_textures;
+        std::map<std::string, std::shared_ptr<texture>> m_textures;
 
         mars_ref<mars_graphics::graphics_engine> m_graphics;
 

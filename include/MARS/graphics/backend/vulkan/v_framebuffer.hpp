@@ -24,7 +24,7 @@ namespace mars_graphics {
         inline void set_render_pass(const mars_ref<v_render_pass>& _render_pass) { m_render_pass = _render_pass; }
 
         void create(swapchain* _swapchain) override;
-        void create(mars_math::vector2<size_t> _size, const std::vector<mars_ref<texture>>& _textures) override;
+        void create(mars_math::vector2<size_t> _size, const std::vector<std::shared_ptr<texture>>& _textures) override;
 
         void destroy() override;
     };

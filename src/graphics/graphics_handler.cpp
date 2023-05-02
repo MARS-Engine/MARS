@@ -10,7 +10,7 @@ mars_ref<graphics_engine> graphics_handler::engine() {
 }
 
 void graphics_handler::worker_thread() {
-    for (auto& callback : m_engine->get_drawcalls()) {
+    for (auto& callback : *m_engine->get_drawcalls().lock().get()) {
         callback.draw_call();
     }
 }

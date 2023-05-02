@@ -33,7 +33,7 @@ mars_ref<pipeline> pipeline_manager::prepare_pipeline(const std::shared_ptr<mars
     result = _graphics->create<pipeline>().get().lock();
     result->set_shader_input(*_input);
     result->set_shader(_shader);
-    result->set_render_pass(!_render_pass.is_alive() ? _graphics->backend()->get_renderer()->get_framebuffer("main_render")->get_render_pass() : _render_pass);
+    result->set_render_pass(!_render_pass.is_alive() ? _graphics->backend().lock()->get_renderer()->get_framebuffer("main_render")->get_render_pass() : _render_pass);
 
     m_pipelines[id] = result;
     m_pipelines.unlock();

@@ -25,6 +25,12 @@ namespace mars_math {
             return *this;
         }
 
+        template<typename C> requires multipliable<T, C> vector2& operator*=(const C& _right) noexcept {
+            x *= _right;
+            y *= _right;
+            return *this;
+        }
+
         bool operator==(const vector2<T>& _right) const noexcept {
             return x == _right.x && y == _right.y;
         }

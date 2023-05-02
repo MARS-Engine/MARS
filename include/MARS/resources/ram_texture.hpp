@@ -10,8 +10,10 @@ namespace mars_resources {
         mars_math::vector2<size_t> m_size {};
         int m_channels = -1;
         unsigned char* m_data = nullptr;
-        
     public:
+        [[nodiscard]] int channels() const { return m_channels; }
+        [[nodiscard]] const unsigned char* data() const { return m_data; }
+
         [[nodiscard]] inline mars_math::vector2<size_t> size() const { return m_size; }
 
         inline mars_math::vector4<unsigned char> get_pixel(size_t x, size_t y) const {

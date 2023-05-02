@@ -19,7 +19,7 @@ namespace mars_graphics {
 
     struct renderer_frame_data {
         mars_ref<framebuffer> frame;
-        std::vector<mars_ref<texture>> buffers;
+        std::vector<std::shared_ptr<texture>> buffers;
     };
 
     class renderer : graphics_component {

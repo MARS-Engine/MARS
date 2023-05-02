@@ -31,68 +31,34 @@ namespace mars_graphics {
 
     protected:
         mars_ref<shader> generate_shader() override {
-            auto ptr = std::make_shared<v_shader>(this);
-            m_shader_storage.lock();
-            m_shader_storage.push_back(ptr);
-            m_shader_storage.unlock();
-            return mars_ref<shader>(ptr);
+            return mars_ref<shader>(m_shader_storage.lock()->emplace_back(std::make_shared<v_shader>(shared_from_this())));
         }
 
         mars_ref<pipeline> generate_pipeline() override {
-            auto ptr = std::make_shared<v_pipeline>(this);
-            m_pipeline_storage.lock();
-            m_pipeline_storage.push_back(ptr);
-            m_pipeline_storage.unlock();
-            return mars_ref<pipeline>(ptr);
+            return mars_ref<pipeline>(m_pipeline_storage.lock()->emplace_back(std::make_shared<v_pipeline>(shared_from_this())));
         }
 
         mars_ref<render_pass> generate_render_pass() override {
-            auto ptr = std::make_shared<v_render_pass>(this);
-            m_render_pass_storage.lock();
-            m_render_pass_storage.push_back(ptr);
-            m_render_pass_storage.unlock();
-            return mars_ref<render_pass>(ptr);
-        }
-
-        mars_ref<texture> generate_texture() override {
-            auto ptr = std::make_shared<v_texture>(this);
-            m_texture_storage.lock();
-            m_texture_storage.push_back(ptr);
-            m_texture_storage.unlock();
-            return mars_ref<texture>(ptr);
+            return mars_ref<render_pass>(m_render_pass_storage.lock()->emplace_back(std::make_shared<v_render_pass>(shared_from_this())));
         }
 
         mars_ref<shader_input> generate_shader_input() override {
-            auto ptr = std::make_shared<v_shader_input>(this);
-            m_shader_input_storage.lock();
-            m_shader_input_storage.push_back(ptr);
-            m_shader_input_storage.unlock();
-            return mars_ref<shader_input>(ptr);
+            return mars_ref<shader_input>(m_shader_input_storage.lock()->emplace_back(std::make_shared<v_shader_input>(shared_from_this())));
         }
 
         mars_ref<shader_data> generate_shader_data() override {
-            auto ptr = std::make_shared<v_shader_data>(this);
-            m_shader_data_storage.lock();
-            m_shader_data_storage.push_back(ptr);
-            m_shader_data_storage.unlock();
-            return mars_ref<shader_data>(ptr);
+            return mars_ref<shader_data>(m_shader_data_storage.lock()->emplace_back(std::make_shared<v_shader_data>(shared_from_this())));
         }
 
         mars_ref<buffer> generate_buffer() override {
-            auto ptr = std::make_shared<v_buffer>(this);
-            m_buffer_storage.lock();
-            m_buffer_storage.push_back(ptr);
-            m_buffer_storage.unlock();
-            return mars_ref<buffer>(ptr);
+            return mars_ref<buffer>(m_buffer_storage.lock()->emplace_back(std::make_shared<v_buffer>(shared_from_this())));
         }
 
         mars_ref<framebuffer> generate_framebuffer() override {
-            auto ptr = std::make_shared<v_framebuffer>(this);
-            m_framebuffer_storage.lock();
-            m_framebuffer_storage.push_back(ptr);
-            m_framebuffer_storage.unlock();
-            return mars_ref<framebuffer>(ptr);
+            return mars_ref<framebuffer>(m_framebuffer_storage.lock()->emplace_back(std::make_shared<v_framebuffer>(shared_from_this())));
         }
+
+        texture_builder texture_build() override { return texture_builder{ std::make_shared<v_texture>(shared_from_this()) }; }
     public:
         [[nodiscard]] inline v_instance* instance() const { return m_vulkan_instance; }
         [[nodiscard]] inline v_window* get_vulkan_window() const { return dynamic_cast<v_window*>(get_window()); }
