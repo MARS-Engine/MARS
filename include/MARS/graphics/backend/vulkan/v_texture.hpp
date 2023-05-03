@@ -17,6 +17,9 @@ namespace mars_graphics {
         void copy_buffer_to_image(v_buffer* buffer, const mars_math::vector4<uint32_t>& _rect);
         void transition_image_layout(VkImageLayout oldLayout, VkImageLayout newLayout);
         void create_sampler();
+
+        void initialize() override;
+        void complete() override;
     public:
         using texture::texture;
 
@@ -27,9 +30,6 @@ namespace mars_graphics {
 
         void load_from_file(const std::string &_path) override;
         void copy_buffer_to_image(const std::shared_ptr<buffer>& _buffer, const mars_math::vector4<uint32_t> &_rect) override;
-
-        void initialize() override;
-        void complete() override;
     };
 }
 

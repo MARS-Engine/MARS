@@ -8,6 +8,7 @@
 
 #include "builders/texture_builder.hpp"
 #include "builders/buffer_builder.hpp"
+#include "builders/framebuffer_builder.hpp"
 
 namespace mars_resources {
     class resource_manager;
@@ -46,17 +47,16 @@ namespace mars_graphics {
         pl::safe_deque<std::shared_ptr<pipeline>> m_pipeline_storage;
         pl::safe_deque<std::shared_ptr<render_pass>> m_render_pass_storage;
         pl::safe_deque<std::shared_ptr<shader_data>> m_shader_data_storage;
-        pl::safe_deque<std::shared_ptr<framebuffer>> m_framebuffer_storage;
 
         virtual mars_ref<shader> generate_shader() { return {}; }
         virtual mars_ref<shader_input> generate_shader_input() { return {}; }
         virtual mars_ref<pipeline> generate_pipeline() { return {}; }
         virtual mars_ref<render_pass> generate_render_pass() { return {}; }
         virtual mars_ref<shader_data> generate_shader_data() { return {}; }
-        virtual mars_ref<framebuffer> generate_framebuffer() { return {}; }
 
         virtual texture_builder texture_build() { return texture_builder{ nullptr }; }
         virtual buffer_builder buffer_build() { return buffer_builder{ nullptr }; }
+        virtual framebuffer_builder framebuffer_build() { return framebuffer_builder{ nullptr }; }
 
         uint32_t m_index = 0;
         uint32_t m_current_frame = 0;
@@ -103,10 +103,10 @@ namespace mars_graphics {
     template<> inline mars_ref<pipeline> graphics_backend::create<pipeline>() { return generate_pipeline(); }
     template<> inline mars_ref<render_pass> graphics_backend::create<render_pass>() { return generate_render_pass(); }
     template<> inline mars_ref<shader_data> graphics_backend::create<shader_data>() { return generate_shader_data(); }
-    template<> inline mars_ref<framebuffer> graphics_backend::create<framebuffer>() { return generate_framebuffer(); }
 
     template<> inline texture_builder graphics_backend::builder<texture_builder>() { return texture_build(); }
     template<> inline buffer_builder graphics_backend::builder<buffer_builder>() { return buffer_build(); }
+    template<> inline framebuffer_builder graphics_backend::builder<framebuffer_builder>() { return framebuffer_build(); }
 }
 
 #endif

@@ -12,17 +12,16 @@ namespace mars_graphics {
     protected:
         buffer_data m_data;
         const void* m_current_data = nullptr;
+
+        virtual void create() { }
+
+        inline void set_data(const buffer_data& _data) { m_data = _data; }
     public:
         using graphics_component::graphics_component;
 
         [[nodiscard]] inline size_t size() const { return m_data.size; }
         [[nodiscard]] inline MARS_MEMORY_TYPE type() const { return m_data.mem_type; }
 
-        inline void set_data(const buffer_data& _data) {
-            m_data = _data;
-        }
-
-        virtual void create() { }
 
         virtual void bind() { }
         virtual void unbind() { }
@@ -34,6 +33,8 @@ namespace mars_graphics {
         virtual void update(const void* _data) {
             m_current_data = _data;
         }
+
+        friend buffer_builder;
     };
 };
 

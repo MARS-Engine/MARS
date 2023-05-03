@@ -10,30 +10,30 @@ void v_framebuffer::create(swapchain* _swapchain) {
     is_swap = true;
 
 
-    if (m_depth_enabled) {
+    if (m_data.depth_enabled) {
         m_depth = new v_depth(cast_graphics<vulkan_backend>());
         m_depth->create();
     }
 
-    m_size = _swapchain->size();
+    m_data.size = _swapchain->size();
 
     auto _views = ((v_swapchain*)_swapchain)->image_views();
 
     m_framebuffers.resize(_views.size());
 
     m_render_pass = graphics()->create<render_pass>();
-    m_render_pass->set_load_previous(m_load_previous);
+    m_render_pass->set_load_previous(m_data.load_previous);
     m_render_pass->set_framebuffer(this);
     m_render_pass->add_attachment({ .format = VK2MARS(cast_graphics<vulkan_backend>()->swapchain()->image_format()), .layout = MARS_TEXTURE_LAYOUT_PRESENT });
-    if (m_depth_enabled)
+    if (m_data.depth_enabled)
         m_render_pass->add_attachment({ .format = m_depth->get_format(), .layout = MARS_TEXTURE_LAYOUT_DEPTH_OPTIMAL });
     m_render_pass->create();
 
     VkFramebufferCreateInfo framebufferInfo {
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
             .renderPass = m_render_pass.cast_static<v_render_pass>()->raw_render_pass(),
-            .width = static_cast<uint32_t>(m_size.x),
-            .height = static_cast<uint32_t>(m_size.y),
+            .width = static_cast<uint32_t>(m_data.size.x),
+            .height = static_cast<uint32_t>(m_data.size.y),
             .layers = 1
     };
 
@@ -42,7 +42,7 @@ void v_framebuffer::create(swapchain* _swapchain) {
             _views[i],
         };
 
-        if (m_depth_enabled)
+        if (m_data.depth_enabled)
             attachments.push_back(m_depth->get_image_view());
 
         framebufferInfo.pAttachments = attachments.data();
@@ -52,15 +52,13 @@ void v_framebuffer::create(swapchain* _swapchain) {
             mars_debug::debug::error("MARS - Vulkan - Failed to create framebuffer");
     }
 }
-void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<std::shared_ptr<texture>>& _textures) {
-    if (m_depth_enabled) {
+void v_framebuffer::create(const std::vector<std::shared_ptr<texture>>& _textures) {
+    if (m_data.depth_enabled) {
         m_depth = new v_depth(cast_graphics<vulkan_backend>());
         m_depth->create();
     }
 
     m_frames = _textures;
-
-    m_size = _size;
 
     m_render_pass = graphics()->create<render_pass>();
     m_render_pass->set_framebuffer(this);
@@ -72,7 +70,7 @@ void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<s
         attachments.push_back(_texture->cast<v_texture>()->raw_image_view());
     }
 
-    if (m_depth_enabled) {
+    if (m_data.depth_enabled) {
         attachments.push_back(m_depth->get_image_view());
         m_render_pass->add_attachment({ .format = m_depth->get_format(), .layout = MARS_TEXTURE_LAYOUT_DEPTH_OPTIMAL });
     }
@@ -83,8 +81,8 @@ void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<s
             .renderPass = m_render_pass.cast_static<v_render_pass>()->raw_render_pass(),
             .attachmentCount = static_cast<uint32_t>(attachments.size()),
             .pAttachments = attachments.data(),
-            .width = static_cast<uint32_t>(m_size.x),
-            .height = static_cast<uint32_t>(m_size.y),
+            .width = static_cast<uint32_t>(m_data.size.x),
+            .height = static_cast<uint32_t>(m_data.size.y),
             .layers = 1
     };
 
@@ -94,11 +92,11 @@ void v_framebuffer::create(mars_math::vector2<size_t> _size, const std::vector<s
         mars_debug::debug::error("MARS - Vulkan - Failed to create framebuffer");
 }
 
-void v_framebuffer::destroy() {
+v_framebuffer::~v_framebuffer() {
     if (m_render_pass.is_alive())
         m_render_pass->destroy();
 
-    if (m_depth_enabled) {
+    if (m_data.depth_enabled) {
         m_depth->destroy();
         delete m_depth;
     }

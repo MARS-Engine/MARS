@@ -12,7 +12,8 @@ namespace mars_graphics {
         VkBuffer m_buffer;
         VkDeviceMemory m_memory;
         void* gpu_data = nullptr;
-        
+
+        void create() override;
     public:
         using buffer::buffer;
 
@@ -27,8 +28,6 @@ namespace mars_graphics {
         void copy_offset(size_t _offset, size_t _size, void *_data) override;
 
         void copy_buffer(v_buffer* _src);
-
-        void create() override;
     };
 }
 

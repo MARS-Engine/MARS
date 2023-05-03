@@ -27,6 +27,9 @@ void renderer::create(const std::string& _path) {
     std::string frame_name;
     auto builder = graphics()->builder<texture_builder>();
     bool has_forward = false;
+
+    auto frame_builder = graphics()->builder<framebuffer_builder>();
+
     for (size_t i = 0; auto& line : _data) {
         std::transform(line.begin(), line.end(), line.begin(), ::tolower);
 
@@ -42,11 +45,13 @@ void renderer::create(const std::string& _path) {
                 if (!frame_name.empty()) {
                     if (has_forward) {
                         if (m_framebuffers.size() != 1)
-                            m_framebuffers[frame_name].frame->set_load_previous(true);
-                        m_framebuffers[frame_name].frame->create(graphics()->get_swapchain());
+                            frame_builder.set_load_previous(true);
+                        m_framebuffers[frame_name].frame = frame_builder.build(graphics()->get_swapchain());
                     }
-                    else
-                        m_framebuffers[frame_name].frame->create(graphics()->get_window()->size(), m_framebuffers[frame_name].buffers);
+                    else {
+                        frame_builder.set_size(graphics()->get_window()->size());
+                        m_framebuffers[frame_name].frame = frame_builder.build(m_framebuffers[frame_name].buffers);
+                    }
                 }
 
                 has_forward = false;
@@ -54,11 +59,11 @@ void renderer::create(const std::string& _path) {
                     frame_name = values[1];
 
                 m_framebuffers[frame_name] = {};
-                m_framebuffers[frame_name].frame = graphics()->create<framebuffer>();
-                m_framebuffers[frame_name].frame->set_size(size);
+                frame_builder = graphics()->builder<framebuffer_builder>();
+                frame_builder.set_size(size);
 
                 if (i++ != 0)
-                    m_framebuffers[frame_name].frame->set_load_previous(true);
+                    frame_builder.set_load_previous(true);
                 break;
             case RENDERER_TEXTURE_TYPE_COLOR:
                 builder = graphics()->builder<texture_builder>();
@@ -74,26 +79,24 @@ void renderer::create(const std::string& _path) {
                 has_forward = true;
                 break;
             case RENDERER_TEXTURE_TYPE_DEPTH:
-                m_framebuffers[frame_name].frame->set_depth(true);
+                frame_builder.set_depth(true);
                 break;
         }
     }
 
     if (has_forward) {
         if (m_framebuffers.size() != 1)
-            m_framebuffers[frame_name].frame->set_load_previous(true);
-        m_framebuffers[frame_name].frame->create(graphics()->get_swapchain());
+            frame_builder.set_load_previous(true);
+        m_framebuffers[frame_name].frame = frame_builder.build(graphics()->get_swapchain());
     }
-    else
-        m_framebuffers[frame_name].frame->create(graphics()->get_window()->size(), m_framebuffers[frame_name].buffers);
+    else {
+        frame_builder.set_size(graphics()->get_window()->size());
+        m_framebuffers[frame_name].frame = frame_builder.build(m_framebuffers[frame_name].buffers);
+    }
 }
 
 void renderer::destroy() {
-    for (auto& frame : m_framebuffers) {
-        frame.second.frame->destroy();
-
+    for (auto& frame : m_framebuffers)
         frame.second.buffers.clear();
-    }
-
     m_framebuffers.clear();
 }

@@ -18,7 +18,7 @@ namespace mars_graphics {
     };
 
     struct renderer_frame_data {
-        mars_ref<framebuffer> frame;
+        std::shared_ptr<framebuffer> frame;
         std::vector<std::shared_ptr<texture>> buffers;
     };
 
@@ -27,7 +27,7 @@ namespace mars_graphics {
         std::map<std::string, renderer_frame_data> m_framebuffers;
         std::string m_render_type;
     public:
-        [[nodiscard]] inline mars_ref<framebuffer> get_framebuffer(const std::string& name) { return m_framebuffers[name].frame; }
+        [[nodiscard]] inline std::shared_ptr<framebuffer> get_framebuffer(const std::string& name) { return m_framebuffers[name].frame; }
         [[nodiscard]] inline std::string get_render_type() const { return m_render_type; }
 
         using graphics_component::graphics_component;
