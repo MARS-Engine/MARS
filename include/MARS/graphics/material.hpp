@@ -30,12 +30,8 @@ namespace mars_graphics {
             m_shader->bind();
         }
 
-        [[nodiscard]] inline mars_ref<shader_data> generate_shader_data() const {
-            auto data = m_graphics->create<shader_data>();
-            data->set_textures(m_textures);
-            data->generate(m_pipeline, m_shader);
-
-            return data;
+        [[nodiscard]] inline std::shared_ptr<shader_data> generate_shader_data() const {
+            return m_graphics->builder<shader_data_builder>().set_textures(m_textures).build(m_pipeline, m_shader);
         }
 
         template<typename T> inline void set_pipeline() {

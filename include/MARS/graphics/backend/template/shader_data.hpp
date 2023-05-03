@@ -5,6 +5,7 @@
 #include "buffer.hpp"
 #include "shader.hpp"
 #include "texture.hpp"
+#include "./builders/shader_data_builder.hpp"
 
 namespace mars_graphics {
 
@@ -40,32 +41,25 @@ namespace mars_graphics {
     class shader_data : public graphics_component {
     protected:
         std::map<std::string, std::shared_ptr<uniform>> m_uniforms;
-        std::map<std::string, std::shared_ptr<texture>> m_textures;
-        mars_ref<shader> m_shader;
-        mars_ref<pipeline> m_pipeline;
-        std::shared_ptr<shader_data> m_next = nullptr;
-    public:
-        inline std::shared_ptr<shader_data> next() const { return m_next; }
-        inline void set_next(std::shared_ptr<shader_data> _next) { m_next = _next; }
-
-        using graphics_component::graphics_component;
-
-        ~shader_data() {
-            m_textures.clear();
-        }
-
-        std::map<std::string, std::shared_ptr<uniform>>& get_uniforms() { return m_uniforms; }
-        std::map<std::string, std::shared_ptr<texture>>& get_textures() { return m_textures; }
+        shader_data_core m_data;
 
         virtual void generate(const mars_ref<pipeline>& _pipeline, const mars_ref<shader>& _shader) { }
 
-        void set_textures(const std::map<std::string, std::shared_ptr<texture>>& _textures) {
-            m_textures = _textures;
+        inline void set_data(const shader_data_core& _data) { m_data = _data; }
+
+        friend shader_data_builder;
+    public:
+        using graphics_component::graphics_component;
+
+        ~shader_data() {
+            m_data.m_textures.clear();
         }
+
+        std::map<std::string, std::shared_ptr<uniform>>& get_uniforms() { return m_uniforms; }
+        std::map<std::string, std::shared_ptr<texture>>& get_textures() { return m_data.m_textures; }
 
         virtual void bind_textures() { }
         virtual void bind() { }
-        virtual void destroy() { }
 
         void update(const std::string& _uniform, void* _data) { m_uniforms[_uniform]->update(_data); }
 

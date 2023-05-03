@@ -23,10 +23,11 @@ namespace mars_graphics {
     public:
         using shader_data::shader_data;
 
+        ~v_shader_data();
+
         void bind() override;
 
         void generate(const mars_ref<pipeline>& _pipeline, const mars_ref<shader>& _shader) override;
-        void destroy() override;
     };
 }
 

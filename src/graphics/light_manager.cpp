@@ -37,9 +37,7 @@ void light_manager::load(const mars_ref<mars_graphics::graphics_engine>& _graphi
             {"gAlbedoSpec", m_graphics->backend().lock()->get_renderer()->get_framebuffer("main_render")->get_texture(2)}
     };
 
-    m_data = m_graphics->create<shader_data>();
-    m_data->set_textures(input_textures);
-    m_data->generate(m_pipeline, light_shader);
+    m_data = m_graphics->builder<shader_data_builder>().set_textures(input_textures).build(m_pipeline, light_shader);
 
     m_input = m_graphics->create<shader_input>();
     m_input->create();
@@ -101,7 +99,6 @@ void light_manager::destroy() {
     if (m_graphics->backend().lock()->get_renderer()->get_render_type() == "forward")
         return;
 
-    m_data->destroy();
-
+    m_data.reset();
     m_input->destroy();
 }
