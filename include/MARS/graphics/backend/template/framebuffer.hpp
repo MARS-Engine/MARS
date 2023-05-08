@@ -10,11 +10,11 @@
 
 
 namespace mars_graphics {
-    class framebuffer : public graphics_component {
+    class framebuffer : public graphics_component, public std::enable_shared_from_this<framebuffer> {
     protected:
         framebuffer_data m_data;
         std::vector<std::shared_ptr<texture>> m_frames;
-        mars_ref<render_pass> m_render_pass;
+        std::shared_ptr<render_pass> m_render_pass;
 
         virtual void create(swapchain* _swapchain) {  }
         virtual void create(const std::vector<std::shared_ptr<texture>>& _textures) { }
@@ -25,7 +25,7 @@ namespace mars_graphics {
     public:
         using graphics_component::graphics_component;
 
-        [[nodiscard]] inline mars_ref<render_pass> get_render_pass() const { return m_render_pass; }
+        [[nodiscard]] inline std::shared_ptr<render_pass> get_render_pass() const { return m_render_pass; }
         [[nodiscard]] mars_math::vector2<size_t> get_size() const { return m_data.size; }
 
         [[nodiscard]] inline std::shared_ptr<texture> get_texture(size_t _index) const { return _index < m_frames.size() ? m_frames[_index] : std::shared_ptr<texture>(); }

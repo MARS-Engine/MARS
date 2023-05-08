@@ -180,7 +180,7 @@ void v_pipeline::create() {
         .pColorBlendState = &blendInfo,
         .pDynamicState = &m_dynamic_state,
         .layout = m_pipeline_layout,
-        .renderPass = m_render_pass.cast_static<v_render_pass>()->raw_render_pass(),
+        .renderPass = m_render_pass->cast<v_render_pass>()->raw_render_pass(),
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE
     };

@@ -8,16 +8,17 @@ namespace mars_graphics {
     class v_render_pass : public render_pass {
     private:
         VkRenderPass m_render_pass;
+
+        void create() override;
     public:
         using render_pass::render_pass;
+
+        ~v_render_pass();
 
         void begin() override;
         void end() override;
 
         inline VkRenderPass raw_render_pass() { return m_render_pass; }
-
-        void create() override;
-        void destroy() override;
     };
 }
 

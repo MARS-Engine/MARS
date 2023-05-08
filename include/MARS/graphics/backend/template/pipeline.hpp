@@ -12,7 +12,7 @@ namespace mars_graphics {
     protected:
         mars_viewport m_viewport;
         mars_ref<shader> m_shader;
-        mars_ref<render_pass> m_render_pass;
+        std::shared_ptr<render_pass> m_render_pass;
         mars_shader_inputs m_shader_input;
         bool m_flip_y = true;
         MARS_TOPOLOGY m_topology = MARS_TOPOLOGY_TRIANGLE_LIST;
@@ -23,7 +23,7 @@ namespace mars_graphics {
 
         inline void set_flip_y(bool _flip_y) { m_flip_y = _flip_y; }
         inline void set_topology(MARS_TOPOLOGY _topology) { m_topology = _topology; }
-        inline void set_render_pass(const mars_ref<render_pass>& _render_pass) { m_render_pass = _render_pass; }
+        inline void set_render_pass(const std::shared_ptr<render_pass>& _render_pass) { m_render_pass = _render_pass; }
         inline void set_shader(const mars_ref<shader>& _shader) { m_shader = _shader; }
         inline void set_shader_input(mars_shader_inputs _input) { m_shader_input = _input; }
 

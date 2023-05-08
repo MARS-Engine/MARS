@@ -21,17 +21,20 @@ void v_framebuffer::create(swapchain* _swapchain) {
 
     m_framebuffers.resize(_views.size());
 
-    m_render_pass = graphics()->create<render_pass>();
-    m_render_pass->set_load_previous(m_data.load_previous);
-    m_render_pass->set_framebuffer(this);
-    m_render_pass->add_attachment({ .format = VK2MARS(cast_graphics<vulkan_backend>()->swapchain()->image_format()), .layout = MARS_TEXTURE_LAYOUT_PRESENT });
+    auto builder = graphics()->builder<render_pass_builder>();
+    builder
+        .set_load_previous(m_data.load_previous)
+        .set_framebuffer(mars_ref<framebuffer>(weak_from_this()))
+        .add_attachment({ .format = VK2MARS(cast_graphics<vulkan_backend>()->swapchain()->image_format()), .layout = MARS_TEXTURE_LAYOUT_PRESENT });
+
     if (m_data.depth_enabled)
-        m_render_pass->add_attachment({ .format = m_depth->get_format(), .layout = MARS_TEXTURE_LAYOUT_DEPTH_OPTIMAL });
-    m_render_pass->create();
+        builder.add_attachment({ .format = m_depth->get_format(), .layout = MARS_TEXTURE_LAYOUT_DEPTH_OPTIMAL });
+
+    m_render_pass = builder.build();
 
     VkFramebufferCreateInfo framebufferInfo {
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-            .renderPass = m_render_pass.cast_static<v_render_pass>()->raw_render_pass(),
+            .renderPass = m_render_pass->cast<v_render_pass>()->raw_render_pass(),
             .width = static_cast<uint32_t>(m_data.size.x),
             .height = static_cast<uint32_t>(m_data.size.y),
             .layers = 1
@@ -60,25 +63,25 @@ void v_framebuffer::create(const std::vector<std::shared_ptr<texture>>& _texture
 
     m_frames = _textures;
 
-    m_render_pass = graphics()->create<render_pass>();
-    m_render_pass->set_framebuffer(this);
+    auto builder = graphics()->builder<render_pass_builder>();
+    builder.set_framebuffer(mars_ref<framebuffer>(weak_from_this()));
 
     std::vector<VkImageView> attachments;
 
     for (auto& _texture : _textures) {
-        m_render_pass->add_attachment({ .format = _texture->format(), .layout = MARS_TEXTURE_LAYOUT_READONLY });
+        builder.add_attachment({ .format = _texture->format(), .layout = MARS_TEXTURE_LAYOUT_READONLY });
         attachments.push_back(_texture->cast<v_texture>()->raw_image_view());
     }
 
     if (m_data.depth_enabled) {
         attachments.push_back(m_depth->get_image_view());
-        m_render_pass->add_attachment({ .format = m_depth->get_format(), .layout = MARS_TEXTURE_LAYOUT_DEPTH_OPTIMAL });
+        builder.add_attachment({ .format = m_depth->get_format(), .layout = MARS_TEXTURE_LAYOUT_DEPTH_OPTIMAL });
     }
-    m_render_pass->create();
+    m_render_pass = builder.build();
 
     VkFramebufferCreateInfo framebufferInfo {
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-            .renderPass = m_render_pass.cast_static<v_render_pass>()->raw_render_pass(),
+            .renderPass = m_render_pass->cast<v_render_pass>()->raw_render_pass(),
             .attachmentCount = static_cast<uint32_t>(attachments.size()),
             .pAttachments = attachments.data(),
             .width = static_cast<uint32_t>(m_data.size.x),
@@ -93,8 +96,7 @@ void v_framebuffer::create(const std::vector<std::shared_ptr<texture>>& _texture
 }
 
 v_framebuffer::~v_framebuffer() {
-    if (m_render_pass.is_alive())
-        m_render_pass->destroy();
+    m_render_pass = nullptr;
 
     if (m_data.depth_enabled) {
         m_depth->destroy();

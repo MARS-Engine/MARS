@@ -7,17 +7,21 @@
 
 using namespace mars_graphics;
 
+v_render_pass::~v_render_pass() {
+    vkDestroyRenderPass(cast_graphics<vulkan_backend>()->device()->raw_device(), m_render_pass, nullptr);
+}
+
 void v_render_pass::begin() {
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = m_render_pass;
-    renderPassInfo.framebuffer = dynamic_cast<v_framebuffer*>(m_framebuffer)->get_frame();
+    renderPassInfo.framebuffer = m_data.framebuffer_ptr->cast<v_framebuffer>()->get_frame();
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = cast_graphics<vulkan_backend>()->swapchain()->extent();
 
     std::vector<VkClearValue> clearValues;
 
-    for (auto& attachment : attachments) {
+    for (auto& attachment : m_data.attachments) {
         VkClearValue value;
         switch (attachment.layout) {
             default:
@@ -41,10 +45,6 @@ void v_render_pass::end() {
     vkCmdEndRenderPass(cast_graphics<vulkan_backend>()->raw_command_buffer());
 }
 
-void v_render_pass::destroy() {
-    vkDestroyRenderPass(cast_graphics<vulkan_backend>()->device()->raw_device(), m_render_pass, nullptr);
-}
-
 void v_render_pass::create() {
     auto v_instance = cast_graphics<vulkan_backend>();
 
@@ -54,7 +54,7 @@ void v_render_pass::create() {
         .layout = VK_IMAGE_LAYOUT_UNDEFINED
     };
 
-    for (uint32_t i = 0; auto attachment : attachments) {
+    for (uint32_t i = 0; auto attachment : m_data.attachments) {
         VkAttachmentDescription vk_attachment;
         switch (attachment.layout) {
             case MARS_TEXTURE_LAYOUT_PRESENT:
@@ -109,7 +109,7 @@ void v_render_pass::create() {
 
     std::vector<VkSubpassDependency> dependecies;
 
-    if (m_load_previous) {
+    if (m_data.load_previous) {
         dependecies = {
                 {
                         .srcSubpass = VK_SUBPASS_EXTERNAL,

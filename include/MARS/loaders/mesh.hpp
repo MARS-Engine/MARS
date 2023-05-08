@@ -5,6 +5,7 @@
 #include <MARS/math/vector3.hpp>
 #include <MARS/math/vector2.hpp>
 #include <cfloat>
+#include <cstdint>
 
 namespace mars_loader {
 
