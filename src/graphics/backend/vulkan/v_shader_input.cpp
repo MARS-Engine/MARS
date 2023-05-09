@@ -55,6 +55,6 @@ std::shared_ptr<buffer> v_shader_input::add_buffer(size_t _input_size, MARS_MEMO
     return new_buffer;
 }
 
-void v_shader_input::destroy() {
+v_shader_input::~v_shader_input() {
     m_buffers.clear();
 }

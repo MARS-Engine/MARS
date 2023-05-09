@@ -39,17 +39,15 @@ void light_manager::load(const mars_ref<mars_graphics::graphics_engine>& _graphi
 
     m_data = m_graphics->builder<shader_data_builder>().set_textures(input_textures).build(m_pipeline, light_shader);
 
-    m_input = m_graphics->create<shader_input>();
-    m_input->create();
-    m_input->bind();
+    auto builder = m_graphics->builder<shader_input_builder>();
 
-    auto vertex = m_input->add_buffer(sizeof(quadVertices), MARS_MEMORY_TYPE_VERTEX);
+    auto vertex = builder.add_buffer(sizeof(quadVertices), MARS_MEMORY_TYPE_VERTEX);
     vertex->update(&quadVertices);
     vertex->copy_data(0);
 
-    m_input->load_input(vertex2::get_description());
+    builder.load_input(vertex2::get_description());
 
-    m_input->unbind();
+    m_input = builder.build();
 }
 
 void light_manager::draw_lights() {
@@ -100,5 +98,5 @@ void light_manager::destroy() {
         return;
 
     m_data.reset();
-    m_input->destroy();
+    m_input.reset();
 }

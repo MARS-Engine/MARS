@@ -42,7 +42,7 @@ namespace mars_graphics {
         mars_ref<shader> light_shader;
         mars_ref<pipeline> m_pipeline;
         std::shared_ptr<shader_data> m_data;
-        mars_ref<shader_input> m_input;
+        std::shared_ptr<shader_input> m_input;
         mars_ref<mars_graphics::graphics_engine> m_graphics;
 
         scene_lights scene;

@@ -3,4 +3,5 @@ target_sources(MARS PUBLIC
         buffer_builder.cpp
         framebuffer_builder.cpp
         shader_data_builder.cpp
-        render_pass_builder.cpp)
+        render_pass_builder.cpp
+        shader_input_builder.cpp)
