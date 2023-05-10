@@ -16,15 +16,16 @@ namespace mars_graphics {
         VkRect2D m_scissor;
 
         std::vector<VkDescriptorSet> m_descriptor_set;
+
+        void create() override;
     public:
         inline VkPipelineLayout raw_layout() { return m_pipeline_layout; }
 
         using pipeline::pipeline;
 
-        void bind() override;
+        ~v_pipeline();
 
-        void create() override;
-        void destroy() override;
+        void bind() override;
     };
 }
 

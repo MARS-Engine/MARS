@@ -156,7 +156,6 @@ void vulkan_backend::destroy() {
     delete m_renderer;
 
     m_shader_storage.lock()->clear();
-    m_pipeline_storage.lock()->clear();
 
     m_device->destroy();
     delete m_device;

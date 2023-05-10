@@ -14,12 +14,12 @@ void v_pipeline::bind() {
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
     VkViewport viewport{};
-    viewport.x = (float)m_viewport.position.x;
-    viewport.y = m_flip_y ? (float)(m_viewport.position.y + m_viewport.size.y) : (float)m_viewport.position.y;
-    viewport.width = (float) m_viewport.size.x;
-    viewport.height = m_flip_y ? -(float) m_viewport.size.y : (float)m_viewport.size.y;
-    viewport.minDepth = m_viewport.depth.x;
-    viewport.maxDepth = m_viewport.depth.y;
+    viewport.x = (float)m_data.viewport.position.x;
+    viewport.y = m_data.flip_y ? (float)(m_data.viewport.position.y + m_data.viewport.size.y) : (float)m_data.viewport.position.y;
+    viewport.width = (float) m_data.viewport.size.x;
+    viewport.height = m_data.flip_y ? -(float) m_data.viewport.size.y : (float)m_data.viewport.size.y;
+    viewport.minDepth = m_data.viewport.depth.x;
+    viewport.maxDepth = m_data.viewport.depth.y;
     vkCmdSetViewport(command_buffer, 0, 1, &viewport);
 
     vkCmdSetScissor(command_buffer, 0, 1, &m_scissor);
@@ -39,7 +39,7 @@ void v_pipeline::create() {
 
     VkPipelineInputAssemblyStateCreateInfo m_input_assembly = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-            .topology = MARS2VK(m_topology),
+            .topology = MARS2VK(m_data.topology),
             .primitiveRestartEnable = VK_FALSE
     };
 
@@ -95,16 +95,16 @@ void v_pipeline::create() {
 
     uint32_t binding_stride = 0;
 
-    for (auto i = 0; i < m_shader_input.length; i++) {
-        binding_stride += m_shader_input.input_data[i].stride * sizeof(float);
+    for (auto i = 0; i < m_data.shader_input.length; i++) {
+        binding_stride += m_data.shader_input.input_data[i].stride * sizeof(float);
 
         VkVertexInputAttributeDescription new_dec{
             .location = static_cast<uint32_t>(i),
             .binding = 0,
-            .offset = m_shader_input.input_data[i].offset,
+            .offset = m_data.shader_input.input_data[i].offset,
         };
 
-        switch (m_shader_input.input_data[i].type) {
+        switch (m_data.shader_input.input_data[i].type) {
             case MARS_SHADER_INPUT_TYPE_SF_RG:
                 new_dec.format = VK_FORMAT_R32G32_SFLOAT;
                 break;
@@ -136,17 +136,17 @@ void v_pipeline::create() {
     VkPipelineLayoutCreateInfo pipeline_layout_pipeline {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = 1,
-        .pSetLayouts = &m_shader.cast_static<v_shader>()->raw_uniform_layout()
+        .pSetLayouts = &m_data.pipeline_shader.cast_static<v_shader>()->raw_uniform_layout()
     };
 
     if (vkCreatePipelineLayout(cast_graphics<vulkan_backend>()->device()->raw_device(), &pipeline_layout_pipeline, nullptr, &m_pipeline_layout) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Pipeline - Failed to create pipeline layout");
 
-    auto shaderStages = m_shader.cast_static<v_shader>()->get_stages();
+    auto shaderStages = m_data.pipeline_shader.cast_static<v_shader>()->get_stages();
 
     std::vector<VkPipelineColorBlendAttachmentState> m_blend_attachments;
 
-    for (auto& attachment : m_render_pass->get_attachments()) {
+    for (auto& attachment : m_data.pipeline_render_pass->get_attachments()) {
         if (attachment.layout == MARS_TEXTURE_LAYOUT_DEPTH_OPTIMAL)
             continue;
 
@@ -180,7 +180,7 @@ void v_pipeline::create() {
         .pColorBlendState = &blendInfo,
         .pDynamicState = &m_dynamic_state,
         .layout = m_pipeline_layout,
-        .renderPass = m_render_pass->cast<v_render_pass>()->raw_render_pass(),
+        .renderPass = m_data.pipeline_render_pass->cast<v_render_pass>()->raw_render_pass(),
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE
     };
@@ -189,7 +189,7 @@ void v_pipeline::create() {
         mars_debug::debug::error("MARS - Vulkan - Pipeline - Failed to create pipeline");
 }
 
-void v_pipeline::destroy() {
+v_pipeline::~v_pipeline() {
     vkDestroyPipeline(cast_graphics<vulkan_backend>()->device()->raw_device(), m_pipeline, nullptr);
     vkDestroyPipelineLayout(cast_graphics<vulkan_backend>()->device()->raw_device(), m_pipeline_layout, nullptr);
 }

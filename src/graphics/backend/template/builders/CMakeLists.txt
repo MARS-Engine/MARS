@@ -4,4 +4,5 @@ target_sources(MARS PUBLIC
         framebuffer_builder.cpp
         shader_data_builder.cpp
         render_pass_builder.cpp
-        shader_input_builder.cpp)
+        shader_input_builder.cpp
+        pipeline_builder.cpp)

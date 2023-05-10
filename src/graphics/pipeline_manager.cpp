@@ -15,34 +15,22 @@ mars_ref<pipeline> pipeline_manager::load_pipeline(const std::shared_ptr<mars_sh
 
     if (result != nullptr)
         return mars_ref<pipeline>(result);
-    result = prepare_pipeline(_input, _shader, _graphics, _render_pass).get().lock();
-    result->create();
-    return mars_ref<pipeline>(result);
-}
-
-mars_ref<pipeline> pipeline_manager::prepare_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_ref<mars_graphics::graphics_engine>& _graphics, const std::shared_ptr<render_pass>& _render_pass) {
-    auto id = std::make_pair(_input, _shader);
+    result = prepare_pipeline(_input, _shader, _graphics, _render_pass).build();
     m_pipelines.lock();
-    auto result = m_pipelines[id];
-
-    if (result != nullptr) {
-        m_pipelines.unlock();
-        return mars_ref<pipeline>(result);
-    }
-
-    result = _graphics->create<pipeline>().get().lock();
-    result->set_shader_input(*_input);
-    result->set_shader(_shader);
-    result->set_render_pass(_render_pass == nullptr ? _graphics->backend().lock()->get_renderer()->get_framebuffer("main_render")->get_render_pass() : _render_pass);
-
     m_pipelines[id] = result;
     m_pipelines.unlock();
     return mars_ref<pipeline>(result);
 }
 
+pipeline_builder pipeline_manager::prepare_pipeline(const std::shared_ptr<mars_shader_inputs>& _input, const mars_ref<shader>& _shader, const mars_ref<mars_graphics::graphics_engine>& _graphics, const std::shared_ptr<render_pass>& _render_pass) {
+    auto builder = _graphics->builder<pipeline_builder>();
+    builder.set_shader_input(*_input);
+    builder.set_shader(_shader);
+    builder.set_render_pass(_render_pass == nullptr ? _graphics->backend().lock()->get_renderer()->get_framebuffer("main_render")->get_render_pass() : _render_pass);
+    return builder;
+}
+
 void pipeline_manager::destroy() {
-    for (auto& pipe : m_pipelines)
-        pipe.second->destroy();
     m_pipelines.clear();
     m_input_map.clear();
 }

@@ -35,7 +35,8 @@ namespace mars_graphics {
         }
 
         template<typename T> inline void set_pipeline() {
-            m_pipeline = pipeline_manager::load_pipeline(pipeline_manager::get_input<T>(), m_shader, m_graphics);
+            auto val = pipeline_manager::load_pipeline(pipeline_manager::get_input<T>(), m_shader, m_graphics);
+            m_pipeline = val;
         }
 
         bool load_resource(const std::string &_path) override;

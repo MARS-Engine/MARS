@@ -25,11 +25,11 @@ void light_manager::load(const mars_ref<mars_graphics::graphics_engine>& _graphi
     if (!m_graphics->resources()->load_graphical_resource(m_graphics->resources()->find_path("light.mshader", MARS_RESOURCE_TYPE_SHADER, m_graphics->render_type()), light_shader, m_graphics))
         mars_debug::debug::error("MARS - Vulkan - Backend - Failed to find light shader");
 
-    m_pipeline = pipeline_manager::prepare_pipeline(pipeline_manager::get_input<vertex2>(), light_shader, m_graphics, m_graphics->backend().lock()->get_renderer()->get_framebuffer("light_render")->get_render_pass());
-    m_pipeline->set_viewport({ 0, 0 }, {1920, 1080 }, {0, 1 });
-    m_pipeline->set_flip_y(false);
-    m_pipeline->set_topology(MARS_TOPOLOGY_TRIANGLE_STRIP);
-    m_pipeline->create();
+    auto pipe_builder = pipeline_manager::prepare_pipeline(pipeline_manager::get_input<vertex2>(), light_shader, m_graphics, m_graphics->backend().lock()->get_renderer()->get_framebuffer("light_render")->get_render_pass());
+    pipe_builder.set_viewport({ 0, 0 }, {1920, 1080 }, {0, 1 });
+    pipe_builder.set_flip_y(false);
+    pipe_builder.set_topology(MARS_TOPOLOGY_TRIANGLE_STRIP);
+    m_pipeline = pipe_builder.build();
 
     std::map<std::string, std::shared_ptr<texture>> input_textures {
             {"gPosition",   m_graphics->backend().lock()->get_renderer()->get_framebuffer("main_render")->get_texture(0)},
@@ -37,7 +37,7 @@ void light_manager::load(const mars_ref<mars_graphics::graphics_engine>& _graphi
             {"gAlbedoSpec", m_graphics->backend().lock()->get_renderer()->get_framebuffer("main_render")->get_texture(2)}
     };
 
-    m_data = m_graphics->builder<shader_data_builder>().set_textures(input_textures).build(m_pipeline, light_shader);
+    m_data = m_graphics->builder<shader_data_builder>().set_textures(input_textures).build(mars_ref<pipeline>(m_pipeline), light_shader);
 
     auto builder = m_graphics->builder<shader_input_builder>();
 
