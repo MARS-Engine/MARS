@@ -2,7 +2,7 @@
 #define MARS_PIPELINE_BUILDER_
 
 #include <MARS/graphics/backend/template/graphics_types.hpp>
-#include "../graphics_builder.hpp"
+#include "graphics_builder.hpp"
 #include <MARS/memory/mars_ref.hpp>
 
 namespace mars_graphics {

@@ -5,4 +5,5 @@ target_sources(MARS PUBLIC
         shader_data_builder.cpp
         render_pass_builder.cpp
         shader_input_builder.cpp
-        pipeline_builder.cpp)
+        pipeline_builder.cpp
+        shader_builder.cpp)

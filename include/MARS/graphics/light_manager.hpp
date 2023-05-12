@@ -39,7 +39,7 @@ namespace mars_graphics {
         pl::safe_vector<point_light*> update_buffer;
         pl::safe_vector<point_light*> lights;
 
-        mars_ref<shader> light_shader;
+        std::shared_ptr<shader> light_shader;
         std::shared_ptr<pipeline> m_pipeline;
         std::shared_ptr<shader_data> m_data;
         std::shared_ptr<shader_input> m_input;

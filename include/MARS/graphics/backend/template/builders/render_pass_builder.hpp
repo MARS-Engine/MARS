@@ -3,7 +3,7 @@
 
 #include <MARS/memory/mars_ref.hpp>
 #include <MARS/graphics/backend/template/graphics_types.hpp>
-#include "../graphics_builder.hpp"
+#include "graphics_builder.hpp"
 #include <vector>
 
 namespace mars_graphics {

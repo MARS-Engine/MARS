@@ -14,7 +14,7 @@ namespace mars_graphics {
 
     class material : public mars_resources::resource_base {
     private:
-        mars_ref<shader> m_shader;
+        std::shared_ptr<shader> m_shader;
         mars_ref<pipeline> m_pipeline;
         std::map<std::string, std::shared_ptr<texture>> m_textures;
 
@@ -31,11 +31,11 @@ namespace mars_graphics {
         }
 
         [[nodiscard]] inline std::shared_ptr<shader_data> generate_shader_data() const {
-            return m_graphics->builder<shader_data_builder>().set_textures(m_textures).build(m_pipeline, m_shader);
+            return m_graphics->builder<shader_data_builder>().set_textures(m_textures).build(m_pipeline, mars_ref<shader>(m_shader));
         }
 
         template<typename T> inline void set_pipeline() {
-            auto val = pipeline_manager::load_pipeline(pipeline_manager::get_input<T>(), m_shader, m_graphics);
+            auto val = pipeline_manager::load_pipeline(pipeline_manager::get_input<T>(), mars_ref<shader>(m_shader), m_graphics);
             m_pipeline = val;
         }
 

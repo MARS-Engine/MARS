@@ -1,7 +1,7 @@
 #ifndef MARS_TEXTURE_
 #define MARS_TEXTURE_
 
-#include "graphics_builder.hpp"
+#include "MARS/graphics/backend/template/builders/graphics_builder.hpp"
 #include "graphics_component.hpp"
 #include "builders/texture_builder.hpp"
 #include <MARS/resources/resource_manager.hpp>

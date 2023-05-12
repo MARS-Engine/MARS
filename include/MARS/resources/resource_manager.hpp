@@ -132,7 +132,7 @@ namespace mars_resources {
          * @param _resource reference to resource pointer
          * @return true if successfully loads or finds cached or false otherwise
          */
-        template<typename T> bool load_resource(const std::string& _path, mars_ref<T>& _resource) {
+        template<typename T, typename ...Args> bool load_resource(const std::string& _path, mars_ref<T>& _resource, Args... args) {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base and resource_base");
 
             auto temp_resource = get_cached_resource<T>(_path);
@@ -142,7 +142,7 @@ namespace mars_resources {
                 return true;
             }
 
-            temp_resource = std::make_shared<T>();
+            temp_resource = std::make_shared<T>(args...);
             temp_resource->set_resources(mars_ref<resource_manager>(shared_from_this()));
             if (!temp_resource->load_resource(_path)) {
                 mars_debug::debug::alert("MARS RESOURCES - Failed to load resource -" + _path);

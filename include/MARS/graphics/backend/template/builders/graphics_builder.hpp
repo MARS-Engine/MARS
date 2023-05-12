@@ -2,7 +2,7 @@
 #define MARS_GRAPHICS_BUILDER_
 
 #include <memory>
-#include <MARS/debug/debug.hpp>
+#include "MARS/debug/debug.hpp"
 
 namespace mars_graphics {
     class graphics_component;

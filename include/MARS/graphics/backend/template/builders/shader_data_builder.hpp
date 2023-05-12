@@ -2,7 +2,7 @@
 #define MARS_SHADER_DATA_BUILDER_
 
 #include <MARS/graphics/backend/template/graphics_types.hpp>
-#include "../graphics_builder.hpp"
+#include "graphics_builder.hpp"
 #include <map>
 #include <MARS/memory/mars_ref.hpp>
 

@@ -49,12 +49,9 @@ void v_shader::generate_shader(MARS_SHADER_TYPE _type, const std::string& _data)
 
 }
 
-bool v_shader::load_resource(const std::string &_path) {
-    if (!load_shader_file(_path, ".spv"))
-        return false;
-
-
-    for (auto& m : m_modules) {
+bool v_shader::load_shader(const mars_ref<mars_graphics::shader_resource>& _resource) {
+    m_data = _resource;
+    for (auto& m : m_data->data().modules) {
         switch (m.first) {
             case MARS_SHADER_TYPE_VERTEX:
             case MARS_SHADER_TYPE_FRAGMENT:
@@ -65,7 +62,7 @@ bool v_shader::load_resource(const std::string &_path) {
 
     std::vector<VkDescriptorSetLayoutBinding> m_descriptors;
 
-    for (auto & m_uniform : m_uniforms) {
+    for (auto & m_uniform : m_data->data().uniforms) {
         VkDescriptorSetLayoutBinding new_desc = {
                 .binding = static_cast<uint32_t>(m_uniform->binding),
                 .descriptorCount = 1,
@@ -105,9 +102,7 @@ bool v_shader::load_resource(const std::string &_path) {
     return true;
 }
 
-void v_shader::clean() {
-    shader::clean();
-
+v_shader::~v_shader() {
     vkDestroyDescriptorSetLayout(cast_graphics<vulkan_backend>()->device()->raw_device(), m_uniform_layout, nullptr);
 
     for (auto& mod : m_v_modules)

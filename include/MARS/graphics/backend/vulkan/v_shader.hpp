@@ -18,7 +18,12 @@ namespace mars_graphics {
         std::vector<VkDescriptorPoolSize> m_pool_descriptors;
 
         void generate_shader(MARS_SHADER_TYPE _type, const std::string& _data) override;
+
+        bool load_shader(const mars_ref<mars_graphics::shader_resource> &_resource) override;
+
+        std::string get_suffix() override { return ".spv"; }
     public:
+
         std::vector<VkPipelineShaderStageCreateInfo> get_stages();
 
         inline std::vector<VkDescriptorPoolSize>& get_pool_descriptors() { return m_pool_descriptors; }
@@ -27,9 +32,7 @@ namespace mars_graphics {
 
         using shader::shader;
 
-        bool load_resource(const std::string& _path) override;
-
-        void clean() override;
+        ~v_shader();
     };
 }
 

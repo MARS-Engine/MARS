@@ -30,10 +30,6 @@ namespace mars_graphics {
         v_sync* m_sync = nullptr;
 
     protected:
-        mars_ref<shader> generate_shader() override {
-            return mars_ref<shader>(m_shader_storage.lock()->emplace_back(std::make_shared<v_shader>(shared_from_this())));
-        }
-
         texture_builder texture_build() override { return texture_builder{ std::make_shared<v_texture>(shared_from_this()) }; }
         buffer_builder buffer_build() override { return buffer_builder{ std::make_shared<v_buffer>(shared_from_this()) }; }
         framebuffer_builder framebuffer_build() override { return framebuffer_builder{ std::make_shared<v_framebuffer>(shared_from_this()) }; }
@@ -41,6 +37,7 @@ namespace mars_graphics {
         render_pass_builder render_pass_build() override { return render_pass_builder{ std::make_shared<v_render_pass>(shared_from_this()) }; }
         shader_input_builder shader_input_build() override { return shader_input_builder{ std::make_shared<v_shader_input>(shared_from_this()) }; }
         pipeline_builder pipeline_build() override { return pipeline_builder{ std::make_shared<v_pipeline>(shared_from_this()) }; }
+        shader_builder shader_build() override { return shader_builder{ std::make_shared<v_shader>(shared_from_this()) }; }
     public:
         [[nodiscard]] inline v_instance* instance() const { return m_vulkan_instance; }
         [[nodiscard]] inline v_window* get_vulkan_window() const { return dynamic_cast<v_window*>(get_window()); }

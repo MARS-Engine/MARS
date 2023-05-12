@@ -2,7 +2,7 @@
 #define MARS_BUFFER_BUILDER_
 
 #include <MARS/graphics/backend/template/graphics_types.hpp>
-#include "../graphics_builder.hpp"
+#include "graphics_builder.hpp"
 
 namespace mars_graphics {
     class buffer;
