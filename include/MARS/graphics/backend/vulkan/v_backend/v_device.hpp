@@ -1,8 +1,9 @@
 #ifndef MARS_V_DEVICE_
 #define MARS_V_DEVICE_
 
-#include "v_base.hpp"
+#include <MARS/graphics/backend/template/device.hpp>
 #include <optional>
+#include <vulkan/vulkan.h>
 
 namespace mars_graphics {
 
@@ -21,7 +22,7 @@ namespace mars_graphics {
         }
     };
 
-    class v_device : public v_base {
+    class v_device : public device {
     private:
         std::optional<queue_family_indices> m_indices;
 
@@ -34,7 +35,18 @@ namespace mars_graphics {
 
         bool check_device_extension_support();
 
+        std::vector<std::shared_ptr<device>> find_devices() override;
+
+        void create() override;
+
+        inline void set_physical(VkPhysicalDevice _physical_device) {
+            m_physical_device = _physical_device;
+        }
     public:
+        using device::device;
+
+        ~v_device();
+
         bool is_device_suitable();
 
         [[nodiscard]] inline VkQueue raw_graphics_queue() const { return m_graphics_queue; }
@@ -47,17 +59,6 @@ namespace mars_graphics {
         swapchain_support_details query_swap_chain_support();
 
         uint32_t find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-
-        v_device(vulkan_backend* _instance, VkPhysicalDevice _physical_device) : v_base(_instance) {
-            m_physical_device = _physical_device;
-        }
-
-        void create();
-
-        inline void destroy()  {
-            if (m_device != nullptr)
-                vkDestroyDevice(m_device, nullptr);
-        }
     };
 }
 

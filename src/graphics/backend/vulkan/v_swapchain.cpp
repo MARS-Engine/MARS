@@ -38,7 +38,7 @@ VkExtent2D v_swapchain::choose_swap_extent(const VkSurfaceCapabilitiesKHR& capab
 }
 
 void v_swapchain::create() {
-    auto swapchain_support = cast_graphics<vulkan_backend>()->device()->query_swap_chain_support();
+    auto swapchain_support = cast_graphics<vulkan_backend>()->get_device()->query_swap_chain_support();
 
     VkSurfaceFormatKHR surface_format = choose_swap_surface_format(swapchain_support.formats);
     VkPresentModeKHR present_mode = choose_swap_present_mode(swapchain_support.present_modes);
@@ -64,7 +64,7 @@ void v_swapchain::create() {
         .oldSwapchain = VK_NULL_HANDLE
     };
 
-    auto indices = cast_graphics<vulkan_backend>()->device()->family_indices();
+    auto indices = cast_graphics<vulkan_backend>()->get_device()->family_indices();
     uint32_t queueFamilyIndices[] = {indices.graphics_family.value(), indices.present_family.value()};
 
     if (indices.graphics_family != indices.present_family) {
@@ -75,12 +75,12 @@ void v_swapchain::create() {
     else
         swap_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateSwapchainKHR(cast_graphics<vulkan_backend>()->device()->raw_device(), &swap_create_info, nullptr, &m_swapchain))
+    if (vkCreateSwapchainKHR(cast_graphics<vulkan_backend>()->get_device()->raw_device(), &swap_create_info, nullptr, &m_swapchain))
         mars_debug::debug::error("MARS - Vulkan - Failed to create v_swapchain");
 
-    vkGetSwapchainImagesKHR(cast_graphics<vulkan_backend>()->device()->raw_device(), m_swapchain, &image_count, nullptr);
+    vkGetSwapchainImagesKHR(cast_graphics<vulkan_backend>()->get_device()->raw_device(), m_swapchain, &image_count, nullptr);
     m_swapchain_images.resize(image_count);
-    vkGetSwapchainImagesKHR(cast_graphics<vulkan_backend>()->device()->raw_device(), m_swapchain, &image_count, m_swapchain_images.data());
+    vkGetSwapchainImagesKHR(cast_graphics<vulkan_backend>()->get_device()->raw_device(), m_swapchain, &image_count, m_swapchain_images.data());
 
     m_swapchain_image_format = surface_format.format;
     m_swapchain_extent = extent;
@@ -109,13 +109,13 @@ void v_swapchain::create() {
             }
         };
 
-        if (vkCreateImageView(cast_graphics<vulkan_backend>()->device()->raw_device(), &view_create_info, nullptr, &m_swapchain_image_views[i]))
+        if (vkCreateImageView(cast_graphics<vulkan_backend>()->get_device()->raw_device(), &view_create_info, nullptr, &m_swapchain_image_views[i]))
             mars_debug::debug::error("MARS - Vulkan - Failed to create image views");
     }
 }
 
 void v_swapchain::destroy() {
     for (auto image_view : m_swapchain_image_views)
-        vkDestroyImageView(cast_graphics<vulkan_backend>()->device()->raw_device(), image_view, nullptr);
-    vkDestroySwapchainKHR(cast_graphics<vulkan_backend>()->device()->raw_device(), m_swapchain, nullptr);
+        vkDestroyImageView(cast_graphics<vulkan_backend>()->get_device()->raw_device(), image_view, nullptr);
+    vkDestroySwapchainKHR(cast_graphics<vulkan_backend>()->get_device()->raw_device(), m_swapchain, nullptr);
 }

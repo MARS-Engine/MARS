@@ -7,7 +7,7 @@ using namespace mars_graphics;
 VkFormat v_depth::find_supported_format(const std::vector<VkFormat>& _candidates, VkImageTiling _tiling, VkFormatFeatureFlags _features) {
     for (VkFormat format : _candidates) {
         VkFormatProperties props;
-        vkGetPhysicalDeviceFormatProperties(graphics()->device()->raw_physical_device(), format, &props);
+        vkGetPhysicalDeviceFormatProperties(graphics()->get_device()->raw_physical_device(), format, &props);
 
         if ((_tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & _features) == _features) || (_tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & _features) == _features))
             return format;

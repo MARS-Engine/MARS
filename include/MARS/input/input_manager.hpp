@@ -36,9 +36,9 @@ namespace mars_input {
 
     class input_manager {
     private:
-        static pl::safe_map<mars_graphics::window*, input*> m_window_input;
+        static pl::safe_map<std::shared_ptr<mars_graphics::window>, input*> m_window_input;
     public:
-        static inline input* create_input(mars_graphics::window* _window) {
+        static inline input* create_input(const std::shared_ptr<mars_graphics::window>& _window) {
             auto new_input = new input();
             m_window_input.lock();
             m_window_input.insert(std::make_pair(_window, new_input));
@@ -46,7 +46,7 @@ namespace mars_input {
             return new_input;
         }
 
-        static inline input* get_input(mars_graphics::window* _window) { return m_window_input[_window]; }
+        static inline input* get_input(std::shared_ptr<mars_graphics::window> _window) { return m_window_input[_window]; }
 
         static inline void clean() {
             for (auto& pair : m_window_input)

@@ -49,7 +49,7 @@ void renderer::create(const std::string& _path) {
                         m_framebuffers[frame_name].frame = frame_builder.build(graphics()->get_swapchain());
                     }
                     else {
-                        frame_builder.set_size(graphics()->get_window()->size());
+                        frame_builder.set_size({ static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y) });
                         m_framebuffers[frame_name].frame = frame_builder.build(m_framebuffers[frame_name].buffers);
                     }
                 }
@@ -60,7 +60,7 @@ void renderer::create(const std::string& _path) {
 
                 m_framebuffers[frame_name] = {};
                 frame_builder = graphics()->builder<framebuffer_builder>();
-                frame_builder.set_size(size);
+                frame_builder.set_size({ static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y) });
 
                 if (i++ != 0)
                     frame_builder.set_load_previous(true);
@@ -90,7 +90,8 @@ void renderer::create(const std::string& _path) {
         m_framebuffers[frame_name].frame = frame_builder.build(graphics()->get_swapchain());
     }
     else {
-        frame_builder.set_size(graphics()->get_window()->size());
+        auto size = graphics()->get_window()->size();
+        frame_builder.set_size({ static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y) });
         m_framebuffers[frame_name].frame = frame_builder.build(m_framebuffers[frame_name].buffers);
     }
 }

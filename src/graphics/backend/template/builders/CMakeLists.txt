@@ -6,4 +6,6 @@ target_sources(MARS PUBLIC
         render_pass_builder.cpp
         shader_input_builder.cpp
         pipeline_builder.cpp
-        shader_builder.cpp)
+        shader_builder.cpp
+        device_builder.cpp
+        window_builder.cpp)

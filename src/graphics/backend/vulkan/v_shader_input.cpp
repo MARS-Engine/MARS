@@ -1,5 +1,6 @@
 #include <MARS/graphics/backend/vulkan/v_shader_input.hpp>
 #include <MARS/graphics/backend/vulkan/v_backend/v_device.hpp>
+#include <MARS/graphics/backend/vulkan/vulkan_backend.hpp>
 
 using namespace mars_graphics;
 

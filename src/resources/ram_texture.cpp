@@ -12,7 +12,7 @@ bool ram_texture::load_resource(const std::string& _path) {
     if (m_data == nullptr)
         mars_debug::debug::error("MARS - RAM Texture - Failed to load image " + m_path);
 
-    m_size = mars_math::vector2(static_cast<size_t>(width), static_cast<size_t>(height));
+    m_size = mars_math::vector2(width, height);
     return true;
 }
 

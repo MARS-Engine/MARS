@@ -12,12 +12,12 @@ namespace mars_graphics {
     public:
         using v_base::v_base;
 
-        inline VkCommandPool raw_command_pool() const { return m_command_pool; }
+        [[nodiscard]] inline VkCommandPool raw_command_pool() const { return m_command_pool; }
 
         void create();
 
         inline void destroy() {
-            vkDestroyCommandPool(graphics()->device()->raw_device(), m_command_pool, nullptr);
+            vkDestroyCommandPool(graphics()->get_device()->raw_device(), m_command_pool, nullptr);
         }
     };
 }

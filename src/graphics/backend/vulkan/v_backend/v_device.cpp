@@ -19,7 +19,7 @@ queue_family_indices v_device::find_queue_families() {
 
 
         VkBool32 present_support = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(m_physical_device, i, graphics()->get_vulkan_window()->raw_surface(), &present_support);
+        vkGetPhysicalDeviceSurfaceSupportKHR(m_physical_device, i, cast_graphics<vulkan_backend>()->get_vulkan_window()->raw_surface(), &present_support);
 
         if (present_support)
             indices.present_family = i;
@@ -38,7 +38,7 @@ bool v_device::check_device_extension_support() {
     std::vector<VkExtensionProperties> available_extensions(extension_count);
     vkEnumerateDeviceExtensionProperties(m_physical_device, nullptr, &extension_count, available_extensions.data());
 
-    std::set<std::string> requiredExtensions(graphics()->instance()->device_extensions.begin(), graphics()->instance()->device_extensions.end());
+    std::set<std::string> requiredExtensions(cast_graphics<vulkan_backend>()->instance()->device_extensions.begin(), cast_graphics<vulkan_backend>()->instance()->device_extensions.end());
 
     for (const auto& extension : available_extensions)
         requiredExtensions.erase(extension.extensionName);
@@ -49,7 +49,7 @@ bool v_device::check_device_extension_support() {
 swapchain_support_details v_device::query_swap_chain_support() {
     swapchain_support_details details;
 
-    auto surface = graphics()->get_vulkan_window()->raw_surface();
+    auto surface = cast_graphics<vulkan_backend>()->get_vulkan_window()->raw_surface();
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physical_device, surface, &details.capabilities);
 
@@ -102,6 +102,29 @@ uint32_t v_device::find_memory_type(uint32_t typeFilter, VkMemoryPropertyFlags p
     mars_debug::debug::error("MARS - Vulkan - Device - Failed to find suitable memory type");
 }
 
+std::vector<std::shared_ptr<device>> v_device::find_devices() {
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(cast_graphics<vulkan_backend>()->instance()->raw_instance(), &deviceCount, nullptr);
+
+    if (deviceCount == 0)
+        mars_debug::debug::error("MARS - Vulkan - Failed to find GPU with Vulkan support");
+
+    std::vector<VkPhysicalDevice> vulkan_devices(deviceCount);
+    vkEnumeratePhysicalDevices(cast_graphics<vulkan_backend>()->instance()->raw_instance(), &deviceCount, vulkan_devices.data());
+
+    std::vector<std::shared_ptr<device>> valid_devices;
+
+    for (const auto& physical_device : vulkan_devices) {
+        auto new_device = std::make_shared<v_device>(graphics());
+        new_device->set_physical(physical_device);
+
+        if (new_device->is_device_suitable())
+            valid_devices.push_back(new_device);
+    }
+
+    return valid_devices;
+}
+
 void v_device::create() {
     if (!m_indices.has_value())
         m_indices = find_queue_families();
@@ -127,14 +150,14 @@ void v_device::create() {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size()),
         .pQueueCreateInfos = queue_create_infos.data(),
-        .enabledExtensionCount = static_cast<uint32_t>(graphics()->instance()->device_extensions.size()),
-        .ppEnabledExtensionNames = graphics()->instance()->device_extensions.data(),
+        .enabledExtensionCount = static_cast<uint32_t>(cast_graphics<vulkan_backend>()->instance()->device_extensions.size()),
+        .ppEnabledExtensionNames = cast_graphics<vulkan_backend>()->instance()->device_extensions.data(),
         .pEnabledFeatures = &device_features
     };
 
     if (graphics()->enable_validation_layer()) {
-        create_info.enabledLayerCount = static_cast<uint32_t>(graphics()->instance()->validation_layers.size());
-        create_info.ppEnabledLayerNames = graphics()->instance()->validation_layers.data();
+        create_info.enabledLayerCount = static_cast<uint32_t>(cast_graphics<vulkan_backend>()->instance()->validation_layers.size());
+        create_info.ppEnabledLayerNames = cast_graphics<vulkan_backend>()->instance()->validation_layers.data();
     }
     else
         create_info.enabledLayerCount = 0;
@@ -145,3 +168,8 @@ void v_device::create() {
     vkGetDeviceQueue(m_device, m_indices.value().graphics_family.value(), 0, &m_graphics_queue);
     vkGetDeviceQueue(m_device, m_indices.value().present_family.value(), 0, &m_present_queue);
 }
+
+v_device::~v_device() {
+    if (m_device != nullptr)
+        vkDestroyDevice(m_device, nullptr);
+};

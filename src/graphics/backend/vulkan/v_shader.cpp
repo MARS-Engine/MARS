@@ -42,7 +42,7 @@ void v_shader::generate_shader(MARS_SHADER_TYPE _type, const std::string& _data)
     };
 
     VkShaderModule shader_module;
-    if (vkCreateShaderModule(cast_graphics<vulkan_backend>()->device()->raw_device(), &shader_create_info, nullptr, &shader_module) != VK_SUCCESS)
+    if (vkCreateShaderModule(cast_graphics<vulkan_backend>()->get_device()->raw_device(), &shader_create_info, nullptr, &shader_module) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Shader - Failed to create shader module");
     else
         m_v_modules.insert(std::pair<MARS_SHADER_TYPE, VkShaderModule>(_type, shader_module));
@@ -96,15 +96,15 @@ bool v_shader::load_shader(const mars_ref<mars_graphics::shader_resource>& _reso
         .pBindings = m_descriptors.data(),
     };
 
-    if (vkCreateDescriptorSetLayout(cast_graphics<vulkan_backend>()->device()->raw_device(), &layoutInfo, nullptr, &m_uniform_layout) != VK_SUCCESS)
+    if (vkCreateDescriptorSetLayout(cast_graphics<vulkan_backend>()->get_device()->raw_device(), &layoutInfo, nullptr, &m_uniform_layout) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Shader - Failed to create descriptor set layout!");
 
     return true;
 }
 
 v_shader::~v_shader() {
-    vkDestroyDescriptorSetLayout(cast_graphics<vulkan_backend>()->device()->raw_device(), m_uniform_layout, nullptr);
+    vkDestroyDescriptorSetLayout(cast_graphics<vulkan_backend>()->get_device()->raw_device(), m_uniform_layout, nullptr);
 
     for (auto& mod : m_v_modules)
-        vkDestroyShaderModule(cast_graphics<vulkan_backend>()->device()->raw_device(), mod.second, nullptr);
+        vkDestroyShaderModule(cast_graphics<vulkan_backend>()->get_device()->raw_device(), mod.second, nullptr);
 }

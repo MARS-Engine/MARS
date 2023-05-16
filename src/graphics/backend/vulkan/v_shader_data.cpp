@@ -1,7 +1,7 @@
 #include <MARS/graphics/backend/vulkan/v_shader_data.hpp>
 #include <MARS/graphics/backend/vulkan/v_texture.hpp>
 #include <MARS/graphics/backend/vulkan/v_shader.hpp>
-#include <MARS/graphics/backend/vulkan/v_backend/v_device.hpp>
+#include <MARS/graphics/backend/vulkan/vulkan_backend.hpp>
 #include <MARS/graphics/backend/vulkan/v_type_helper.hpp>
 
 using namespace mars_graphics;
@@ -23,7 +23,7 @@ void v_shader_data::generate(const mars_ref<pipeline>& _pipeline, const mars_ref
     };
 
 
-    auto r = vkCreateDescriptorPool(cast_graphics<vulkan_backend>()->device()->raw_device(), &poolInfo, nullptr, &m_descriptor_pool);
+    auto r = vkCreateDescriptorPool(cast_graphics<vulkan_backend>()->get_device()->raw_device(), &poolInfo, nullptr, &m_descriptor_pool);
     if (r != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Shader - Failed to create descriptor pool");
 
@@ -37,7 +37,7 @@ void v_shader_data::generate(const mars_ref<pipeline>& _pipeline, const mars_ref
     };
 
     m_descriptor_sets.resize(graphics()->max_frames());
-    if (vkAllocateDescriptorSets(cast_graphics<vulkan_backend>()->device()->raw_device(), &allocInfo, m_descriptor_sets.data()) != VK_SUCCESS)
+    if (vkAllocateDescriptorSets(cast_graphics<vulkan_backend>()->get_device()->raw_device(), &allocInfo, m_descriptor_sets.data()) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Shader Data - Failed to allocate descriptor sets!");
 
     auto uniforms = _shader->get_uniforms();
@@ -106,12 +106,12 @@ void v_shader_data::generate(const mars_ref<pipeline>& _pipeline, const mars_ref
             });
         }
 
-        vkUpdateDescriptorSets(cast_graphics<vulkan_backend>()->device()->raw_device(), static_cast<uint32_t>(descriptors.size()), descriptors.data(), 0, nullptr);
+        vkUpdateDescriptorSets(cast_graphics<vulkan_backend>()->get_device()->raw_device(), static_cast<uint32_t>(descriptors.size()), descriptors.data(), 0, nullptr);
     }
 }
 
 v_shader_data::~v_shader_data() {
-    vkDestroyDescriptorPool(cast_graphics<vulkan_backend>()->device()->raw_device(), m_descriptor_pool, nullptr);
+    vkDestroyDescriptorPool(cast_graphics<vulkan_backend>()->get_device()->raw_device(), m_descriptor_pool, nullptr);
 
     for (auto& uni : m_uniforms)
         uni.second->destroy();

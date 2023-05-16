@@ -3,7 +3,6 @@
 #include <MARS/graphics/backend/vulkan/v_render_pass.hpp>
 #include <MARS/graphics/backend/vulkan/v_command_buffer.hpp>
 #include <MARS/graphics/backend/vulkan/v_backend/v_instance.hpp>
-#include <MARS/graphics/backend/vulkan/v_backend/v_device_manager.hpp>
 #include "MARS/graphics/backend/vulkan/v_swapchain.hpp"
 #include <MARS/graphics/backend/vulkan/v_backend/v_sync.hpp>
 #include "MARS/graphics/backend/vulkan/v_framebuffer.hpp"
@@ -22,7 +21,7 @@ VkCommandBuffer vulkan_backend::get_single_time_command() {
     allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(device()->raw_device(), &allocInfo, &commandBuffer);
+    vkAllocateCommandBuffers(get_device()->raw_device(), &allocInfo, &commandBuffer);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -41,28 +40,22 @@ void vulkan_backend::end_single_time_command(VkCommandBuffer _command) {
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &_command;
 
-    vkQueueSubmit(device()->raw_graphics_queue(), 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(device()->raw_graphics_queue());
-    vkFreeCommandBuffers(device()->raw_device(), command_pool()->raw_command_pool(), 1, &_command);
+    vkQueueSubmit(get_device()->raw_graphics_queue(), 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(get_device()->raw_graphics_queue());
+    vkFreeCommandBuffers(get_device()->raw_device(), command_pool()->raw_command_pool(), 1, &_command);
 }
 
-void vulkan_backend::create_with_window(const std::string &_title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) {
-    raw_window = new v_window();
-    raw_window->initialize(_title, _size);
-    raw_window->create();
+void vulkan_backend::create_with_window(const std::string &_title, const mars_math::vector2<int>& _size, const std::string& _renderer) {
+    auto win_builder = window_builder(std::make_shared<v_window>(shared_from_this()));
+    win_builder.set_size(_size).set_title(_title).set_flag(SDL_WINDOW_VULKAN).enable_keyboard().set_mouse(MARS_MOUSE_MODE_UNLOCKED);
+    raw_window = win_builder.build();
 
     m_vulkan_instance = new v_instance(this);
     m_vulkan_instance->create();
 
     get_vulkan_window()->create_surface(m_vulkan_instance);
 
-    auto devices = get_vulkan_devices(this);
-
-    if (devices.empty())
-        mars_debug::debug::error("MARS - Vulkan - Device manager didn't return any device");
-
-    m_device = devices[0];
-    m_device->create();
+    m_device = builder<device_builder>().build();
 
     m_swapchain = new v_swapchain(shared_from_this());
     m_swapchain->create();
@@ -90,8 +83,8 @@ void vulkan_backend::update() {
 
 void vulkan_backend::prepare_render() {
     m_sync->wait();
-    vkAcquireNextImageKHR(device()->raw_device(), swapchain()->raw_swapchain(), UINT64_MAX, sync()->image_available(), VK_NULL_HANDLE, &m_index);
-    vkResetFences(device()->raw_device(), 1, &sync()->inflight_fence());
+    vkAcquireNextImageKHR(get_device()->raw_device(), swapchain()->raw_swapchain(), UINT64_MAX, sync()->image_available(), VK_NULL_HANDLE, &m_index);
+    vkResetFences(get_device()->raw_device(), 1, &sync()->inflight_fence());
 
     m_primary_buffer->reset();
     m_primary_buffer->begin();
@@ -116,7 +109,7 @@ void vulkan_backend::draw() {
         .pSignalSemaphores = &sync()->render_finished(),
     };
 
-    if (vkQueueSubmit(device()->raw_graphics_queue(), 1, &submit_Info, sync()->inflight_fence()) != VK_SUCCESS)
+    if (vkQueueSubmit(get_device()->raw_graphics_queue(), 1, &submit_Info, sync()->inflight_fence()) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Backend Instance - Failed to submit draw command buffer");
 
     VkPresentInfoKHR presentInfo {
@@ -128,7 +121,7 @@ void vulkan_backend::draw() {
         .pImageIndices = &m_index,
     };
 
-    auto res = vkQueuePresentKHR(device()->raw_present_queue(), &presentInfo);
+    auto res = vkQueuePresentKHR(get_device()->raw_present_queue(), &presentInfo);
     if (res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) //temp ignore suboptimal
         mars_debug::debug::error("MARS - Present Failed");
 
@@ -155,17 +148,14 @@ void vulkan_backend::destroy() {
     instance_renderer()->destroy();
     delete m_renderer;
 
-    m_device->destroy();
-    delete m_device;
+    m_device.reset();
 
-    ((v_window*)raw_window)->destroy_surface();
+    raw_window.reset();
+
     m_vulkan_instance->destroy();
     delete m_vulkan_instance;
-
-    raw_window->destroy();
-    delete raw_window;
 }
 
 void vulkan_backend::wait_idle() {
-    vkDeviceWaitIdle(m_device->raw_device());
+    vkDeviceWaitIdle(get_device()->raw_device());
 }

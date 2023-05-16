@@ -18,21 +18,21 @@ void v_sync::create() {
     };
 
     for (size_t i = 0; i < m_image_available.size(); i++) {
-        if (vkCreateSemaphore(graphics()->device()->raw_device(), &semaphore_info, nullptr, &m_image_available[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(graphics()->device()->raw_device(), &semaphore_info, nullptr, &m_render_finished[i]) != VK_SUCCESS ||
-            vkCreateFence(graphics()->device()->raw_device(), &fence_info, nullptr, &m_inflight_fence[i]) != VK_SUCCESS)
+        if (vkCreateSemaphore(graphics()->get_device()->raw_device(), &semaphore_info, nullptr, &m_image_available[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(graphics()->get_device()->raw_device(), &semaphore_info, nullptr, &m_render_finished[i]) != VK_SUCCESS ||
+            vkCreateFence(graphics()->get_device()->raw_device(), &fence_info, nullptr, &m_inflight_fence[i]) != VK_SUCCESS)
             mars_debug::debug::error("MARS - Vulkan - Failed to create semaphores");
     }
 }
 
 void v_sync::wait() {
-    vkWaitForFences(graphics()->device()->raw_device(), 1, &m_inflight_fence[graphics()->current_frame()], VK_TRUE, UINT64_MAX);
+    vkWaitForFences(graphics()->get_device()->raw_device(), 1, &m_inflight_fence[graphics()->current_frame()], VK_TRUE, UINT64_MAX);
 }
 
 void v_sync::destroy() {
     for (size_t i = 0; i < m_image_available.size(); i++) {
-        vkDestroySemaphore(graphics()->device()->raw_device(), m_image_available[i], nullptr);
-        vkDestroySemaphore(graphics()->device()->raw_device(), m_render_finished[i], nullptr);
-        vkDestroyFence(graphics()->device()->raw_device(), m_inflight_fence[i], nullptr);
+        vkDestroySemaphore(graphics()->get_device()->raw_device(), m_image_available[i], nullptr);
+        vkDestroySemaphore(graphics()->get_device()->raw_device(), m_render_finished[i], nullptr);
+        vkDestroyFence(graphics()->get_device()->raw_device(), m_inflight_fence[i], nullptr);
     }
 }

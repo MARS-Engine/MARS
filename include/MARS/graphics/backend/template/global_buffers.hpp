@@ -2,6 +2,7 @@
 #define MARS_GLOBAL_BUFFERS_
 
 #include "buffer.hpp"
+#include <pl/safe_map.hpp>
 
 namespace mars_graphics {
 

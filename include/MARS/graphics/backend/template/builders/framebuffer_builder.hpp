@@ -11,7 +11,7 @@ namespace mars_graphics {
     class texture;
 
     struct framebuffer_data {
-        mars_math::vector2<size_t> size;
+        mars_math::vector2<uint32_t> size;
         bool depth_enabled = false;
         bool load_previous = false;
     };
@@ -24,7 +24,7 @@ namespace mars_graphics {
 
         using graphics_builder::graphics_builder;
 
-        inline framebuffer_builder& set_size(const mars_math::vector2<size_t>& _size) {
+        inline framebuffer_builder& set_size(const mars_math::vector2<uint32_t>& _size) {
             m_data.size = _size;
             return *this;
         }

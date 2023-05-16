@@ -8,7 +8,7 @@
 using namespace mars_graphics;
 
 v_render_pass::~v_render_pass() {
-    vkDestroyRenderPass(cast_graphics<vulkan_backend>()->device()->raw_device(), m_render_pass, nullptr);
+    vkDestroyRenderPass(cast_graphics<vulkan_backend>()->get_device()->raw_device(), m_render_pass, nullptr);
 }
 
 void v_render_pass::begin() {
@@ -164,6 +164,6 @@ void v_render_pass::create() {
         .pDependencies = dependecies.data(),
     };
 
-    if (vkCreateRenderPass(v_instance->device()->raw_device(), &render_pass_info, nullptr, &m_render_pass) != VK_SUCCESS)
+    if (vkCreateRenderPass(v_instance->get_device()->raw_device(), &render_pass_info, nullptr, &m_render_pass) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Render Pass - Vulkan - Failed to create a render pass");
 }

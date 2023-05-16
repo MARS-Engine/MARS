@@ -22,7 +22,7 @@ namespace mars_graphics {
 
         [[nodiscard]] inline MARS_FORMAT format() const { return m_data.format; }
         [[nodiscard]] inline MARS_TEXTURE_LAYOUT layout() const { return m_data.layout; }
-        [[nodiscard]] mars_math::vector2<size_t> size() const { return m_data.size; }
+        [[nodiscard]] mars_math::vector2<int> size() const { return m_data.size; }
 
         virtual void copy_buffer_to_image(const std::shared_ptr<buffer>& _buffer, const mars_math::vector4<uint32_t>& _rect) { }
         virtual void load_from_file(const std::string& _path) { }

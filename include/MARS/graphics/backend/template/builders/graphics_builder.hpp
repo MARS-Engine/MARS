@@ -13,6 +13,10 @@ namespace mars_graphics {
         bool built = false;
     public:
         graphics_builder() = delete;
+        graphics_builder(const graphics_builder& _copy) = delete;
+        graphics_builder(graphics_builder&& _move) noexcept = default;
+        graphics_builder& operator=(const graphics_builder& _copy) = delete;
+        graphics_builder& operator=(graphics_builder&& _move) noexcept = default;
 
         explicit graphics_builder(const std::shared_ptr<T>& _ptr) {
             m_ref = _ptr;

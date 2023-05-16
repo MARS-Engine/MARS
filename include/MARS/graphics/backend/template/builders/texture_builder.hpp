@@ -9,7 +9,7 @@ namespace mars_graphics {
     class buffer;
 
     struct texture_data {
-        mars_math::vector2<size_t> size;
+        mars_math::vector2<int> size;
         MARS_FORMAT format;
         MARS_TEXTURE_USAGE usage;
         MARS_TEXTURE_LAYOUT layout = MARS_TEXTURE_LAYOUT_READONLY;
@@ -25,7 +25,7 @@ namespace mars_graphics {
 
         using graphics_builder::graphics_builder;
 
-        texture_builder& set_size(const mars_math::vector2<size_t>& _size) {
+        texture_builder& set_size(const mars_math::vector2<int>& _size) {
             m_data.size = _size;
             return *this;
         }

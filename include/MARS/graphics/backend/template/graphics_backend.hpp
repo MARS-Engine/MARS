@@ -3,7 +3,6 @@
 
 #include <MARS/memory/mars_ref.hpp>
 #include <MARS/debug/debug.hpp>
-#include "window.hpp"
 #include <pl/safe_deque.hpp>
 
 #include "builders/texture_builder.hpp"
@@ -14,6 +13,7 @@
 #include "builders/shader_input_builder.hpp"
 #include "builders/pipeline_builder.hpp"
 #include "builders/shader_builder.hpp"
+#include "builders/device_builder.hpp"
 
 namespace mars_resources {
     class resource_manager;
@@ -35,12 +35,14 @@ namespace mars_graphics {
     class swapchain;
     class framebuffer;
     class graphics_engine;
+    class device;
+    class window;
 
     class graphics_backend : public std::enable_shared_from_this<graphics_backend> {
     protected:
         mars_ref<mars_resources::resource_manager> m_resources;
 
-        window* raw_window = nullptr;
+        std::shared_ptr<window> raw_window;
         bool m_enable_validation = false;
         command_buffer* m_primary_buffer = nullptr;
         mars_ref<graphics_engine> m_graphics;
@@ -55,6 +57,7 @@ namespace mars_graphics {
         virtual shader_input_builder shader_input_build() { return shader_input_builder{ nullptr }; }
         virtual pipeline_builder pipeline_build() { return pipeline_builder{ nullptr }; }
         virtual shader_builder shader_build() { return shader_builder{ nullptr }; }
+        virtual device_builder device_build() { return device_builder{ nullptr }; }
 
         uint32_t m_index = 0;
         uint32_t m_current_frame = 0;
@@ -70,7 +73,7 @@ namespace mars_graphics {
         [[nodiscard]] inline uint32_t max_frames() const { return MAX_FRAMES_IN_FLIGHT; }
 
         [[nodiscard]] inline command_buffer* primary_buffer() const { return m_primary_buffer; }
-        [[nodiscard]] inline window* get_window() const { return raw_window; }
+        [[nodiscard]] inline std::shared_ptr<window> get_window() const { return raw_window; }
         [[nodiscard]] inline bool enable_validation_layer() const { return m_enable_validation; }
         [[nodiscard]] inline swapchain* get_swapchain() const { return m_swapchain; }
         [[nodiscard]] inline renderer* get_renderer() const { return m_renderer; }
@@ -86,7 +89,7 @@ namespace mars_graphics {
         template<typename T> mars_ref<T> create() { mars_debug::debug::error((std::string)" T - type - " + typeid(T).name() + " - is not a valid graphic type"); }
         template<typename T> T builder() { mars_debug::debug::error((std::string)" T - type - " + typeid(T).name() + " - is not a valid graphic builder type"); }
 
-        virtual void create_with_window(const std::string& _title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) { }
+        virtual void create_with_window(const std::string& _title, const mars_math::vector2<int>& _size, const std::string& _renderer) { }
 
         virtual void update() { }
         virtual void prepare_render() { }
@@ -103,6 +106,7 @@ namespace mars_graphics {
     template<> inline shader_input_builder graphics_backend::builder<shader_input_builder>() { return shader_input_build(); }
     template<> inline pipeline_builder graphics_backend::builder<pipeline_builder>() { return pipeline_build(); }
     template<> inline shader_builder graphics_backend::builder<shader_builder>() { return shader_build(); }
+    template<> inline device_builder graphics_backend::builder<device_builder>() { return device_build(); }
 }
 
 #endif

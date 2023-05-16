@@ -2,6 +2,7 @@
 #define MARS_GRAPHICS_INSTANCE_
 
 #include <functional>
+#include "backend/template/window.hpp"
 #include "backend/template/graphics_backend.hpp"
 #include <MARS/math/matrix4.hpp>
 #include <MARS/input/input_manager.hpp>
@@ -63,7 +64,7 @@ namespace mars_graphics {
             m_instance = _instance;
         }
 
-        inline void create_with_window(const std::string& _title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) {
+        inline void create_with_window(const std::string& _title, const mars_math::vector2<int>& _size, const std::string& _renderer) {
             m_instance.lock()->create_with_window(_title, _size, _renderer);
             m_input = mars_input::input_manager::create_input(m_instance.lock()->get_window());
         }

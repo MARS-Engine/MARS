@@ -61,7 +61,7 @@ void v_texture::transition_image_layout(VkImageLayout oldLayout, VkImageLayout n
 
 void v_texture::create_sampler() {
     VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(cast_graphics<vulkan_backend>()->device()->raw_physical_device(), &properties);
+    vkGetPhysicalDeviceProperties(cast_graphics<vulkan_backend>()->get_device()->raw_physical_device(), &properties);
 
     VkSamplerCreateInfo samplerInfo {
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -79,7 +79,7 @@ void v_texture::create_sampler() {
         .unnormalizedCoordinates = VK_FALSE,
     };
 
-    if (vkCreateSampler(cast_graphics<vulkan_backend>()->device()->raw_device(), &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS) {
+    if (vkCreateSampler(cast_graphics<vulkan_backend>()->get_device()->raw_device(), &samplerInfo, nullptr, &m_sampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
 }
@@ -144,7 +144,7 @@ void v_texture::complete() {
 
 v_texture::~v_texture() {
     if (m_sampler != nullptr) {
-        auto device = cast_graphics<vulkan_backend>()->device()->raw_device();
+        auto device = cast_graphics<vulkan_backend>()->get_device()->raw_device();
         vkDestroySampler(device, m_sampler, nullptr);
     }
 

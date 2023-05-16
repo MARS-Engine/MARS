@@ -11,13 +11,13 @@
 #include <MARS/graphics/backend/vulkan/v_shader_input.hpp>
 #include <MARS/graphics/backend/vulkan/v_shader_data.hpp>
 #include <MARS/graphics/backend/vulkan/v_framebuffer.hpp>
+#include <MARS/graphics/backend/vulkan/v_backend/v_device.hpp>
 #include <MARS/graphics/backend/vulkan/v_swapchain.hpp>
 #include <MARS/graphics/renderer/renderer.hpp>
 
 namespace mars_graphics {
 
     class v_instance;
-    class v_device;
     class v_swapchain;
     class v_command_pool;
     class v_sync;
@@ -25,7 +25,7 @@ namespace mars_graphics {
     class vulkan_backend : public graphics_backend {
     private:
         v_instance* m_vulkan_instance = nullptr;
-        v_device* m_device = nullptr;
+        std::shared_ptr<device> m_device = nullptr;
         v_command_pool* m_command_pool = nullptr;
         v_sync* m_sync = nullptr;
 
@@ -38,10 +38,11 @@ namespace mars_graphics {
         shader_input_builder shader_input_build() override { return shader_input_builder{ std::make_shared<v_shader_input>(shared_from_this()) }; }
         pipeline_builder pipeline_build() override { return pipeline_builder{ std::make_shared<v_pipeline>(shared_from_this()) }; }
         shader_builder shader_build() override { return shader_builder{ std::make_shared<v_shader>(shared_from_this()) }; }
+        device_builder device_build() override { return device_builder{ std::make_shared<v_device>(shared_from_this()) }; }
     public:
         [[nodiscard]] inline v_instance* instance() const { return m_vulkan_instance; }
-        [[nodiscard]] inline v_window* get_vulkan_window() const { return dynamic_cast<v_window*>(get_window()); }
-        [[nodiscard]] inline v_device* device() const { return m_device; }
+        [[nodiscard]] inline v_window* get_vulkan_window() const { return raw_window->cast<v_window>(); }
+        [[nodiscard]] inline v_device* get_device() const { return m_device->cast<v_device>(); }
         [[nodiscard]] inline v_swapchain* swapchain() const { return dynamic_cast<v_swapchain*>(m_swapchain); }
         [[nodiscard]] inline v_command_pool* command_pool() const { return m_command_pool; }
         [[nodiscard]] inline renderer* instance_renderer() const { return dynamic_cast<renderer*>(m_renderer); }
@@ -54,7 +55,7 @@ namespace mars_graphics {
         VkCommandBuffer get_single_time_command();
         void end_single_time_command(VkCommandBuffer _command);
 
-        void create_with_window(const std::string& _title, const mars_math::vector2<size_t>& _size, const std::string& _renderer) override;
+        void create_with_window(const std::string& _title, const mars_math::vector2<int>& _size, const std::string& _renderer) override;
 
         void update() override;
         void prepare_render() override;

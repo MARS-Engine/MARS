@@ -51,7 +51,7 @@ void v_framebuffer::create(swapchain* _swapchain) {
         framebufferInfo.pAttachments = attachments.data();
         framebufferInfo.attachmentCount = attachments.size();
 
-        if (vkCreateFramebuffer(cast_graphics<vulkan_backend>()->device()->raw_device(), &framebufferInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS)
+        if (vkCreateFramebuffer(cast_graphics<vulkan_backend>()->get_device()->raw_device(), &framebufferInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS)
             mars_debug::debug::error("MARS - Vulkan - Failed to create framebuffer");
     }
 }
@@ -91,7 +91,7 @@ void v_framebuffer::create(const std::vector<std::shared_ptr<texture>>& _texture
 
     m_framebuffers.resize(m_framebuffers.size() + 1);
 
-    if (vkCreateFramebuffer(cast_graphics<vulkan_backend>()->device()->raw_device(), &framebufferInfo, nullptr, &m_framebuffers[m_framebuffers.size() - 1]) != VK_SUCCESS)
+    if (vkCreateFramebuffer(cast_graphics<vulkan_backend>()->get_device()->raw_device(), &framebufferInfo, nullptr, &m_framebuffers[m_framebuffers.size() - 1]) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Failed to create framebuffer");
 }
 
@@ -104,5 +104,5 @@ v_framebuffer::~v_framebuffer() {
     }
 
     for (auto& frame : m_framebuffers)
-        vkDestroyFramebuffer(cast_graphics<vulkan_backend>()->device()->raw_device(), frame, nullptr);
+        vkDestroyFramebuffer(cast_graphics<vulkan_backend>()->get_device()->raw_device(), frame, nullptr);
 }

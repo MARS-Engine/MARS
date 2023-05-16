@@ -1,13 +1,13 @@
 #ifndef MARS_WINDOW_
 #define MARS_WINDOW_
 
-#define SDL_MAIN_HANDLED
-#include <SDL2/SDL.h>
 #include <string>
 #include <MARS/debug/debug.hpp>
 #include <MARS/math/vector2.hpp>
 #include <MARS/math/vector3.hpp>
 #include <MARS/input/input_manager.hpp>
+#include "builders/window_builder.hpp"
+#include "graphics_component.hpp"
 
 namespace mars_graphics {
 
@@ -15,39 +15,35 @@ namespace mars_graphics {
      * MARS window class.
      * Handles window creation
      */
-    class window {
+    class window : public graphics_component {
     protected:
-        mars_math::vector2<size_t> m_size;
+        window_data m_data;
         bool m_should_close = false;
-        SDL_WindowFlags m_flags{};
-        std::string m_title;
 
         struct SDL_Window* m_window = nullptr;
+
+        void create() {
+            m_window = SDL_CreateWindow(m_data.title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, m_data.size.x, m_data.size.y, m_data.flags);
+        }
+
+        inline void set_data(const window_data& _data) {
+            m_data = _data;
+        }
+
+        friend window_builder;
     public:
-
-        [[nodiscard]] inline struct SDL_Window* raw_window() const { return m_window; }
-
-        [[nodiscard]] inline mars_math::vector2<size_t> size() const { return m_size; }
-
-        [[nodiscard]] inline bool should_close() const { return m_should_close; }
-
-        virtual void initialize(const std::string& _title, const mars_math::vector2<size_t>& _size) {
+        explicit window(const std::shared_ptr<graphics_backend>& _graphics) : graphics_component(_graphics) {
             SDL_Init(SDL_INIT_VIDEO);
-            SDL_SetHint(SDL_HINT_GRAB_KEYBOARD, "1");
-            SDL_SetRelativeMouseMode(SDL_FALSE);
-
-            m_size = _size;
-            m_title = _title;
         }
 
-        virtual void create() {
-            m_window = SDL_CreateWindow(m_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, m_size.x, m_size.y, m_flags);
-        }
-
-        virtual void destroy() {
+        ~window() {
             if (m_window != nullptr)
                 SDL_DestroyWindow(m_window);
         }
+
+        [[nodiscard]] inline struct SDL_Window* raw_window() const { return m_window; }
+        [[nodiscard]] inline mars_math::vector2<int> size() const { return m_data.size; }
+        [[nodiscard]] inline bool should_close() const { return m_should_close; }
 
         virtual void process(mars_input::input* _input) {
             SDL_Event e;

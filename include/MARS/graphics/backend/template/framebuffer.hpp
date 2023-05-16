@@ -26,7 +26,7 @@ namespace mars_graphics {
         using graphics_component::graphics_component;
 
         [[nodiscard]] inline std::shared_ptr<render_pass> get_render_pass() const { return m_render_pass; }
-        [[nodiscard]] mars_math::vector2<size_t> get_size() const { return m_data.size; }
+        [[nodiscard]] mars_math::vector2<uint32_t> get_size() const { return m_data.size; }
 
         [[nodiscard]] inline std::shared_ptr<texture> get_texture(size_t _index) const { return _index < m_frames.size() ? m_frames[_index] : std::shared_ptr<texture>(); }
 

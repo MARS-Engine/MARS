@@ -139,7 +139,7 @@ void v_pipeline::create() {
         .pSetLayouts = &m_data.pipeline_shader.cast_static<v_shader>()->raw_uniform_layout()
     };
 
-    if (vkCreatePipelineLayout(cast_graphics<vulkan_backend>()->device()->raw_device(), &pipeline_layout_pipeline, nullptr, &m_pipeline_layout) != VK_SUCCESS)
+    if (vkCreatePipelineLayout(cast_graphics<vulkan_backend>()->get_device()->raw_device(), &pipeline_layout_pipeline, nullptr, &m_pipeline_layout) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Pipeline - Failed to create pipeline layout");
 
     auto shaderStages = m_data.pipeline_shader.cast_static<v_shader>()->get_stages();
@@ -185,11 +185,11 @@ void v_pipeline::create() {
         .basePipelineHandle = VK_NULL_HANDLE
     };
 
-    if (vkCreateGraphicsPipelines(cast_graphics<vulkan_backend>()->device()->raw_device(), VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_pipeline) != VK_SUCCESS)
+    if (vkCreateGraphicsPipelines(cast_graphics<vulkan_backend>()->get_device()->raw_device(), VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_pipeline) != VK_SUCCESS)
         mars_debug::debug::error("MARS - Vulkan - Pipeline - Failed to create pipeline");
 }
 
 v_pipeline::~v_pipeline() {
-    vkDestroyPipeline(cast_graphics<vulkan_backend>()->device()->raw_device(), m_pipeline, nullptr);
-    vkDestroyPipelineLayout(cast_graphics<vulkan_backend>()->device()->raw_device(), m_pipeline_layout, nullptr);
+    vkDestroyPipeline(cast_graphics<vulkan_backend>()->get_device()->raw_device(), m_pipeline, nullptr);
+    vkDestroyPipelineLayout(cast_graphics<vulkan_backend>()->get_device()->raw_device(), m_pipeline_layout, nullptr);
 }
