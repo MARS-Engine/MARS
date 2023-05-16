@@ -4,6 +4,7 @@
 #include <pl/safe_map.hpp>
 #include <SDL2/SDL.h>
 #include <MARS/math/vector2.hpp>
+#include <MARS/engine/singleton.hpp>
 
 namespace mars_graphics {
     class window;
@@ -17,7 +18,7 @@ namespace mars_input {
         MARS_INPUT_STATE_UP
     };
 
-    class input {
+    class input : public mars_engine::singleton {
     private:
         std::map<std::string, MARS_INPUT_STATE> m_keys;
         mars_math::vector2<float> m_mouse_relative;
@@ -32,27 +33,6 @@ namespace mars_input {
         void update();
         void finish_update();
         void handle_input(SDL_KeyboardEvent _key);
-    };
-
-    class input_manager {
-    private:
-        static pl::safe_map<std::shared_ptr<mars_graphics::window>, input*> m_window_input;
-    public:
-        static inline input* create_input(const std::shared_ptr<mars_graphics::window>& _window) {
-            auto new_input = new input();
-            m_window_input.lock();
-            m_window_input.insert(std::make_pair(_window, new_input));
-            m_window_input.unlock();
-            return new_input;
-        }
-
-        static inline input* get_input(std::shared_ptr<mars_graphics::window> _window) { return m_window_input[_window]; }
-
-        static inline void clean() {
-            for (auto& pair : m_window_input)
-                delete pair.second;
-            m_window_input.clear();
-        }
     };
 }
 

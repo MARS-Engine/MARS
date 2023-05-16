@@ -45,7 +45,7 @@ namespace mars_graphics {
         [[nodiscard]] inline mars_math::vector2<int> size() const { return m_data.size; }
         [[nodiscard]] inline bool should_close() const { return m_should_close; }
 
-        virtual void process(mars_input::input* _input) {
+        virtual void process(const std::shared_ptr<mars_input::input>& _input) {
             SDL_Event e;
             while (SDL_PollEvent(&e) != 0) {
                 switch (e.type) {

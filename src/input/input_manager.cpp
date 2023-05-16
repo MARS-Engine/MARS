@@ -2,9 +2,6 @@
 
 using namespace mars_input;
 
-
-pl::safe_map<std::shared_ptr<mars_graphics::window>, input*> input_manager::m_window_input;
-
 void input::update() {
     for (auto pair = m_keys.cbegin(); pair != m_keys.cend();) {
         switch (pair->second) {

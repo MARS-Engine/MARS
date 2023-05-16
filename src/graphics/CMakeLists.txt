@@ -5,4 +5,5 @@ target_sources(MARS PUBLIC
         material.cpp
         pipeline_manager.cpp
         light_manager.cpp
-        graphics_handler.cpp)
+        graphics_handler.cpp
+        graphics_engine.cpp)

@@ -11,7 +11,10 @@
 #include <pl/safe_deque.hpp>
 #include <MARS/resources/resource_manager.hpp>
 #include "singleton.hpp"
-#include <MARS/graphics/graphics_engine.hpp>
+
+namespace mars_graphics {
+    class graphics_engine;
+}
 
 namespace mars_engine {
     class mars_object;
@@ -146,7 +149,7 @@ namespace mars_engine {
 
         mars_ref<mars_object> create_obj();
 
-        template<typename T> std::shared_ptr<T> get_or_create_singleton() {
+        template<typename T> std::shared_ptr<T> get_singleton() {
             static_assert(std::is_base_of_v<singleton, T>, "MARS - Engine Object - Invalid singleton, base must have type mars_engine::singleton");
 
             auto type_index = std::type_index(typeid(T));
@@ -160,7 +163,8 @@ namespace mars_engine {
                 return std::static_pointer_cast<T>(m_singletons.at(type_index));
             }
 
-            std::shared_ptr<T> new_ptr = std::make_shared<T>(mars_ref<object_engine>(get_ptr()));
+            std::shared_ptr<T> new_ptr = std::make_shared<T>();
+            new_ptr->set_engine(mars_ref<object_engine>(get_ptr()));
             m_singletons.insert(std::pair(type_index, new_ptr));
 
             m_singletons.unlock();

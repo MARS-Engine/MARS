@@ -30,11 +30,15 @@ namespace mars_graphics {
     private:
         std::weak_ptr<graphics_backend> m_instance;
         camera m_camera;
-        mars_input::input* m_input = nullptr;
         graphics_handler m_handler;
         pl::safe_vector<graphics_draw_call> m_drawcalls;
+        std::shared_ptr<mars_engine::object_engine> m_engine;
     public:
         std::shared_ptr<graphics_engine> get_ptr() { return shared_from_this(); }
+
+        inline void set_engine(const std::shared_ptr<mars_engine::object_engine>& _engine) {
+            m_engine = _engine;
+        }
 
         [[nodiscard]] inline mars_ref<mars_resources::resource_manager> resources() const { return backend().lock()->resources(); }
         [[nodiscard]] inline camera& get_camera() { return m_camera; }
@@ -56,27 +60,17 @@ namespace mars_graphics {
             m_drawcalls.lock()->push_back(graphics_draw_call(_draw_call));
         }
 
-        inline void window_update() {
-            m_instance.lock()->get_window()->process(m_input);
-        }
+        void window_update();
 
         explicit graphics_engine(const std::weak_ptr<graphics_backend>& _instance, size_t _threads) : m_handler(this, _threads == 1 ? MARS_GRAPHICS_WORKER_TYPE_SINGLE_THREAD : MARS_GRAPHICS_WORKER_TYPE_MULTI_THREAD, _threads) {
             m_instance = _instance;
         }
 
-        inline void create_with_window(const std::string& _title, const mars_math::vector2<int>& _size, const std::string& _renderer) {
-            m_instance.lock()->create_with_window(_title, _size, _renderer);
-            m_input = mars_input::input_manager::create_input(m_instance.lock()->get_window());
-        }
+        void create_with_window(const std::string& _title, const mars_math::vector2<int>& _size, const std::string& _renderer);
 
-        inline void update() {
-            m_instance.lock()->update();
-            m_input->update();
-        }
+        void update();
 
-        inline void finish_update() {
-            m_input->finish_update();
-        }
+        void finish_update();
 
         inline void prepare_render() {
             m_instance.lock()->prepare_render();
