@@ -26,7 +26,7 @@ bool resource_manager::read_binary(const std::string& _path, std::vector<char>& 
     if (!stream.is_open())
         return false;
 
-    size_t file_size = (size_t)stream.tellg();
+    auto file_size = stream.tellg();
     data.resize(file_size);
 
     stream.seekg(0);
@@ -42,12 +42,12 @@ std::string resource_manager::find_path(const std::string& _file, mars_graphics:
 }
 
 void resource_manager::clean() {
-    for (auto& kv : resources)
+    for (auto& kv : *resources.lock().get())
         kv.second->clean();
-    for (auto& kv : ref_resources)
+    for (auto& kv : *ref_resources.lock().get())
         kv.second->clean();
 
-    resources.clear();
-    ref_resources.clear();
+    resources.lock()->clear();
+    ref_resources.lock()->clear();
     resources_locations.clear();
 }

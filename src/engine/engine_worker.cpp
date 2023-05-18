@@ -13,18 +13,16 @@ void engine_worker::work() {
         if (!m_running)
             return;
 
-        auto components = m_engine->get_components(m_layer);
-
-        long size = std::ceil((long double)components->size() / (long double)m_cores);
+        long size = std::ceil((long double)m_active_components->size() / (long double)m_cores);
 
         long begin = m_index.fetch_add((long)size);
 
-        m_engine->get_layer(m_layer)->m_callback({
+        m_active_layer->m_callback({
             ._worker = this,
-            .layer_tick = &m_engine->get_layer(m_layer)->m_tick,
-            .layers = components,
+            .layer_tick = &m_active_layer->m_tick,
+            .layers = m_active_components,
             .being = begin,
-            .length = (long)std::min((size_t)size, components->size() - begin)
+            .length = (long)std::min((size_t)size, m_active_components->size() - begin)
         });
 
         m_barriers.arrive_and_wait();

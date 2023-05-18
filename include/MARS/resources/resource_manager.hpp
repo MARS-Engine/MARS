@@ -5,6 +5,7 @@
 #include <MARS/graphics/backend/template/graphics_types.hpp>
 #include <MARS/graphics/graphics_engine.hpp>
 #include <MARS/memory/mars_ref.hpp>
+#include <MARS/engine/singleton.hpp>
 #include <pl/safe_map.hpp>
 #include <string>
 #include <vector>
@@ -29,7 +30,7 @@ namespace mars_resources {
         inline virtual void clean() { }
     };
 
-    class resource_manager : public std::enable_shared_from_this<resource_manager> {
+    class resource_manager : public mars_engine::singleton, public std::enable_shared_from_this<resource_manager> {
     private:
         pl::safe_map<std::string, std::shared_ptr<resource_base>> resources;
         pl::safe_map<std::string, mars_ref<resource_base>> ref_resources;
@@ -48,11 +49,13 @@ namespace mars_resources {
         * @return pointer to resource or nullptr
         */
         template<typename T> std::shared_ptr<T> get_cached_resource(const std::string& _path) const {
-            return resources.contains(_path) ? std::dynamic_pointer_cast<T>(resources.at(_path)) : std::shared_ptr<T>();
+            auto locked_resource = resources.lock();
+            return locked_resource->contains(_path) ? std::dynamic_pointer_cast<T>(locked_resource->at(_path)) : std::shared_ptr<T>();
         }
 
         template<typename T> mars_ref<T> get_cached_ref_resource(const std::string& _path) const {
-            return ref_resources.contains(_path) ? ref_resources.at(_path).cast_dynamic<T>() : mars_ref<T>();
+            auto locked_ref_resource = ref_resources.lock();
+            return locked_ref_resource->contains(_path) ? locked_ref_resource->at(_path).cast_dynamic<T>() : mars_ref<T>();
         }
 
     public:
@@ -71,26 +74,23 @@ namespace mars_resources {
             static_assert(std::is_base_of<resource_base, T>::value, "invalid resource type, T must be derived from resource_base and graphics_base");
             static_assert(std::is_base_of<mars_graphics::graphics_component, T>::value, "invalid resource type, T must be derived from backend_base");
 
-            ref_resources.lock();
+            auto locked_resources = ref_resources.lock();
 
             mars_ref<T> temp_resource = get_cached_ref_resource<T>(_path);
 
             if (temp_resource.is_alive()) {
-                _resource = ref_resources.at(_path).cast_static<T>();
-                ref_resources.unlock();
+                _resource = locked_resources->at(_path).cast_static<T>();
                 return true;
             }
 
             temp_resource = _instance->create<T>();
             temp_resource->set_resources(mars_ref<resource_manager>(shared_from_this()));
             if (!temp_resource->load_resource(_path)) {
-                ref_resources.unlock();
                 mars_debug::debug::alert("MARS RESOURCES - Failed to load resource -" + _path);
                 return false;
             }
 
-            ref_resources[_path] = temp_resource;
-            ref_resources.unlock();
+            locked_resources->insert(std::pair(_path, temp_resource));
 
             _resource = temp_resource;
             return true;
@@ -109,7 +109,7 @@ namespace mars_resources {
             auto temp_resource = get_cached_resource<T>(_path);
 
             if (temp_resource != nullptr) {
-                _resource = mars_ref<T>(std::static_pointer_cast<T>(resources[_path]));
+                _resource = mars_ref<T>(std::static_pointer_cast<T>(resources.lock()->at(_path)));
                 return true;
             }
 
@@ -120,7 +120,7 @@ namespace mars_resources {
                 return false;
             }
 
-            resources[_path] = temp_resource;
+            resources.lock()->insert(std::pair(_path, temp_resource));
             _resource = mars_ref<T>(temp_resource);
             return true;
         }
@@ -138,7 +138,7 @@ namespace mars_resources {
             auto temp_resource = get_cached_resource<T>(_path);
 
             if (temp_resource != nullptr) {
-                _resource = mars_ref<T>(std::static_pointer_cast<T>(resources[_path]));
+                _resource = mars_ref<T>(std::static_pointer_cast<T>(resources.lock()->at(_path)));
                 return true;
             }
 
@@ -149,7 +149,7 @@ namespace mars_resources {
                 return false;
             }
 
-            resources[_path] = temp_resource;
+            resources.lock()->insert(std::pair(_path, temp_resource));
             _resource = mars_ref<T>(temp_resource);
             return true;
         }

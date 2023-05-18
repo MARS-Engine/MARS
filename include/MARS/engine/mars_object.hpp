@@ -58,32 +58,29 @@ namespace mars_engine {
 
         template<class T> inline mars_ref<T> add_component() { return add_component<T>(std::make_shared<T>()); }
 
-        template<typename T> mars_ref<T> get_bridge(const std::string& _bridge) {
-            static_assert(std::is_base_of_v<bridge, T>, "MARS - Engine Object - Invalid bridge, base must have type mars_engine::object_bridge");
-            if (m_bridges.contains(_bridge))
-                return mars_ref<bridge>(m_bridges[_bridge]).cast_static<T>();
+        template<typename T> requires std::is_base_of_v<bridge, T> mars_ref<T> get(const std::string& _bridge) {
+            auto locked_bridge = m_bridges.lock();
 
-            auto new_bridge = std::make_shared<T>(mars_ref<mars_object>(get_ptr()));
+            if (locked_bridge->contains(_bridge))
+                return mars_ref<bridge>(locked_bridge->at(_bridge)).cast_static<T>();
 
-            m_bridges.lock();
+            auto new_bridge = std::make_shared<T>();
+            new_bridge->set_object(mars_ref<mars_object>(get_ptr()));
 
-            if (m_bridges.contains(_bridge)) {
-                m_bridges.unlock();
-                return mars_ref<bridge>(m_bridges[_bridge]).cast_static<T>();
-            }
+            if (locked_bridge->contains(_bridge))
+                return mars_ref<bridge>(locked_bridge->at(_bridge)).cast_static<T>();
 
-            m_bridges.insert(std::pair(_bridge, new_bridge));
-            m_bridges.unlock();
+            locked_bridge->insert(std::pair(_bridge, new_bridge));
 
             return mars_ref<bridge>(new_bridge).cast_static<T>();
         }
 
-        void destroy() {
+        ~mars_object() {
             for (auto& component : *m_components.lock().get())
                 component->destroy();
-
-            for (auto& child : *m_children.lock().get())
-                child->destroy();
+            m_components.lock()->clear();
+            m_children.lock()->clear();
+            m_bridges.lock()->clear();
         }
     };
 }

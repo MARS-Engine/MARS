@@ -17,38 +17,46 @@ mars_ref<mars_object> object_engine::create_obj() {
 }
 
 void object_engine::spawn_wait_list() {
+    auto layer_data = m_layer_data.lock();
     auto destroy_list = m_destroy_list.lock();
     for (auto& _obj : *destroy_list.get()) {
-        for (auto& layer : m_layer_data) {
-            m_layer_calls.at(layer.first)->erase(std::remove_if(m_layer_calls.at(layer.first)->begin(), m_layer_calls.at(layer.first)->end(), [&](const engine_layer_component& val) {
-                return val.parent == _obj.get();
-            }), m_layer_calls.at(layer.first)->end());
+        for (auto& layer : *layer_data.get()) {
+            std::vector<engine_layer_component>& call_layer = *m_layer_calls.at(layer.first);
+            std::vector<engine_layer_component>& wait_layer = *m_wait_list.at(layer.first);
 
-            m_wait_list.at(layer.first)->erase(std::remove_if(m_wait_list.at(layer.first)->begin(), m_wait_list.at(layer.first)->end(), [&](const engine_layer_component& val) {
+            call_layer.erase(std::remove_if(call_layer.begin(), call_layer.end(), [&](const engine_layer_component& val) {
                 return val.parent == _obj.get();
-            }), m_wait_list.at(layer.first)->end());
+            }), call_layer.end());
+
+            wait_layer.erase(std::remove_if(wait_layer.begin(), wait_layer.end(), [&](const engine_layer_component& val) {
+                return val.parent == _obj.get();
+            }), wait_layer.end());
         }
 
         auto objects = m_objects.lock();
         objects->erase(std::find(objects->begin(), objects->end(), _obj));
     }
 
-    destroy_list->clear();
+    if (!destroy_list->empty())
+        destroy_list->clear();
 
-    for (auto& layer : m_layer_data) {
+    for (auto& layer : *layer_data.get()) {
         if (m_wait_list.at(layer.first)->empty())
             continue;
 
-        m_layer_calls.at(layer.first)->reserve(m_layer_calls.at(layer.first)->size() + m_wait_list.at(layer.first)->size());
-        m_layer_calls.at(layer.first)->insert(m_layer_calls.at(layer.first)->end(), m_wait_list.at(layer.first)->begin(), m_wait_list.at(layer.first)->end());
-        m_wait_list.at(layer.first)->clear();
+        std::vector<engine_layer_component>& call_layer = *m_layer_calls.at(layer.first);
+        std::vector<engine_layer_component>& wait_layer = *m_wait_list.at(layer.first);
+
+        call_layer.reserve(call_layer.size() + wait_layer.size());
+        call_layer.insert(call_layer.end(), wait_layer.begin(), wait_layer.end());
+        wait_layer.clear();
     }
 }
 
 void object_engine::process_component(const mars_ref<mars_engine::component>& _component) {
-    for (auto& layer : m_layer_data) {
+    for (auto& layer : *m_layer_data.lock().get()) {
         engine_layer_component val;
-        if (m_layer_data.at(layer.first).m_validator(_component, val))
+        if (layer.second.m_validator(_component, val))
             m_wait_list.at(layer.first)->push_back(val);
     }
     layers_waiting = true;
@@ -60,11 +68,9 @@ mars_ref<mars_object> object_engine::spawn(const mars_ref<mars_object>& _obj, co
 }
 
 void object_engine::clean() {
-    for (auto& object : *m_objects.lock().get())
-        object->destroy();
     m_objects.lock()->clear();
     m_wait_list.clear();
     m_layer_calls.clear();
-    m_layer_data.clear();
-    m_singletons.clear();
+    m_layer_data.lock()->clear();
+    m_singletons.lock()->clear();
 }

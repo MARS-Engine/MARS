@@ -17,7 +17,7 @@ namespace mars_graphics {
 
     struct render_pass_data {
         mars_ref<framebuffer> framebuffer_ptr;
-        bool load_previous;
+        bool load_previous = false;
         std::vector<render_pass_attachment> attachments;
     };
 

@@ -28,7 +28,7 @@ namespace mars_graphics {
 
     class graphics_engine : public std::enable_shared_from_this<graphics_engine> {
     private:
-        std::weak_ptr<graphics_backend> m_instance;
+        std::shared_ptr<graphics_backend> m_instance;
         camera m_camera;
         graphics_handler m_handler;
         pl::safe_vector<graphics_draw_call> m_drawcalls;
@@ -42,17 +42,17 @@ namespace mars_graphics {
 
         [[nodiscard]] inline mars_ref<mars_resources::resource_manager> resources() const { return backend().lock()->resources(); }
         [[nodiscard]] inline camera& get_camera() { return m_camera; }
-        [[nodiscard]] inline bool is_running() const { return !m_instance.lock()->get_window()->should_close(); }
-        [[nodiscard]] inline size_t current_frame() const { return m_instance.lock()->current_frame(); }
+        [[nodiscard]] inline bool is_running() const { return !m_instance->window_ref()->should_close(); }
+        [[nodiscard]] inline size_t current_frame() const { return m_instance->current_frame(); }
 
-        template<typename T> [[nodiscard]] inline mars_ref<T> create() const { return m_instance.lock()->create<T>(); }
-        template<typename T> [[nodiscard]] inline T builder() const { return m_instance.lock()->builder<T>(); }
+        template<typename T> [[nodiscard]] inline mars_ref<T> create() const { return m_instance->create<T>(); }
+        template<typename T> [[nodiscard]] inline T builder() const { return m_instance->builder<T>(); }
 
         [[nodiscard]] inline std::weak_ptr<graphics_backend> backend() const { return m_instance; }
 
-        [[nodiscard]] inline mars_graphics::command_buffer* primary_buffer() const { return  m_instance.lock()->primary_buffer(); }
+        [[nodiscard]] inline mars_graphics::command_buffer* primary_buffer() const { return  m_instance->primary_buffer(); }
 
-        [[nodiscard]] inline std::string render_type() const { return m_instance.lock()->render_type(); }
+        [[nodiscard]] inline std::string render_type() const { return m_instance->render_type(); }
 
         [[nodiscard]] inline pl::safe_vector<graphics_draw_call>& get_drawcalls() { return m_drawcalls; }
 
@@ -62,7 +62,7 @@ namespace mars_graphics {
 
         void window_update();
 
-        explicit graphics_engine(const std::weak_ptr<graphics_backend>& _instance, size_t _threads) : m_handler(this, _threads == 1 ? MARS_GRAPHICS_WORKER_TYPE_SINGLE_THREAD : MARS_GRAPHICS_WORKER_TYPE_MULTI_THREAD, _threads) {
+        explicit graphics_engine(const std::shared_ptr<graphics_backend>& _instance, size_t _threads) : m_handler(this, _threads == 1 ? MARS_GRAPHICS_WORKER_TYPE_SINGLE_THREAD : MARS_GRAPHICS_WORKER_TYPE_MULTI_THREAD, _threads) {
             m_instance = _instance;
         }
 
@@ -73,7 +73,7 @@ namespace mars_graphics {
         void finish_update();
 
         inline void prepare_render() {
-            m_instance.lock()->prepare_render();
+            m_instance->prepare_render();
         }
 
         inline void draw() {
@@ -86,15 +86,15 @@ namespace mars_graphics {
         }
 
         inline void swap() {
-            m_instance.lock()->draw();
+            m_instance->draw();
         }
 
         inline void destroy() {
-            m_instance.lock()->destroy();
+            m_instance->destroy();
         }
 
         inline void wait_idle() {
-            m_instance.lock()->wait_idle();
+            m_instance->wait_idle();
         }
     };
 }

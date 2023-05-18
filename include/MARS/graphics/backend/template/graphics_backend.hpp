@@ -73,7 +73,10 @@ namespace mars_graphics {
         [[nodiscard]] inline uint32_t max_frames() const { return MAX_FRAMES_IN_FLIGHT; }
 
         [[nodiscard]] inline command_buffer* primary_buffer() const { return m_primary_buffer; }
+
+        [[nodiscard]] inline const std::shared_ptr<window>& window_ref() const { return raw_window; }
         [[nodiscard]] inline std::shared_ptr<window> get_window() const { return raw_window; }
+
         [[nodiscard]] inline bool enable_validation_layer() const { return m_enable_validation; }
         [[nodiscard]] inline swapchain* get_swapchain() const { return m_swapchain; }
         [[nodiscard]] inline renderer* get_renderer() const { return m_renderer; }

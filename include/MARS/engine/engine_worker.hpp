@@ -28,6 +28,9 @@ namespace mars_engine {
         std::deque<std::jthread> m_threads;
         std::type_index m_layer = typeid(engine_worker);
 
+        engine_layers* m_active_layer = nullptr;
+        std::shared_ptr<std::vector<engine_layer_component>> m_active_components;
+
         inline void on_finish() {
             if (m_engine->get_layer(m_layer)->m_single_time)
                 m_engine->clear_layer(m_layer);
@@ -53,8 +56,12 @@ namespace mars_engine {
 
         template<typename T> engine_worker& process_layer() {
             wait();
+
             m_layer = typeid(T);
-            m_engine->get_layer(m_layer)->m_tick.exec_tick();
+            m_active_layer = m_engine->get_layer(m_layer);
+            m_active_layer->m_tick.exec_tick();
+            m_active_components = m_engine->get_components(m_layer);
+
             m_index = 0;
 
             {

@@ -87,11 +87,11 @@ namespace mars_engine {
     struct engine_layers {
         tick m_tick;
         void (*m_callback)(layer_component_param&&);
-        std::function<bool(const mars_ref<component>&, engine_layer_component&)> m_validator;
+        bool (*m_validator)(const mars_ref<component>&, engine_layer_component&);
         bool m_single_time;
 
-        explicit engine_layers(const std::function<bool(const mars_ref<component>&, engine_layer_component&)>& _validor, void (*_callback)(layer_component_param&&), bool _single_time = false) {
-            m_validator = _validor;
+        explicit engine_layers(bool (*_validator)(const mars_ref<component>&, engine_layer_component&), void (*_callback)(layer_component_param&&), bool _single_time = false) {
+            m_validator = _validator;
             m_callback = _callback;
             m_single_time = _single_time;
         }
@@ -99,13 +99,12 @@ namespace mars_engine {
 
     class object_engine : public std::enable_shared_from_this<object_engine> {
     private:
-        mars_ref<mars_resources::resource_manager> m_resources;
         mars_ref<mars_graphics::graphics_engine> m_graphics;
 
         std::deque<std::shared_ptr<engine_worker>> m_workers;
 
-        pl::safe_deque<std::shared_ptr<mars_object>> m_destroy_list;
-        pl::safe_deque<std::shared_ptr<mars_object>> m_objects;
+        pl::safe_vector<std::shared_ptr<mars_object>> m_destroy_list;
+        pl::safe_vector<std::shared_ptr<mars_object>> m_objects;
         pl::safe_map<std::type_index, engine_layers> m_layer_data;
 
         std::map<std::type_index, std::shared_ptr<std::vector<engine_layer_component>>> m_wait_list;
@@ -123,10 +122,6 @@ namespace mars_engine {
 
         [[nodiscard]] mars_ref<mars_graphics::graphics_engine> graphics() const { return m_graphics; }
 
-        inline void set_resources(const mars_ref<mars_resources::resource_manager>& _resource_manager) { m_resources = _resource_manager; }
-
-        [[nodiscard]]  mars_ref<mars_resources::resource_manager> resources() { return m_resources; }
-
         std::shared_ptr<std::vector<engine_layer_component>> get_components(std::type_index _layer) {
             if (!m_layer_calls.contains(_layer))
                 return nullptr;
@@ -134,10 +129,11 @@ namespace mars_engine {
         }
 
         engine_layers* get_layer(std::type_index _layer) {
-            if (!m_layer_data.contains(_layer))
+            auto layer = m_layer_data.lock();
+            if (!layer->contains(_layer))
                 return nullptr;
 
-            return &m_layer_data.at(_layer);
+            return &layer->at(_layer);
         }
 
         void clear_layer(std::type_index _layer) {
@@ -149,25 +145,20 @@ namespace mars_engine {
 
         mars_ref<mars_object> create_obj();
 
-        template<typename T> std::shared_ptr<T> get_singleton() {
+        template<typename T> requires std::is_base_of_v<singleton, T> std::shared_ptr<T> get() {
             static_assert(std::is_base_of_v<singleton, T>, "MARS - Engine Object - Invalid singleton, base must have type mars_engine::singleton");
 
             auto type_index = std::type_index(typeid(T));
-            if (m_singletons.contains(type_index))
-                return std::static_pointer_cast<T>(m_singletons.at(type_index));
 
-            m_singletons.lock();
+            auto singletons = m_singletons.lock();
 
-            if (m_singletons.contains(type_index)) {
-                m_singletons.unlock();
-                return std::static_pointer_cast<T>(m_singletons.at(type_index));
-            }
+            if (singletons->contains(type_index))
+                return std::static_pointer_cast<T>(singletons->at(type_index));
 
             std::shared_ptr<T> new_ptr = std::make_shared<T>();
             new_ptr->set_engine(mars_ref<object_engine>(get_ptr()));
-            m_singletons.insert(std::pair(type_index, new_ptr));
+            singletons->insert(std::pair(type_index, new_ptr));
 
-            m_singletons.unlock();
             return new_ptr;
         }
 
@@ -186,7 +177,7 @@ namespace mars_engine {
 
 
             auto type_index = std::type_index(typeid(T));
-            m_layer_data.insert(std::make_pair(type_index, engine_layers(_validator, _callback, _single_time)));
+            m_layer_data.lock()->insert(std::make_pair(type_index, engine_layers(_validator, _callback, _single_time)));
             m_layer_calls.insert(std::pair(type_index, std::make_shared<std::vector<engine_layer_component>>()));
             m_wait_list.insert(std::make_pair(type_index, std::make_shared<std::vector<engine_layer_component>>()));
         }
