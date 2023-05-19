@@ -12,84 +12,95 @@
 
 namespace mars_engine {
 
+    enum ENGINE_WORKER_EXECUTION_TYPE {
+        ENGINE_WORKER_EXECUTION_TYPE_LAYER,
+        ENGINE_WORKER_EXECUTION_TYPE_FUNCTION
+    };
+
+    struct engine_worker_exec_layer {
+        ENGINE_WORKER_EXECUTION_TYPE type;
+        std::type_index layer;
+        std::function<void()> function;
+        std::function<bool()> should_execute;
+    };
+
     class engine_worker : public std::enable_shared_from_this<engine_worker> {
     private:
-        std::mutex m_mtx;
-        std::condition_variable m_cv;
-
         size_t m_cores;
+        size_t m_execute_index = 0;
         std::atomic<bool> m_running = true;
         std::atomic<long> m_index;
-        std::atomic<bool> m_working = false;
 
         std::barrier<std::function<void()>> m_barriers;
 
         mars_ref<object_engine> m_engine;
         std::deque<std::jthread> m_threads;
-        std::type_index m_layer = typeid(engine_worker);
 
         engine_layers* m_active_layer = nullptr;
         std::shared_ptr<std::vector<engine_layer_component>> m_active_components;
 
-        inline void on_finish() {
-            if (m_engine->get_layer(m_layer)->m_single_time)
-                m_engine->clear_layer(m_layer);
+        std::vector<engine_worker_exec_layer> m_execution_order;
 
-            {
-                std::lock_guard<std::mutex> l(m_mtx);
-                m_working = !m_working;
+        inline void get_next() {
+            m_index = 0;
+
+            while (m_execution_order[m_execute_index].type == ENGINE_WORKER_EXECUTION_TYPE_FUNCTION) {
+                m_execution_order[m_execute_index].function();
+
+                if (++m_execute_index >= m_execution_order.size())
+                    m_execute_index = 0;
             }
-            m_cv.notify_all();
+
+            m_active_layer = m_engine->get_layer(m_execution_order[m_execute_index].layer);
+            m_active_components = m_engine->get_components(m_execution_order[m_execute_index].layer);
         }
 
-        void work();
+        inline void on_finish() {
+            m_active_layer->m_tick.exec_tick();
+
+            if (m_active_layer->m_single_time)
+                m_engine->clear_layer(m_execution_order[m_execute_index].layer);
+
+            m_execute_index++;
+
+            get_next();
+        }
+
+        void work(int i);
     public:
 
         inline std::shared_ptr<engine_worker> get_ptr() { return shared_from_this(); }
 
-        engine_worker(const mars_ref<object_engine>& _engine, size_t _cores) : m_cores(_cores), m_engine(_engine), m_barriers(_cores, [&]() { on_finish(); }) {
+        engine_worker(const mars_ref<object_engine>& _engine, size_t _cores) : m_cores(_cores), m_engine(_engine), m_barriers(_cores, [&]() { on_finish(); }) { }
+
+        template<typename T> void add_layer(const std::function<bool()>& _should_execute = nullptr) {
+            m_execution_order.push_back({
+                .type = ENGINE_WORKER_EXECUTION_TYPE_LAYER,
+                .layer = typeid(T),
+                .should_execute = _should_execute
+            });
+        }
+
+        void add_function(const std::function<void()>& _function, const std::function<bool()>& _should_execute = nullptr) {
+            m_execution_order.push_back({
+                .type = ENGINE_WORKER_EXECUTION_TYPE_FUNCTION,
+                .layer = typeid(void),
+                .function = _function,
+                .should_execute = _should_execute,
+            });
+        }
+
+        void run() {
             m_running = true;
 
-            for (size_t i = 0; i < _cores; i++)
-                m_threads.emplace_back(&engine_worker::work, this);
-        }
+            get_next();
 
-        template<typename T> engine_worker& process_layer() {
-            wait();
-
-            m_layer = typeid(T);
-            m_active_layer = m_engine->get_layer(m_layer);
-            m_active_layer->m_tick.exec_tick();
-            m_active_components = m_engine->get_components(m_layer);
-
-            m_index = 0;
-
-            {
-                std::lock_guard<std::mutex> l(m_mtx);
-                m_working = true;
-            }
-
-            m_cv.notify_all();
-            return *this;
-        }
-
-        engine_worker& wait() {
-            while (m_working) {
-                std::unique_lock<std::mutex> l(m_mtx);
-                m_cv.wait(l, [&](){ return !m_working.load(); });
-            }
-
-            return *this;
+            for (size_t i = 0; i < m_cores; i++)
+                m_threads.emplace_back(&engine_worker::work, this, i);
         }
 
         engine_worker& close() {
-            {
-                std::lock_guard<std::mutex> l(m_mtx);
-                m_running = false;
-                m_working = true;
-            }
-
-            m_cv.notify_all();
+            m_running = false;
             return *this;
         }
 

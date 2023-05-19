@@ -8,6 +8,7 @@
 #include <MARS/input/input_manager.hpp>
 #include "builders/window_builder.hpp"
 #include "graphics_component.hpp"
+#include <atomic>
 
 namespace mars_graphics {
 
@@ -18,7 +19,7 @@ namespace mars_graphics {
     class window : public graphics_component {
     protected:
         window_data m_data;
-        bool m_should_close = false;
+        std::atomic<bool> m_should_close = false;
 
         struct SDL_Window* m_window = nullptr;
 
@@ -43,7 +44,7 @@ namespace mars_graphics {
 
         [[nodiscard]] inline struct SDL_Window* raw_window() const { return m_window; }
         [[nodiscard]] inline mars_math::vector2<int> size() const { return m_data.size; }
-        [[nodiscard]] inline bool should_close() const { return m_should_close; }
+        [[nodiscard]] inline std::atomic<bool>* should_close() { return &m_should_close; }
 
         virtual void process(const std::shared_ptr<mars_input::input>& _input) {
             SDL_Event e;
@@ -51,6 +52,7 @@ namespace mars_graphics {
                 switch (e.type) {
                     case SDL_QUIT:
                         m_should_close = true;
+                        m_should_close.notify_all();
                         break;
                     case SDL_KEYDOWN:
                     case SDL_KEYUP:

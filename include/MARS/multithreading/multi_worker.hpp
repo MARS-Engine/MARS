@@ -16,7 +16,6 @@ namespace mars_mt {
         std::shared_ptr<std::thread[]> m_threads;
         std::barrier<std::__empty_completion>  m_barrier;
 
-        std::mutex m_workers_mtx;
         std::condition_variable m_workers_cv;
         std::condition_variable m_wait_cv;
 

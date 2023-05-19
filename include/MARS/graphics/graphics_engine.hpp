@@ -42,7 +42,7 @@ namespace mars_graphics {
 
         [[nodiscard]] inline mars_ref<mars_resources::resource_manager> resources() const { return backend().lock()->resources(); }
         [[nodiscard]] inline camera& get_camera() { return m_camera; }
-        [[nodiscard]] inline bool is_running() const { return !m_instance->window_ref()->should_close(); }
+        [[nodiscard]] inline std::atomic<bool>* is_running() const { return m_instance->window_ref()->should_close(); }
         [[nodiscard]] inline size_t current_frame() const { return m_instance->current_frame(); }
 
         template<typename T> [[nodiscard]] inline mars_ref<T> create() const { return m_instance->create<T>(); }
