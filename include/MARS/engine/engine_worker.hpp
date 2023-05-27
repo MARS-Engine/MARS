@@ -24,14 +24,20 @@ namespace mars_engine {
         std::function<bool()> should_execute;
     };
 
+    enum ENGINE_WORK_STATUS {
+        WORK_STATUS_NONE,
+        WORK_STATUS_WAIT,
+        WORK_STATUS_EXIT
+    };
+
     class engine_worker : public std::enable_shared_from_this<engine_worker> {
     private:
         size_t m_cores;
         size_t m_execute_index = 0;
-        std::atomic<bool> m_running = true;
-        std::atomic<long> m_index;
-
+        std::atomic<size_t> m_index;
         std::barrier<std::function<void()>> m_barriers;
+        bool wait_close = false;
+        bool m_exit = false;
 
         mars_ref<object_engine> m_engine;
         std::deque<std::jthread> m_threads;
@@ -56,6 +62,8 @@ namespace mars_engine {
         }
 
         inline void on_finish() {
+            if (wait_close)
+                m_exit = true;
             m_active_layer->m_tick.exec_tick();
 
             if (m_active_layer->m_single_time)
@@ -73,38 +81,34 @@ namespace mars_engine {
 
         engine_worker(const mars_ref<object_engine>& _engine, size_t _cores) : m_cores(_cores), m_engine(_engine), m_barriers(_cores, [&]() { on_finish(); }) { }
 
-        template<typename T> void add_layer(const std::function<bool()>& _should_execute = nullptr) {
+        template<typename T> engine_worker& add_layer(const std::function<bool()>& _should_execute = nullptr) {
             m_execution_order.push_back({
                 .type = ENGINE_WORKER_EXECUTION_TYPE_LAYER,
                 .layer = typeid(T),
                 .should_execute = _should_execute
             });
+            return *this;
         }
 
-        void add_function(const std::function<void()>& _function, const std::function<bool()>& _should_execute = nullptr) {
+        engine_worker& add_function(const std::function<void()>& _function, const std::function<bool()>& _should_execute = nullptr) {
             m_execution_order.push_back({
                 .type = ENGINE_WORKER_EXECUTION_TYPE_FUNCTION,
                 .layer = typeid(void),
                 .function = _function,
                 .should_execute = _should_execute,
             });
+            return *this;
         }
 
         void run() {
-            m_running = true;
-
             get_next();
 
             for (size_t i = 0; i < m_cores; i++)
                 m_threads.emplace_back(&engine_worker::work, this, i);
         }
 
-        engine_worker& close() {
-            m_running = false;
-            return *this;
-        }
-
-        void join() {
+        void close() {
+            wait_close = true;
             for (auto& thread : m_threads)
                 thread.join();
         }

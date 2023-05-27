@@ -10,7 +10,7 @@ namespace mars_graphics {
     private:
         std::vector<VkVertexInputAttributeDescription> m_descriptions;
 
-        void load_input(const std::shared_ptr<mars_shader_inputs>& _inputs) override;
+        void load_input(const mars_shader_inputs& _inputs) override;
 
         std::shared_ptr<buffer> add_buffer(size_t _input_size, MARS_MEMORY_TYPE _input_type) override;
     public:

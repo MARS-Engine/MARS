@@ -14,7 +14,14 @@ namespace mars_graphics {
 
         explicit vertex1(const mars_math::vector3<float>& _position) { position = _position; }
 
-        static mars_shader_inputs& get_description() { return m_description; };
+        static mars_shader_inputs description() {
+            return {
+                .input_data = std::vector<mars_shader_input>({
+                    { 3, offsetof(vertex1, position), MARS_SHADER_INPUT_TYPE_SF_RGB },
+                    }),
+                .length = 1
+            };
+        };
     };
 }
 

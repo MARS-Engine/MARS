@@ -17,7 +17,7 @@ namespace mars_graphics {
 
         std::shared_ptr<buffer> add_buffer(size_t _input_size, MARS_MEMORY_TYPE _input_type);
 
-        void load_input(const std::shared_ptr<mars_shader_inputs>& _inputs);
+        void load_input(const mars_shader_inputs& _inputs);
 
         std::shared_ptr<shader_input> build();
     };

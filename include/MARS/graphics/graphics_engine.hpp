@@ -8,7 +8,7 @@
 #include <MARS/input/input_manager.hpp>
 #include "graphics_handler.hpp"
 #include "engine_camera.hpp"
-#include <pl/safe_vector.hpp>
+#include <pl/safe.hpp>
 
 namespace mars_graphics {
 
@@ -31,16 +31,20 @@ namespace mars_graphics {
         std::shared_ptr<graphics_backend> m_instance;
         camera m_camera;
         graphics_handler m_handler;
-        pl::safe_vector<graphics_draw_call> m_drawcalls;
+        pl::safe<std::vector<graphics_draw_call>> m_drawcalls;
         std::shared_ptr<mars_engine::object_engine> m_engine;
     public:
         std::shared_ptr<graphics_engine> get_ptr() { return shared_from_this(); }
+
+        inline std::shared_ptr<mars_engine::object_engine> engine() const {
+            return m_engine;
+        }
 
         inline void set_engine(const std::shared_ptr<mars_engine::object_engine>& _engine) {
             m_engine = _engine;
         }
 
-        [[nodiscard]] inline mars_ref<mars_resources::resource_manager> resources() const { return backend().lock()->resources(); }
+        [[nodiscard]] inline mars_ref<mars_resources::resource_manager> resources() const { return backend()->resources(); }
         [[nodiscard]] inline camera& get_camera() { return m_camera; }
         [[nodiscard]] inline std::atomic<bool>* is_running() const { return m_instance->window_ref()->should_close(); }
         [[nodiscard]] inline size_t current_frame() const { return m_instance->current_frame(); }
@@ -48,13 +52,13 @@ namespace mars_graphics {
         template<typename T> [[nodiscard]] inline mars_ref<T> create() const { return m_instance->create<T>(); }
         template<typename T> [[nodiscard]] inline T builder() const { return m_instance->builder<T>(); }
 
-        [[nodiscard]] inline std::weak_ptr<graphics_backend> backend() const { return m_instance; }
+        [[nodiscard]] inline std::shared_ptr<graphics_backend> backend() const { return m_instance; }
 
-        [[nodiscard]] inline mars_graphics::command_buffer* primary_buffer() const { return  m_instance->primary_buffer(); }
+        [[nodiscard]] inline std::shared_ptr<mars_graphics::command_buffer> primary_buffer() const { return  m_instance->primary_buffer(); }
 
         [[nodiscard]] inline std::string render_type() const { return m_instance->render_type(); }
 
-        [[nodiscard]] inline pl::safe_vector<graphics_draw_call>& get_drawcalls() { return m_drawcalls; }
+        [[nodiscard]] inline pl::safe<std::vector<graphics_draw_call>>& get_drawcalls() { return m_drawcalls; }
 
         inline void add_drawcall(const std::function<void()>& _draw_call) {
             m_drawcalls.lock()->push_back(graphics_draw_call(_draw_call));

@@ -44,9 +44,7 @@ void v_image::create_image(VkImageAspectFlags _aspect_flag) {
     vkBindImageMemory(device, m_image, m_image_memory, 0);
 }
 
-void v_image::copy_buffer_to_image(v_buffer* buffer, const mars_math::vector4<uint32_t>& _rect) {
-    VkCommandBuffer commandBuffer = graphics()->get_single_time_command();
-
+void v_image::copy_buffer_to_image(v_command_buffer* _command_buffer, v_buffer* buffer, const mars_math::vector4<uint32_t>& _rect) {
     VkBufferImageCopy region {
             .bufferOffset = 0,
             .bufferRowLength = 0,
@@ -61,9 +59,7 @@ void v_image::copy_buffer_to_image(v_buffer* buffer, const mars_math::vector4<ui
             .imageExtent = { _rect.z, _rect.w, 1 },
     };
 
-    vkCmdCopyBufferToImage(commandBuffer, buffer->vulkan_buffer(), m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-
-    graphics()->end_single_time_command(commandBuffer);
+    vkCmdCopyBufferToImage(_command_buffer->raw_command_buffer(0), buffer->vulkan_buffer(), m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 }
 
 void v_image::create_image_view() {

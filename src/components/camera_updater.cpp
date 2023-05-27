@@ -6,7 +6,7 @@ using namespace mars_math;
 void camera_updater::post_update() {
     graphics()->get_camera().set_view(matrix4<float>::look_at_lh(transform().position(), transform().position() + transform().rotation() * vector3<float>::forward(), vector3<float>::up()));
 
-    auto size = graphics()->backend().lock()->get_window()->size();
+    auto size = graphics()->backend()->get_window()->size();
 
     switch (m_camera_mode) {
         case MARS_CAMERA_MODE_PERSPECTIVE:

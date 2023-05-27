@@ -5,7 +5,6 @@
 #include <MARS/memory/mars_ref.hpp>
 
 namespace mars_graphics {
-    class graphics_handler;
     class graphics_engine;
 
     enum MARS_GRAPHICS_WORKER_TYPE {

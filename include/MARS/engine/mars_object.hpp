@@ -1,8 +1,7 @@
 #ifndef MARS_ENGINE_OBJECT_
 #define MARS_ENGINE_OBJECT_
 
-#include <pl/safe_vector.hpp>
-#include <pl/safe_deque.hpp>
+#include <pl/safe.hpp>
 #include <MARS/graphics/graphics_engine.hpp>
 #include "MARS/memory/mars_ref.hpp"
 #include <memory>
@@ -21,21 +20,22 @@ namespace mars_engine {
 
         mars_ref<object_engine> m_engine;
 
-        pl::safe_deque<mars_ref<mars_object>> m_children;
-        pl::safe_vector<std::shared_ptr<component>> m_components;
-        pl::safe_map<std::string, std::shared_ptr<bridge>> m_bridges;
+        pl::safe<std::deque<mars_ref<mars_object>>> m_children;
+        pl::safe<std::vector<std::shared_ptr<component>>> m_components;
+        pl::safe<std::map<std::string, std::shared_ptr<bridge>>> m_bridges;
 
         transform_3d m_transform;
+
+        inline void set_engine(const mars_ref<object_engine>& _engine) { m_engine = _engine; }
+
+        friend object_engine;
     public:
         mars_ref<mars_object> parent() const { return m_parent; }
         mars_ref<object_engine> engine() const { return m_engine; }
         transform_3d& transform() { return m_transform; }
-        const pl::safe_vector<std::shared_ptr<component>>& components() const { return m_components; }
+        const pl::safe<std::vector<std::shared_ptr<component>>>& components() const { return m_components; }
 
-        inline void set_engine(const mars_ref<object_engine>& _engine) { m_engine = _engine; }
-
-        explicit mars_object(const mars_ref<object_engine>& _engine) {
-            m_engine = _engine;
+        explicit mars_object() {
             m_transform.set_parent(this);
         }
 

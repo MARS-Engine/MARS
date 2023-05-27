@@ -6,7 +6,7 @@
 #include <MARS/graphics/graphics_engine.hpp>
 #include <MARS/memory/mars_ref.hpp>
 #include <MARS/engine/singleton.hpp>
-#include <pl/safe_map.hpp>
+#include <pl/safe.hpp>
 #include <string>
 #include <vector>
 #include <sys/stat.h>
@@ -32,8 +32,8 @@ namespace mars_resources {
 
     class resource_manager : public mars_engine::singleton, public std::enable_shared_from_this<resource_manager> {
     private:
-        pl::safe_map<std::string, std::shared_ptr<resource_base>> resources;
-        pl::safe_map<std::string, mars_ref<resource_base>> ref_resources;
+        pl::safe<std::map<std::string, std::shared_ptr<resource_base>>> resources;
+        pl::safe<std::map<std::string, mars_ref<resource_base>>> ref_resources;
         std::map<mars_graphics::MARS_RESOURCE_TYPE, std::string> resources_locations = {
                 { mars_graphics::MARS_RESOURCE_TYPE_ENGINE, "engine/assets/" },
                 { mars_graphics::MARS_RESOURCE_TYPE_SHADER, "engine/assets/shaders/" },

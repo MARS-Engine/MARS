@@ -22,19 +22,19 @@ void v_shader_input::bind() {
     }
 }
 
-void v_shader_input::load_input(const std::shared_ptr<mars_shader_inputs>& _inputs) {
+void v_shader_input::load_input(const mars_shader_inputs& _inputs) {
     int stride = 0;
-    for (auto i = 0; i < _inputs->length; i++)
-        stride += _inputs->input_data[i].stride;
+    for (auto i = 0; i < _inputs.length; i++)
+        stride += _inputs.input_data[i].stride;
 
-    for (auto i = 0; i < _inputs->length; i++) {
+    for (auto i = 0; i < _inputs.length; i++) {
         VkVertexInputAttributeDescription new_dec{
             .location = static_cast<uint32_t>(i),
             .binding = 0,
-            .offset = _inputs->input_data[i].offset,
+            .offset = _inputs.input_data[i].offset,
         };
 
-        switch (_inputs->input_data[i].type) {
+        switch (_inputs.input_data[i].type) {
             case MARS_SHADER_INPUT_TYPE_SF_RG:
                 new_dec.format = VK_FORMAT_R32G32_SFLOAT;
                 break;

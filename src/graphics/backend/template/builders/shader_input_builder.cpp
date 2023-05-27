@@ -8,7 +8,7 @@ std::shared_ptr<buffer> shader_input_builder::add_buffer(size_t _input_size, mar
     return m_ref->add_buffer(_input_size, _input_type);
 }
 
-void shader_input_builder::load_input(const std::shared_ptr<mars_shader_inputs>& _inputs) {
+void shader_input_builder::load_input(const mars_shader_inputs& _inputs) {
     m_ref->load_input(_inputs);
 }
 

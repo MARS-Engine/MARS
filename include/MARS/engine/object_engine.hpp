@@ -6,9 +6,7 @@
 #include <typeindex>
 #include <thread>
 #include "component.hpp"
-#include <pl/safe_map.hpp>
-#include <pl/safe_vector.hpp>
-#include <pl/safe_deque.hpp>
+#include <pl/safe.hpp>
 #include <MARS/resources/resource_manager.hpp>
 #include "singleton.hpp"
 
@@ -33,7 +31,7 @@ namespace mars_engine {
             auto now = std::chrono::high_resolution_clock::now();
             m_delta_time_ms = std::chrono::duration<float, std::chrono::milliseconds::period>(now - m_last_tick).count();
             m_delta_time = std::chrono::duration<float, std::chrono::seconds::period>(now - m_last_tick).count();
-            m_last_tick = std::chrono::high_resolution_clock::now();
+            m_last_tick = now;
         }
     };
 
@@ -44,9 +42,11 @@ namespace mars_engine {
     struct layer_component_param {
         engine_worker* _worker;
         tick* layer_tick;
-        std::shared_ptr<std::vector<engine_layer_component>> layers;
-        long being;
-        long length;
+        const engine_layer_component* layers;
+        size_t layer_size;
+        size_t offset;
+        size_t length;
+        int thread_index;
     };
 
     struct engine_layer_component {
@@ -103,20 +103,18 @@ namespace mars_engine {
 
         std::deque<std::shared_ptr<engine_worker>> m_workers;
 
-        pl::safe_vector<std::shared_ptr<mars_object>> m_destroy_list;
-        pl::safe_vector<std::shared_ptr<mars_object>> m_objects;
-        pl::safe_map<std::type_index, engine_layers> m_layer_data;
+        pl::safe<std::vector<std::shared_ptr<mars_object>>> m_destroy_list;
+        pl::safe<std::vector<std::shared_ptr<mars_object>>> m_objects;
+        pl::safe<std::map<std::type_index, engine_layers>> m_layer_data;
 
         std::map<std::type_index, std::shared_ptr<std::vector<engine_layer_component>>> m_wait_list;
         std::map<std::type_index, std::shared_ptr<std::vector<engine_layer_component>>> m_layer_calls;
 
-        pl::safe_map<std::type_index, std::shared_ptr<singleton>> m_singletons;
+        pl::safe<std::map<std::type_index, std::shared_ptr<singleton>>> m_singletons;
         std::barrier<std::function<void()>> m_spawn_wait;
         std::atomic<bool> layers_waiting = false;
     public:
         explicit object_engine(size_t _active_workers) : m_spawn_wait(_active_workers, [&]() { spawn_wait_list(); layers_waiting.exchange(false); }) { }
-
-        std::shared_ptr<object_engine> get_ptr() { return shared_from_this(); }
 
         inline void set_graphics(const mars_ref<mars_graphics::graphics_engine>& _graphics) { m_graphics = _graphics; }
 
@@ -156,7 +154,7 @@ namespace mars_engine {
                 return std::static_pointer_cast<T>(singletons->at(type_index));
 
             std::shared_ptr<T> new_ptr = std::make_shared<T>();
-            new_ptr->set_engine(mars_ref<object_engine>(get_ptr()));
+            new_ptr->set_engine(mars_ref<object_engine>(shared_from_this()));
             singletons->insert(std::pair(type_index, new_ptr));
 
             return new_ptr;

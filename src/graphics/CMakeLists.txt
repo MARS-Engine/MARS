@@ -1,5 +1,4 @@
 add_subdirectory(backend)
-add_subdirectory(attribute)
 add_subdirectory(renderer)
 target_sources(MARS PUBLIC
         material.cpp

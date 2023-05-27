@@ -2,6 +2,7 @@
 #define MARS_TEXTURE_BUILDER_
 
 #include <MARS/graphics/backend/template/graphics_types.hpp>
+#include <MARS/graphics/backend/template/stc/texture_stc.hpp>
 #include "graphics_builder.hpp"
 
 namespace mars_graphics {
@@ -17,6 +18,7 @@ namespace mars_graphics {
 
     class texture_builder : graphics_builder<texture> {
     private:
+        std::shared_ptr<texture_stc> m_stc;
         bool m_already_initialize = false;
         bool m_complete = false;
         texture_data m_data;

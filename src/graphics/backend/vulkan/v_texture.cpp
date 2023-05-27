@@ -9,15 +9,7 @@ using namespace mars_graphics;
 
 VkImageView v_texture::raw_image_view() { return m_image->raw_image_view(); }
 
-void v_texture::copy_buffer_to_image(v_buffer* buffer, const mars_math::vector4<uint32_t>& _rect) {
-    transition_image_layout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    m_image->copy_buffer_to_image(buffer, _rect);
-    transition_image_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, MARS2VK(m_data.layout));
-}
-
-void v_texture::transition_image_layout(VkImageLayout oldLayout, VkImageLayout newLayout) {
-    VkCommandBuffer commandBuffer = cast_graphics<vulkan_backend>()->get_single_time_command();
-
+void v_texture::transition_image_layout(VkCommandBuffer _command_buffer, VkImageLayout oldLayout, VkImageLayout newLayout) {
     VkImageMemoryBarrier barrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .oldLayout = oldLayout,
@@ -54,9 +46,7 @@ void v_texture::transition_image_layout(VkImageLayout oldLayout, VkImageLayout n
     else
         mars_debug::debug::error("MARS - Vulkan - Texture - Unsupported layout transition!");
 
-    vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-
-    cast_graphics<vulkan_backend>()->end_single_time_command(commandBuffer);
+    vkCmdPipelineBarrier(_command_buffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 }
 
 void v_texture::create_sampler() {
@@ -84,10 +74,16 @@ void v_texture::create_sampler() {
     }
 }
 
-void v_texture::copy_buffer_to_image(const std::shared_ptr<buffer>& _buffer, const mars_math::vector4<uint32_t> &_rect) {
-    transition_image_layout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    m_image->copy_buffer_to_image(_buffer->cast<v_buffer>(), _rect);
-    transition_image_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, MARS2VK(m_data.layout));
+void v_texture::begin_buffer_copy(const std::shared_ptr<command_buffer>& _buffer) {
+    transition_image_layout(_buffer->cast<v_command_buffer>()->raw_command_buffer(0), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+}
+
+void v_texture::finish_buffer_copy(const std::shared_ptr<command_buffer>& _buffer) {
+    transition_image_layout(_buffer->cast<v_command_buffer>()->raw_command_buffer(0), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, MARS2VK(m_data.layout));
+}
+
+void v_texture::copy_buffer_to_image(const std::shared_ptr<command_buffer>& _command_buffer, const std::shared_ptr<buffer>& _buffer, const mars_math::vector4<uint32_t> &_rect) {
+    m_image->copy_buffer_to_image(_command_buffer->cast<v_command_buffer>(), _buffer->cast<v_buffer>(), _rect);
 }
 
 void v_texture::load_from_file(const std::string &_path) {
@@ -110,8 +106,12 @@ void v_texture::load_from_file(const std::string &_path) {
 
     m_image->create_image(VK_IMAGE_ASPECT_COLOR_BIT);
 
+    //might not be the best idea, will do for now
+    auto stc = texture_stc(graphics(), std::shared_ptr<texture>(this, [](texture* p){}));
 
-    copy_buffer_to_image(buffer, { 0, 0, (uint32_t)m_data.size.x, (uint32_t)m_data.size.y});
+    stc.begin_buffer_copy();
+    stc.copy_buffer_to_image(buffer, { 0, 0, (uint32_t)m_data.size.x, (uint32_t)m_data.size.y});
+    stc.finish_buffer_copy();
 
     m_image->create_image_view();
     create_sampler();

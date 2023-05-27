@@ -1,5 +1,6 @@
 add_subdirectory(builders)
 add_subdirectory(resources)
+add_subdirectory(stc)
 
 target_sources(MARS PUBLIC
         shader.cpp

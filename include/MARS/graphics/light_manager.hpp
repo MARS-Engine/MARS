@@ -11,8 +11,7 @@
 #include <MARS/graphics/backend/template/shader_data.hpp>
 #include <MARS/graphics/pipeline_manager.hpp>
 
-#include <pl/safe_map.hpp>
-#include <pl/safe_vector.hpp>
+#include <pl/safe.hpp>
 
 namespace mars_graphics {
 
@@ -36,8 +35,8 @@ namespace mars_graphics {
 
     class light_manager {
     private:
-        pl::safe_vector<point_light*> update_buffer;
-        pl::safe_vector<point_light*> lights;
+        pl::safe<std::vector<std::shared_ptr<point_light>>> update_buffer;
+        pl::safe<std::vector<std::shared_ptr<point_light>>> lights;
 
         std::shared_ptr<shader> light_shader;
         std::shared_ptr<pipeline> m_pipeline;
@@ -48,7 +47,7 @@ namespace mars_graphics {
         scene_lights scene;
     public:
 
-        inline void add_light(point_light* _light) {
+        inline void add_light(const std::shared_ptr<point_light>& _light) {
             update_buffer.lock()->push_back(_light);
         }
 

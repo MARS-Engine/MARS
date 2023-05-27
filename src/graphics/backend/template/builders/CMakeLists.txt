@@ -8,4 +8,5 @@ target_sources(MARS PUBLIC
         pipeline_builder.cpp
         shader_builder.cpp
         device_builder.cpp
-        window_builder.cpp)
+        window_builder.cpp
+        command_buffer_builder.cpp)

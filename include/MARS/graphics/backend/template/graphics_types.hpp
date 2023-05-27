@@ -2,6 +2,7 @@
 #define MARS_GRAPHICS_TYPES_
 
 #include <string>
+#include <vector>
 #include <MARS/math/vector4.hpp>
 #include <MARS/math/vector2.hpp>
 
@@ -115,8 +116,19 @@ namespace mars_graphics {
 
     struct mars_shader_inputs {
     public:
-        mars_shader_input* input_data;
+        std::vector<mars_shader_input> input_data;
         size_t length;
+
+        [[nodiscard]] int size() const {
+            int total_size = 0;
+            for (size_t i = 0; i < length; i++)
+                total_size += input_data[i].stride;
+            return total_size;
+        }
+
+        bool operator<(const mars_shader_inputs& _other) const {
+            return size() + length < _other.size() + length;
+        }
     };
 
     struct mars_viewport {

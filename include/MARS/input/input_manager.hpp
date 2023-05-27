@@ -1,7 +1,7 @@
 #ifndef MARS_INPUT_HANDLER_
 #define MARS_INPUT_HANDLER_
 
-#include <pl/safe_map.hpp>
+#include <map>
 #include <SDL2/SDL.h>
 #include <MARS/math/vector2.hpp>
 #include <MARS/engine/singleton.hpp>

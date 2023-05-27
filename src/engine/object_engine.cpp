@@ -5,13 +5,13 @@
 using namespace mars_engine;
 
 std::shared_ptr<engine_worker> object_engine::create_worker(size_t _cores) {
-    m_workers.emplace_back(std::make_shared<engine_worker>(mars_ref<object_engine>(get_ptr()), _cores));
+    m_workers.emplace_back(std::make_shared<engine_worker>(mars_ref<object_engine>(shared_from_this()), _cores));
     return m_workers.back()->get_ptr();
 }
 
 mars_ref<mars_object> object_engine::create_obj() {
-    auto obj  = std::make_shared<mars_object>(mars_ref<object_engine>(shared_from_this()));
-    obj->set_engine(mars_ref<object_engine>(get_ptr()));
+    auto obj = std::make_shared<mars_object>();
+    obj->set_engine(mars_ref<object_engine>(shared_from_this()));
     m_objects.lock()->push_back(obj);
     return mars_ref<mars_object>(obj);
 }

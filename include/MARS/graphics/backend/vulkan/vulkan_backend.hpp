@@ -39,6 +39,7 @@ namespace mars_graphics {
         pipeline_builder pipeline_build() override { return pipeline_builder{ std::make_shared<v_pipeline>(shared_from_this()) }; }
         shader_builder shader_build() override { return shader_builder{ std::make_shared<v_shader>(shared_from_this()) }; }
         device_builder device_build() override { return device_builder{ std::make_shared<v_device>(shared_from_this()) }; }
+        command_buffer_builder command_buffer_build() override { return command_buffer_builder{ std::make_shared<v_command_buffer>(shared_from_this()) }; }
     public:
         [[nodiscard]] inline v_instance* instance() const { return m_vulkan_instance; }
         [[nodiscard]] inline v_window* get_vulkan_window() const { return raw_window->cast<v_window>(); }
@@ -48,12 +49,14 @@ namespace mars_graphics {
         [[nodiscard]] inline renderer* instance_renderer() const { return dynamic_cast<renderer*>(m_renderer); }
         [[nodiscard]] inline v_sync* sync() const { return m_sync; }
 
-        [[nodiscard]] inline VkCommandBuffer raw_command_buffer() const { return dynamic_cast<v_command_buffer*>(primary_buffer())->raw_command_buffer(); }
+        [[nodiscard]] inline VkCommandBuffer raw_command_buffer() const { return primary_buffer()->cast<v_command_buffer>()->raw_command_buffer(); }
 
         using graphics_backend::graphics_backend;
 
         VkCommandBuffer get_single_time_command();
         void end_single_time_command(VkCommandBuffer _command);
+
+        void submit_command(const std::shared_ptr<command_buffer> &_cb, size_t _index) override;
 
         void create_with_window(const std::string& _title, const mars_math::vector2<int>& _size, const std::string& _renderer) override;
 

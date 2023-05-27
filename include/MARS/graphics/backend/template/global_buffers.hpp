@@ -2,13 +2,13 @@
 #define MARS_GLOBAL_BUFFERS_
 
 #include "buffer.hpp"
-#include <pl/safe_map.hpp>
+#include <pl/safe.hpp>
 
 namespace mars_graphics {
 
     class global_buffers {
     private:
-        pl::safe_map<std::string, std::shared_ptr<buffer>> m_global_buffers;
+        pl::safe<std::map<std::string, std::shared_ptr<buffer>>> m_global_buffers;
     public:
         inline void add_buffer(const std::string& _name, const std::shared_ptr<buffer>& _buffer) {
             m_global_buffers.lock()->insert(std::pair(_name, _buffer));

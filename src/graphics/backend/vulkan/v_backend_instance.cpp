@@ -45,6 +45,16 @@ void vulkan_backend::end_single_time_command(VkCommandBuffer _command) {
     vkFreeCommandBuffers(get_device()->raw_device(), command_pool()->raw_command_pool(), 1, &_command);
 }
 
+void vulkan_backend::submit_command(const std::shared_ptr<command_buffer> &_cb, size_t _index) {
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &_cb->cast<v_command_buffer>()->raw_command_buffer(_index);
+
+    vkQueueSubmit(get_device()->raw_graphics_queue(), 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(get_device()->raw_graphics_queue());
+}
+
 void vulkan_backend::create_with_window(const std::string &_title, const mars_math::vector2<int>& _size, const std::string& _renderer) {
     auto win_builder = window_builder(std::make_shared<v_window>(shared_from_this()));
     win_builder.set_size(_size).set_title(_title).set_flag(SDL_WINDOW_VULKAN).enable_keyboard().set_mouse(MARS_MOUSE_MODE_UNLOCKED);
@@ -66,9 +76,7 @@ void vulkan_backend::create_with_window(const std::string &_title, const mars_ma
     m_command_pool = new v_command_pool(this);
     m_command_pool->create();
 
-    auto main_buffer = new v_command_buffer(shared_from_this());
-    main_buffer->create();
-    m_primary_buffer = main_buffer;
+    m_primary_buffer = builder<command_buffer_builder>().build();
 
     m_sync = new v_sync(this);
     m_sync->create();
@@ -86,15 +94,15 @@ void vulkan_backend::prepare_render() {
     vkAcquireNextImageKHR(get_device()->raw_device(), swapchain()->raw_swapchain(), UINT64_MAX, sync()->image_available(), VK_NULL_HANDLE, &m_index);
     vkResetFences(get_device()->raw_device(), 1, &sync()->inflight_fence());
 
-    m_primary_buffer->reset();
-    m_primary_buffer->begin();
+    m_primary_buffer->reset(m_current_frame);
+    m_primary_buffer->begin(m_current_frame);
     instance_renderer()->get_framebuffer("main_render")->get_render_pass()->begin();
 }
 
 void vulkan_backend::draw() {
     instance_renderer()->get_framebuffer("main_render")->get_render_pass()->end();
     m_light->draw_lights();
-    m_primary_buffer->end();
+    m_primary_buffer->end(m_current_frame);
 
     VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
@@ -104,7 +112,7 @@ void vulkan_backend::draw() {
         .pWaitSemaphores = &sync()->image_available(),
         .pWaitDstStageMask = &wait_stage,
         .commandBufferCount = 1,
-        .pCommandBuffers = &((v_command_buffer*)m_primary_buffer)->raw_command_buffer(),
+        .pCommandBuffers = &m_primary_buffer->cast<v_command_buffer>()->raw_command_buffer(),
         .signalSemaphoreCount = 1,
         .pSignalSemaphores = &sync()->render_finished(),
     };
@@ -136,8 +144,7 @@ void vulkan_backend::destroy() {
     m_swapchain->destroy();
     delete m_swapchain;
 
-    ((v_command_buffer*)m_primary_buffer)->destroy();
-    delete m_primary_buffer;
+    m_primary_buffer.reset();
 
     m_command_pool->destroy();
     delete m_command_pool;

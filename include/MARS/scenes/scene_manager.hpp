@@ -2,20 +2,21 @@
 #define MARS_SCENE_MANAGER_
 
 #include <string>
-#include <pl/safe_map.hpp>
-
+#include <pl/safe.hpp>
+#include <MARS/engine/singleton.hpp>
 #include "scene.hpp"
 
 namespace mars_scenes {
 
-    class scene_manager {
+class scene_manager : public mars_engine::singleton {
     private:
-        static pl::safe_map<std::string, scene*> m_scenes;
+        pl::safe<std::map<std::string, scene*>> m_scenes;
     public:
 
-        static void add_scene(const std::string& _scene_name, scene* _scene);
-        static void load_scene(const std::string& _scene_name);
-        static void clear();
+        void add_scene(const std::string& _scene_name, scene* _scene);
+        void load_scene(const std::string& _scene_name);
+
+        ~scene_manager();
     };
 }
 

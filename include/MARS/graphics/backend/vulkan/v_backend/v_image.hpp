@@ -31,7 +31,7 @@ namespace mars_graphics  {
 
         void create_image(VkImageAspectFlags _aspect_flag);
         void create_image_view();
-        void copy_buffer_to_image(v_buffer* buffer, const mars_math::vector4<uint32_t>& _rect);
+        void copy_buffer_to_image(v_command_buffer* _command_buffer, v_buffer* buffer, const mars_math::vector4<uint32_t>& _rect);
 
         void destroy();
     };

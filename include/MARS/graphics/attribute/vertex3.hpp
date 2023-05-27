@@ -8,14 +8,21 @@
 namespace mars_graphics {
 
     class vertex3 {
-    private:
-        static mars_shader_inputs m_description;
     public:
         mars_math::vector3<float> position;
         mars_math::vector3<float> normal;
         mars_math::vector2<float> uv;
 
-        static std::shared_ptr<mars_shader_inputs> get_description() { return std::make_shared<mars_shader_inputs>(m_description); };
+        static mars_shader_inputs description() {
+            return {
+                .input_data = std::vector<mars_shader_input>({
+                    { 3, offsetof(vertex3, position), MARS_SHADER_INPUT_TYPE_SF_RGB },
+                    { 3, offsetof(vertex3, normal), MARS_SHADER_INPUT_TYPE_SF_RGB },
+                    { 2, offsetof(vertex3, uv), MARS_SHADER_INPUT_TYPE_SF_RG }
+                }),
+                .length = 3
+            };
+        };
     };
 }
 

@@ -8,6 +8,7 @@
 #include <MARS/graphics/backend/template/texture.hpp>
 #include <MARS/graphics/backend/template/pipeline.hpp>
 #include <MARS/graphics/backend/template/shader_data.hpp>
+#include <MARS/engine/object_engine.hpp>
 #include "pipeline_manager.hpp"
 
 namespace mars_graphics {
@@ -34,8 +35,8 @@ namespace mars_graphics {
             return m_graphics->builder<shader_data_builder>().set_textures(m_textures).build(m_pipeline, mars_ref<shader>(m_shader));
         }
 
-        template<typename T> inline void set_pipeline() {
-            auto val = pipeline_manager::load_pipeline(pipeline_manager::get_input<T>(), mars_ref<shader>(m_shader), m_graphics);
+        template<typename T> requires std::is_function_v<decltype(T::description)> inline void set_pipeline() {
+            auto val = m_graphics->engine()->get<pipeline_manager>()->load_pipeline(T::description(), mars_ref<shader>(m_shader), m_graphics);
             m_pipeline = val;
         }
 
