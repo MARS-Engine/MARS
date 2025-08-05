@@ -1,1 +1,0 @@
-target_sources(MARS PUBLIC wavefront_loader.cpp)

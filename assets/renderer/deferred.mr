@@ -1,8 +1,0 @@
-#FRAME main_render
-COLOR
-COLOR
-COLOR
-DEPTH
-#FRAME light_render
-SWAPCHAIN
-DEPTH

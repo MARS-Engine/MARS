@@ -1,1 +1,0 @@
-target_sources(MARS PUBLIC string_helper.cpp)

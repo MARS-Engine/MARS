@@ -1,1 +1,0 @@
-target_sources(MARS PUBLIC scene_manager.cpp)
