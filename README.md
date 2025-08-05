@@ -1,3 +1,6 @@
+# Warning
+Work is currently in progress in the [static reflection branch](https://github.com/MARS-Engine/MARS/tree/static_reflection) while the engine is rewritten to adopt C++ 26
+
 # MARS
 MARS (Modular Asynchronous Rendering System) is a multithreaded optimized c++ rendering engine.
 
