@@ -4,6 +4,7 @@
 #include <meta>
 #include <type_traits>
 #include <typeinfo>
+#include <vector>
 
 namespace mars::meta {
     template <class>
@@ -13,6 +14,32 @@ namespace mars::meta {
     struct member_pointer_info<T C::*> {
         using parent = C;
         using type = T;
+    };
+
+    template <class>
+    struct member_function_pointer_info;
+
+    template <class C, class R, class... Args>
+    struct member_function_pointer_info<R (C::*)(Args...)> {
+        using t_parent = C;
+        using t_return = R;
+        using args_tuple = std::tuple<Args...>;
+    };
+
+    template <typename Tuple, typename Extra>
+    struct append_to_tuple;
+
+    template <typename... Ts, typename Extra>
+    struct append_to_tuple<std::tuple<Ts...>, Extra> {
+        using type = std::tuple<Ts..., Extra>;
+    };
+
+    template <typename R, typename Tuple>
+    struct unpack_to_function;
+
+    template <typename R, typename... Args>
+    struct unpack_to_function<R, std::tuple<Args...>> {
+        using type = R (*)(Args...);
     };
 
     namespace __detail {
@@ -103,5 +130,32 @@ namespace mars::meta {
         }
 
         return {};
+    }
+
+    template <auto MemberPtr>
+    consteval size_t get_member_function_position() {
+        constexpr auto ctx = std::meta::access_context::current();
+        using parent_type = member_function_pointer_info<decltype(MemberPtr)>::t_parent;
+
+        std::size_t index = 0;
+
+        template for (constexpr auto mem : std::define_static_array(std::meta::members_of(^^parent_type, ctx))) {
+            if constexpr (!std::meta::is_function(mem) || std::meta::is_special_member_function(mem))
+                continue;
+            else {
+                auto current_ptr = &[:mem:];
+                if constexpr (std::is_same_v<decltype(current_ptr),
+                                             decltype(MemberPtr)>) {
+                    if (current_ptr == MemberPtr)
+                        return index; // found it
+                }
+            }
+            ++index;
+        }
+        return index;
+    }
+
+    consteval std::meta::info get_member_variable_by_index(std::meta::info r, std::size_t n) {
+        return nonstatic_data_members_of(r, std::meta::access_context::current())[n];
     }
 } // namespace mars::meta
