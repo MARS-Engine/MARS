@@ -81,7 +81,6 @@ namespace mars {
             }
         }
 
-      protected:
         template <auto MemberPtr, typename... Args>
             requires(std::is_same_v<T, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_parent>)
         void broadcast(Args... args) {

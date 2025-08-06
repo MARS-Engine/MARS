@@ -1,56 +1,69 @@
 #pragma once
 
 #include <imgui.h>
+#include <mars/event/event.hpp>
 #include <mars/utility/string.hpp>
 #include <numeric>
 
 namespace mars {
     namespace imgui {
-        struct breadcrumb_data {
-            std::vector<std::string> crumbs;
-            std::string location;
-            bool dirty = false;
+        struct breadcrumb_event {
+            void on_location_selected(struct breadcrumb& _crumb, const std::string& _new_location);
+            void on_location_changed(struct breadcrumb& _crumb, const std::string& _new_location);
         };
 
-        inline bool breadcrumb(breadcrumb_data& _data) {
-            if (_data.dirty || _data.crumbs.size() == 0) {
-                _data.crumbs.clear();
-                _data.dirty = false;
+        struct breadcrumb : public event<breadcrumb_event> {
+            std::vector<std::string> crumbs;
+            std::string location;
 
-                if (_data.location == "")
-                    _data.location = "./";
-                else if (_data.location[0] != '.') {
-                    if (_data.location[0] == '/')
-                        _data.location = '.' + _data.location;
+            breadcrumb(const std::string& _location) : location(_location) {
+                update_crumbs();
+            }
+
+            void update_crumbs() {
+                crumbs.clear();
+
+                if (location == "")
+                    location = "./";
+                else if (location[0] != '.') {
+                    if (location[0] == '/')
+                        location = '.' + location;
                     else
-                        _data.location = "./" + _data.location;
-                } else if (_data.location == ".")
-                    _data.location = "./";
+                        location = "./" + location;
+                } else if (location == ".")
+                    location = "./";
 
-                _data.crumbs = split_string<'/'>(_data.location);
+                crumbs = split_string<'/'>(location);
 
-                if (_data.crumbs[_data.crumbs.size() - 1] == "")
-                    _data.crumbs.pop_back();
+                if (crumbs[crumbs.size() - 1] == "")
+                    crumbs.pop_back();
             }
 
-            ImGui::NewLine();
-            for (int i = 0; i < _data.crumbs.size(); i++) {
-                ImGui::SameLine();
+          public:
+            void set_path(const std::string& _new_location) {
+                location = _new_location;
+                update_crumbs();
+                broadcast<&breadcrumb_event::on_location_changed>(*this, location);
+            }
 
-                if (ImGui::Button(_data.crumbs[i].c_str())) {
-                    _data.location = std::accumulate(std::next(_data.crumbs.begin()), _data.crumbs.begin() + i + 1, _data.crumbs[0], [](std::string a, const std::string& b) {
-                                         return std::move(a) + '/' + b;
-                                     }) +
-                                     "/";
-                    _data.dirty = true;
-                    return true;
+            void render() {
+                ImGui::NewLine();
+                for (int i = 0; i < crumbs.size(); i++) {
+                    ImGui::SameLine();
+
+                    if (ImGui::Button(crumbs[i].c_str())) {
+                        set_path(std::accumulate(std::next(crumbs.begin()), crumbs.begin() + i + 1, crumbs[0], [](std::string a, const std::string& b) {
+                                     return std::move(a) + '/' + b;
+                                 }) +
+                                 "/");
+                        broadcast<&breadcrumb_event::on_location_selected>(*this, location);
+                        return;
+                    }
+
+                    ImGui::SameLine();
+                    ImGui::Text("/");
                 }
-
-                ImGui::SameLine();
-                ImGui::Text("/");
             }
-
-            return false;
-        }
+        };
     } // namespace imgui
 } // namespace mars
