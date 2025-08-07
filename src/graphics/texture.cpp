@@ -12,7 +12,7 @@ namespace mars::imgui {
     inline void on_texture_selected(texture_browser& _browser, const std::string& _location, graphics::texture& _value) {
         if (_value.id != 0)
             graphics::texture_destroy(_value);
-        _value = graphics::load_texture(_location, 0);
+        _value = graphics::texture_load(_location, 0);
 
         show_modal = false;
         ImGui::CloseCurrentPopup();
@@ -40,5 +40,14 @@ namespace mars::imgui {
                 show_modal = true;
             }
         }
+    }
+
+    void struct_editor<const graphics::texture>::render(const graphics::texture& _value, const std::string_view& _label) {
+        static texture_browser icon_browser = texture_browser("data/", "png");
+
+        if (_value.path == "")
+            ImGui::Button("No Image", ImVec2(100, 100));
+        else
+            ImGui::ImageButton("##icon", (void*)(intptr_t)_value.id, ImVec2(100, 100));
     }
 } // namespace mars::imgui

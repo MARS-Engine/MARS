@@ -40,17 +40,17 @@ namespace mars::json {
     }
 
     template <typename T>
+    struct json_type_parser;
+
+    template <typename T>
     struct json_type_parser_base {
         static constexpr bool array_support = false;
         static constexpr bool string_support = false;
         static constexpr bool bool_support = false;
         static constexpr bool number_support = false;
         static constexpr bool struct_support = false;
-    };
 
-    template <typename T>
-    struct json_type_parser : public json_type_parser_base<T> {
-        inline static std::string_view::iterator parse(const std::string_view& _json, T& _value) {
+        inline static std::string_view::iterator default_parse(const std::string_view& _json, T& _value) {
             std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
 
             if (*start != '{')
@@ -168,7 +168,7 @@ namespace mars::json {
             return current + 1;
         }
 
-        inline static void stringify(T& _value, std::string& _out) {
+        inline static void default_stringify(T& _value, std::string& _out) {
             _out += "{ ";
             static constexpr auto ctx = std::meta::access_context::current();
             if constexpr (std::is_class_v<T>) {
@@ -182,6 +182,17 @@ namespace mars::json {
                 }
             }
             _out[_out.size() - 1] = '}';
+        }
+    };
+
+    template <typename T>
+    struct json_type_parser : public json_type_parser_base<T> {
+        inline static std::string_view::iterator parse(const std::string_view& _json, T& _value) {
+            return json_type_parser_base<T>::default_parse(_json, _value);
+        }
+
+        inline static void stringify(T& _value, std::string& _out) {
+            json_type_parser_base<T>::default_stringify(_value, _out);
         }
 
         static constexpr bool struct_support = true;

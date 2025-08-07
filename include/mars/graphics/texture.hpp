@@ -97,7 +97,7 @@ namespace mars {
             [[= mars::json::skip]] mars::vector2<size_t> size;
         };
 
-        inline texture load_texture(void* _data, size_t _width, size_t _height, mars_texture_format _format, int _location) {
+        inline texture texture_load(void* _data, size_t _width, size_t _height, mars_texture_format _format, int _location) {
             texture result;
             result.location = _location;
             result.size = { _width, _height };
@@ -115,7 +115,7 @@ namespace mars {
             return result;
         };
 
-        inline texture load_texture(const std::string& _path, int _location) {
+        inline texture texture_load(const std::string& _path, int _location) {
             int width, height, channels;
             unsigned char* data = stbi_load(_path.c_str(), &width, &height, &channels, 0);
 
@@ -142,7 +142,7 @@ namespace mars {
         };
 
         template <typename T>
-        void load_textures(T& _material) {
+        void texture_load(T& _material) {
             static constexpr auto ctx = std::meta::access_context::current();
 
             template for (constexpr auto mem : std::define_static_array(std::meta::nonstatic_data_members_of(^^T, ctx))) {
@@ -182,6 +182,23 @@ namespace mars {
         }
     } // namespace graphics
 
+    namespace json {
+        template <>
+        struct json_type_parser<mars::graphics::texture> : public json_type_parser_base<mars::graphics::texture> {
+            inline static std::string_view::iterator parse(const std::string_view& _json, mars::graphics::texture& _value) {
+                auto result = json_type_parser_base<mars::graphics::texture>::default_parse(_json, _value);
+                _value = mars::graphics::texture_load(_value.path, _value.location);
+                return result;
+            }
+
+            inline static void stringify(mars::graphics::texture& _value, std::string& _out) {
+                json_type_parser_base<mars::graphics::texture>::default_stringify(_value, _out);
+            }
+
+            static constexpr bool struct_support = true;
+        };
+    }; // namespace json
+
     namespace prop {
         static consteval mars::graphics::texture_prop_annotation texture(const char* _name, size_t _location = 0, mars_texture_format _format = MARS_TEXTURE_FORMAT_RGB) {
             return { std::define_static_string(_name), _location, _format };
@@ -192,6 +209,11 @@ namespace mars {
         template <>
         struct struct_editor<graphics::texture> {
             static void render(graphics::texture& _value, const std::string_view& _label);
+        };
+
+        template <>
+        struct struct_editor<const graphics::texture> {
+            static void render(const graphics::texture& _value, const std::string_view& _label);
         };
     } // namespace imgui
 } // namespace mars

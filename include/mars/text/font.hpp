@@ -99,7 +99,7 @@ namespace mars {
                 result.characters[c] = new_character;
             }
 
-            result.texture = mars::graphics::load_texture(texture_data.data(), (size_t)texture_size, (size_t)texture_size, MARS_TEXTURE_FORMAT_RED, 0);
+            result.texture = mars::graphics::texture_load(texture_data.data(), (size_t)texture_size, (size_t)texture_size, MARS_TEXTURE_FORMAT_RED, 0);
 
             FT_Done_Face(face);
             FT_Done_FreeType(ft_lib);

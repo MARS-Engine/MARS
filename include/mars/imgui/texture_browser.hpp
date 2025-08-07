@@ -89,7 +89,7 @@ namespace mars {
 
                 // load new files
                 for (std::string& file : files)
-                    entries.emplace_back(file, mars::graphics::load_texture(ref_loc + file, 0));
+                    entries.emplace_back(file, mars::graphics::texture_load(ref_loc + file, 0));
             }
 
           public:
