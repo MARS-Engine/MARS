@@ -108,10 +108,10 @@ namespace mars::meta {
 
     template <typename E, bool Enumerable = std::meta::is_enumerable_type(^^E)>
         requires std::is_enum_v<E>
-    constexpr std::string_view enum_to_string(E value) {
+    constexpr std::string_view enum_to_string(E _value) {
         if constexpr (Enumerable) {
             template for (constexpr auto e : std::define_static_array(std::meta::enumerators_of(^^E))) {
-                if (value == [:e:])
+                if (_value == [:e:])
                     return std::meta::identifier_of(e);
             }
         }
@@ -121,11 +121,11 @@ namespace mars::meta {
 
     template <typename E, bool Enumerable = std::meta::is_enumerable_type(^^E)>
         requires std::is_enum_v<E>
-    constexpr E string_to_enum(const std::string_view& value) {
+    constexpr E string_to_enum(const std::string_view& _value) {
         if constexpr (Enumerable) {
             template for (constexpr auto e : std::define_static_array(std::meta::enumerators_of(^^E))) {
-                if (std::define_static_string(std::meta::identifier_of(e)) == value)
-                    return e;
+                if (_value == std::meta::identifier_of(e))
+                    return [:e:];
             }
         }
 
