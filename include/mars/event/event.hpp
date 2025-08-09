@@ -44,7 +44,10 @@ namespace mars {
     struct event : public event_storage<T> {
         template <auto Func, typename C, typename... Args>
         static void thunk(void* _ptr, Args... args) {
-            Func(args..., *static_cast<C*>(_ptr));
+            if constexpr (std::tuple_size_v<typename mars::meta::member_pointer_info<decltype(Func)>::t_args_tuple> == sizeof...(Args))
+                Func(args...);
+            else
+                Func(args..., *static_cast<C*>(_ptr));
         }
 
         template <auto Func, typename C, typename Tuple>
@@ -66,7 +69,20 @@ namespace mars {
                 if (function_vec[i].data == &ptr)
                     return;
 
-            function_vec.emplace_back(thunk_from_tuple<F, C, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::args_tuple>::value, &ptr);
+            function_vec.emplace_back(thunk_from_tuple<F, C, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::value, &ptr);
+        }
+
+        template <auto MemberPtr, auto F>
+            requires(std::is_same_v<T, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_parent>)
+        void listen() {
+            constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
+            auto& function_vec = static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):];
+
+            for (int i = 0; i < function_vec.size(); i++)
+                if (function_vec[i].function == thunk_from_tuple<F, void, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::value)
+                    return;
+
+            function_vec.emplace_back(thunk_from_tuple<F, void, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::value, nullptr);
         }
 
         template <auto MemberPtr, auto F, typename C>
@@ -84,7 +100,7 @@ namespace mars {
 
         template <auto MemberPtr>
             requires(std::is_same_v<T, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_parent>)
-        void broadcast(std::tuple_element_t<0, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::args_tuple> first_arg, auto... args) {
+        void broadcast(std::tuple_element_t<0, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple> first_arg, auto... args) {
             constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
             for (auto& entry : static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):])
                 entry.function(entry.data, first_arg, args...);

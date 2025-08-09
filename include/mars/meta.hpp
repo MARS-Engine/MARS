@@ -23,7 +23,16 @@ namespace mars::meta {
     struct member_function_pointer_info<R (C::*)(Args...)> {
         using t_parent = C;
         using t_return = R;
-        using args_tuple = std::tuple<Args...>;
+        using t_args_tuple = std::tuple<Args...>;
+    };
+
+    template <class>
+    struct member_pointer_info;
+
+    template <class R, class... Args>
+    struct member_pointer_info<R (*)(Args...)> {
+        using t_return = R;
+        using t_args_tuple = std::tuple<Args...>;
     };
 
     template <typename Tuple, typename Extra>
