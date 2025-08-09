@@ -2,6 +2,7 @@
 
 #include <mars/meta.hpp>
 #include <ranges>
+#include <tuple>
 
 namespace mars {
     template <typename T>
@@ -81,13 +82,12 @@ namespace mars {
             }
         }
 
-        template <auto MemberPtr, typename... Args>
+        template <auto MemberPtr>
             requires(std::is_same_v<T, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_parent>)
-        void broadcast(Args... args) {
+        void broadcast(std::tuple_element_t<0, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::args_tuple> first_arg, auto... args) {
             constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
-            for (auto& entry : static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):]) {
-                entry.function(entry.data, args...);
-            }
+            for (auto& entry : static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):])
+                entry.function(entry.data, first_arg, args...);
         }
     };
 
