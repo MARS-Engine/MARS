@@ -92,12 +92,12 @@ namespace mars {
                     entries.emplace_back(file, mars::graphics::texture_load(ref_loc + file, 0));
             }
 
-          public:
             inline static void on_breadcrumb_changed(breadcrumb& _bread, const std::string& _location, texture_browser& _browser) {
                 _browser.location = _location;
                 _browser.process_location();
             }
 
+          public:
             inline texture_browser(const std::string& _location, const std::string& _format = "") : location(_location), format(_format), path_breadcrumb(_location) {
                 path_breadcrumb.listen<&breadcrumb_event::on_location_changed, &texture_browser::on_breadcrumb_changed>(*this);
                 process_location();

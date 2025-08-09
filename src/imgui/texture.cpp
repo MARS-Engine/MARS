@@ -16,7 +16,9 @@ namespace mars::imgui {
         ImGui::CloseCurrentPopup();
     }
 
-    struct_editor<graphics::texture>::struct_editor() : icon_browser("data/", "png") {}
+    struct_editor<graphics::texture>::struct_editor() : icon_browser("data/", "png") {
+        icon_browser.listen<&texture_browser_event::on_texture_select, &on_texture_selected>(*this);
+    }
     struct_editor<graphics::texture>::struct_editor(graphics::texture& _texture) : icon_browser("data/", "png") {
         this->ref = &_texture;
         icon_browser.listen<&texture_browser_event::on_texture_select, &on_texture_selected>(*this);
@@ -28,6 +30,10 @@ namespace mars::imgui {
     }
 
     void struct_editor<graphics::texture>::render(const std::string_view& _label) {
+        std::string str(_label);
+        ImGui::Text("%s", str.c_str());
+
+        ImGui::Indent(10.0f);
         if (ImGui::BeginPopupModal("important_modal", nullptr)) {
             icon_browser.render();
             ImGui::EndPopup();
@@ -42,6 +48,7 @@ namespace mars::imgui {
                 ImGui::OpenPopup("important_modal");
             }
         }
+        ImGui::Unindent(10.0f);
     }
 
     void struct_editor<const graphics::texture>::render(const std::string_view& _label) {
