@@ -1,16 +1,17 @@
 #pragma once
 
-#include "imgui.h"
-#include "mars/parser/json/json.hpp"
+#include <imgui.h>
 #include <stb/stb_image.h>
 #include <vector>
 
 #include <glad/gl.h>
 #include <iostream>
+#include <mars/event/event.hpp>
 #include <mars/imgui/struct_editor.hpp>
 #include <mars/io/file.hpp>
 #include <mars/math/vector2.hpp>
 #include <mars/meta.hpp>
+#include <mars/parser/json/json.hpp>
 #include <meta>
 
 enum mars_texture_format {
@@ -204,16 +205,4 @@ namespace mars {
             return { std::define_static_string(_name), _location, _format };
         }
     } // namespace prop
-
-    namespace imgui {
-        template <>
-        struct struct_editor<graphics::texture> {
-            static void render(graphics::texture& _value, const std::string_view& _label);
-        };
-
-        template <>
-        struct struct_editor<const graphics::texture> {
-            static void render(const graphics::texture& _value, const std::string_view& _label);
-        };
-    } // namespace imgui
 } // namespace mars
