@@ -177,6 +177,17 @@ namespace mars {
             }
         }
 
+        inline texture texture_duplicate(const texture& _other) {
+            texture result = _other;
+            glCreateTextures(GL_TEXTURE_2D, 1, &result.id);
+            glTextureStorage2D(result.id, 1, __detail::texture_format_to_gl_internal(result.format), result.size.x, result.size.y);
+            glCopyImageSubData(
+                _other.id, GL_TEXTURE_2D, 0, 0, 0, 0,
+                result.id, GL_TEXTURE_2D, 0, 0, 0, 0,
+                result.size.x, result.size.y, 1);
+            return result;
+        }
+
         inline void texture_destroy(texture& _texture) {
             glDeleteTextures(1, &_texture.id);
             _texture = {};
