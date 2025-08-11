@@ -6,8 +6,6 @@ MARS (Modular Asynchronous Rendering System) is a multithreaded optimized c++ re
 
 MARS is a set of multiple modules that have as a goal help developers to easily create their high performance rendering engines.
 
-Feel free to join MARS [Discord Server](https://discord.gg/VHEP99VShx) if you wish to help or talk
-
 For a test sample, you can go [here](https://github.com/MARS-Engine/MARS-Samples)
 
 ## Main Modules Status
