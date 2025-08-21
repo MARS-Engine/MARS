@@ -38,12 +38,15 @@ namespace mars {
             void deallocate(AT* p, std::size_t) noexcept {
                 ::operator delete(p);
             }
+
+            inline bool operator==(const helper_allocator&) const noexcept { return true; }
+            inline bool operator!=(const helper_allocator&) const noexcept { return false; }
         };
 
         template <typename... Args>
         struct helper {
             using helper_type = helper<Args...>;
-            void (*function)(uintptr_t, Args...);
+            void (*function)(uintptr_t, Args&&...);
             uintptr_t data = 0;
         };
 
@@ -80,11 +83,11 @@ namespace mars {
     template <typename T>
     struct event : public event_storage<T> {
         template <auto Func, typename C, typename... Args>
-        static void thunk(uintptr_t _ptr, Args... args) {
+        static void thunk(uintptr_t _ptr, Args&&... args) {
             if constexpr (std::tuple_size_v<typename mars::meta::member_pointer_info<decltype(Func)>::t_args_tuple> == sizeof...(Args))
-                Func(args...);
+                Func(std::forward<Args>(args)...);
             else
-                Func(args..., *reinterpret_cast<C*>(_ptr));
+                Func(std::forward<Args>(args)..., *reinterpret_cast<C*>(_ptr));
         }
 
         template <auto Func, typename C, typename Tuple>
@@ -168,9 +171,9 @@ namespace mars {
             }
         }
 
-        template <auto MemberPtr>
+        template <auto MemberPtr, typename... Args>
             requires(std::is_same_v<T, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_parent>)
-        void broadcast(std::tuple_element_t<0, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple> first_arg, auto... args) {
+        void broadcast(Args&&... args) {
             constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
             auto& function_vec = static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):];
             for (int i = 0; i < function_vec.size(); i++) {
@@ -180,7 +183,7 @@ namespace mars {
                     continue;
                 }
 
-                function_vec[i].function(function_vec[i].data, first_arg, args...);
+                function_vec[i].function(function_vec[i].data, std::forward<Args>(args)...);
             }
         }
     };
