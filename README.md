@@ -13,3 +13,16 @@ Because this is a WIP branch, some parts are either:
 - Not yet integrated
 
 If you want to jump straight to working examples or reflection-driven systems with documentation, [click here](documentation/)
+
+| Module   	| Status 	| Notes                                                                                                                                          	|
+|----------	|--------	|------------------------------------------------------------------------------------------------------------------------------------------------	|
+| Graphics 	| 🌱      	| Backend function registration is not complete I still need to rethink how to do it but its good enough since i like the current user interface 	|
+| ECS      	| ✔️      	|                                                                                                                                                	|
+|          	|        	|                                                                                                                                                	|
+
+### Meaning
+🌱 - Currently Working On
+
+✔️ - In a Completed
+
+🔒 - Finished no major reworks expected

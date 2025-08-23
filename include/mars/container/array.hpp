@@ -3,7 +3,7 @@
 #include <stddef.h>
 
 namespace mars {
-    namespace __detail {
+    namespace detail {
         template <typename A>
         constexpr decltype(auto) dive(A& _array) noexcept { return _array; }
 
@@ -24,20 +24,20 @@ namespace mars {
         struct make_array<T> {
             using type = T;
         };
-    }; // namespace __detail
+    }; // namespace detail
 
     template <typename T, size_t... S>
     struct array {
-        __detail::make_array<T, S...>::type data;
+        detail::make_array<T, S...>::type data;
 
         template <typename... I>
         auto& operator[](I... _index) {
-            return __detail::dive(data, _index...);
+            return detail::dive(data, _index...);
         }
 
         template <typename... I>
         const auto& operator[](I... _index) const {
-            return __detail::dive(data, _index...);
+            return detail::dive(data, _index...);
         }
     };
 } // namespace mars

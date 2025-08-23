@@ -6,8 +6,8 @@
 #include <string_view>
 
 namespace mars::hash {
-    namespace __detail {
-        // note about this functions insde __details and hash logic is pure AI slop.
+    namespace detail {
+        // note about this functions insde detail and hash logic is pure AI slop.
         // since it works™ and its supposed to be runtime only I dont really care about it for now but i really need to make something actually good in the future (assuming this isnt good enough as is)
 
         consteval std::string constexpr_int_to_string(int value) {
@@ -57,9 +57,9 @@ namespace mars::hash {
             hash_entity(h, std::meta::dealias(^^T));
             return h;
         }
-    } // namespace __detail
+    } // namespace detail
 
     // only use this for identifying types at runtime. UNDER NO CIRCUMSTANCES EVER STORE THIS VALUE IN ASSET DATA OR I WILL CURSE YOUR BLOODLINE FOR A THOUSAND YEARS
     template <class T>
-    constexpr uint64_t type_fingerprint_v = __detail::type_fingerprint_ce<T>();
+    constexpr uint64_t type_fingerprint_v = detail::type_fingerprint_ce<T>();
 } // namespace mars::hash

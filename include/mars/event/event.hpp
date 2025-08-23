@@ -12,41 +12,12 @@
 namespace mars {
     template <typename T>
     struct event_storage {
-
-        // custom allocator for avx compatibility
-        template <typename AT, std::size_t block_size>
-        struct helper_allocator {
-            using value_type = AT;
-
-            // make rebind explicit so libstdc++ can keep block_size
-            template <class U>
-            struct rebind {
-                using other = helper_allocator<U, block_size>;
-            };
-
-            helper_allocator() noexcept = default;
-
-            template <class U>
-            helper_allocator(const helper_allocator<U, block_size>&) noexcept {}
-
-            AT* allocate(std::size_t n) {
-                const std::size_t elems = ((n + block_size - 1) / block_size) * block_size;
-                const std::size_t bytes = elems * sizeof(AT);
-                return static_cast<AT*>(::operator new(bytes));
-            }
-
-            void deallocate(AT* p, std::size_t) noexcept {
-                ::operator delete(p);
-            }
-
-            inline bool operator==(const helper_allocator&) const noexcept { return true; }
-            inline bool operator!=(const helper_allocator&) const noexcept { return false; }
-        };
-
         template <typename... Args>
         struct helper {
-            using helper_type = helper<Args...>;
-            void (*function)(uintptr_t, Args&&...);
+            // function used to pass extra arguments
+            void (*helper_function)(const helper&, Args...) = nullptr;
+            // function used for simple (runtime) callbacks
+            void (*simple_function)(Args...) = nullptr;
             uintptr_t data = 0;
         };
 
@@ -68,12 +39,9 @@ namespace mars {
 
             // define storage as struct { std::vector<helper<Args...>>, repeat for each function in T }
             std::meta::define_aggregate(^^storage, std::views::transform(result, [](auto t) {
-                std::meta::info alloc_info = std::meta::substitute(^^helper_allocator, {
-                                                                                           *std::views::single(t).data(), std::meta::reflect_constant(2) });
                 return std::meta::data_member_spec(
-                    std::meta::substitute(^^std::vector,
-                                          {
-                                              *std::views::single(t).data(), alloc_info }));
+                    std::meta::substitute(^^std::vector, {
+                                                             *std::views::single(t).data() }));
             }));
         }
 
@@ -83,11 +51,11 @@ namespace mars {
     template <typename T>
     struct event : public event_storage<T> {
         template <auto Func, typename C, typename... Args>
-        static void thunk(uintptr_t _ptr, Args&&... args) {
-            if constexpr (std::tuple_size_v<typename mars::meta::member_pointer_info<decltype(Func)>::t_args_tuple> == sizeof...(Args))
-                Func(std::forward<Args>(args)...);
+        static void thunk(const event_storage<T>::template helper<Args...>& helper, Args&&... args) {
+            if constexpr (std::tuple_size_v<typename mars::meta::function_pointer_info<decltype(Func)>::t_args_tuple> == sizeof...(Args))
+                Func(args...);
             else
-                Func(std::forward<Args>(args)..., *reinterpret_cast<C*>(_ptr));
+                Func(args..., *reinterpret_cast<C*>(helper.data));
         }
 
         template <auto Func, typename C, typename Tuple>
@@ -96,6 +64,14 @@ namespace mars {
         template <auto Func, typename C, typename... Args>
         struct thunk_from_tuple<Func, C, std::tuple<Args...>> {
             static constexpr auto value = &thunk<Func, C, Args...>;
+        };
+
+        template <typename Tuple>
+        struct signature_from_tuple;
+
+        template <typename... Args>
+        struct signature_from_tuple<std::tuple<Args...>> {
+            typedef void (*signature)(Args...);
         };
 
         // if your object lives at 0x1 you are cooked.
@@ -108,7 +84,7 @@ namespace mars {
             constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
             auto& function_vec = static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):];
             for (int i = 0; i < function_vec.size(); i++)
-                if (function_vec[i].function == thunk_from_tuple<F, C, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::value && function_vec[i].data == reinterpret_cast<uintptr_t>(_object))
+                if (function_vec[i].helper_function == thunk_from_tuple<F, C, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::value && function_vec[i].data == reinterpret_cast<uintptr_t>(_object))
                     return true;
             return false;
         }
@@ -126,6 +102,14 @@ namespace mars {
             return internal_is_bound<MemberPtr, F, void>(0);
         }
 
+        template <auto MemberPtr>
+            requires(std::is_same_v<T, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_parent>)
+        bool has_bound() {
+            constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
+            auto& function_vec = static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):];
+            return function_vec.size() != 0;
+        }
+
         template <auto MemberPtr, auto F, typename C>
             requires(std::is_same_v<T, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_parent>)
         void listen(C& _object) {
@@ -135,11 +119,7 @@ namespace mars {
             constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
             auto& function_vec = static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):];
 
-            for (int i = 0; i < function_vec.size(); i++)
-                if (function_vec[i].data == reinterpret_cast<uintptr_t>(&_object))
-                    return;
-
-            function_vec.emplace_back(thunk_from_tuple<F, C, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::value, reinterpret_cast<uintptr_t>(&_object));
+            function_vec.push_back({ .helper_function = thunk_from_tuple<F, C, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::value, .data = reinterpret_cast<uintptr_t>(&_object) });
         }
 
         template <auto MemberPtr, auto F>
@@ -151,11 +131,19 @@ namespace mars {
             constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
             auto& function_vec = static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):];
 
-            for (int i = 0; i < function_vec.size(); i++)
-                if (function_vec[i].function == thunk_from_tuple<F, void, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::value)
-                    return;
+            if constexpr (mars::meta::member_function_pointer_info<decltype(MemberPtr)>::args_size == mars::meta::function_pointer_info<decltype(F)>::args_size)
+                function_vec.emplace_back().simple_function = F;
+            else
+                function_vec.push_back({ .helper_function = thunk_from_tuple<F, void, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::value });
+        }
 
-            function_vec.emplace_back(thunk_from_tuple<F, void, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::value, 0);
+        template <auto MemberPtr>
+            requires(std::is_same_v<T, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_parent>)
+        void listen(signature_from_tuple<typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::signature _function) {
+            constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
+            auto& function_vec = static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):];
+
+            function_vec.push_back({ .simple_function = _function });
         }
 
         template <auto MemberPtr, auto F, typename C>
@@ -176,6 +164,7 @@ namespace mars {
         void broadcast(Args&&... args) {
             constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
             auto& function_vec = static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):];
+
             for (int i = 0; i < function_vec.size(); i++) {
                 if (function_vec[i].data == dead_mark) {
                     function_vec.erase(function_vec.begin() + i);
@@ -183,7 +172,10 @@ namespace mars {
                     continue;
                 }
 
-                function_vec[i].function(function_vec[i].data, std::forward<Args>(args)...);
+                if (function_vec[i].simple_function)
+                    function_vec[i].simple_function(std::forward<Args>(args)...);
+                else
+                    function_vec[i].helper_function(function_vec[i], std::forward<Args>(args)...);
             }
         }
     };

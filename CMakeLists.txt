@@ -1,5 +1,6 @@
 find_package(OpenGL REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(Vulkan REQUIRED)
 
 
 add_library(mars ./src/mars.cpp)
@@ -16,6 +17,7 @@ target_compile_options(mars PRIVATE
 
 target_include_directories(mars PRIVATE ${FREETYPE_INCLUDE_DIRS})
 target_link_libraries(mars PRIVATE ${FREETYPE_LIBRARIES})
+target_link_libraries(mars PRIVATE Vulkan::Vulkan)
 
 target_include_directories(mars PRIVATE /usr/include)
 target_include_directories(mars PRIVATE ../third_party/glad/include)

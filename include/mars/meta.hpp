@@ -24,15 +24,17 @@ namespace mars::meta {
         using t_parent = C;
         using t_return = R;
         using t_args_tuple = std::tuple<Args...>;
+        inline static constexpr size_t args_size = sizeof...(Args);
     };
 
     template <class>
-    struct member_pointer_info;
+    struct function_pointer_info;
 
     template <class R, class... Args>
-    struct member_pointer_info<R (*)(Args...)> {
+    struct function_pointer_info<R (*)(Args...)> {
         using t_return = R;
         using t_args_tuple = std::tuple<Args...>;
+        inline static constexpr size_t args_size = sizeof...(Args);
     };
 
     template <typename Tuple, typename Extra>
@@ -51,7 +53,7 @@ namespace mars::meta {
         using type = R (*)(Args...);
     };
 
-    namespace __detail {
+    namespace detail {
         template <auto MemberPtr, typename Parent, size_t I = 0>
         consteval size_t member_index_impl() {
             constexpr auto ctx = std::meta::access_context::current();
@@ -74,7 +76,7 @@ namespace mars::meta {
                 return member_index_impl<MemberPtr, Parent, I + 1>();
             }
         }
-    } // namespace __detail
+    } // namespace detail
 
     template <std::size_t I, typename Spec>
     using template_arg_t = [:std::meta::template_arguments_of(^^Spec)[I]:];
@@ -102,7 +104,7 @@ namespace mars::meta {
 
     template <auto MemberPtr>
     consteval size_t get_member_position() {
-        return __detail::member_index_impl<MemberPtr, typename member_pointer_info<decltype(MemberPtr)>::parent>();
+        return detail::member_index_impl<MemberPtr, typename member_pointer_info<decltype(MemberPtr)>::parent>();
     }
 
     template <typename E, size_t N = std::meta::enumerators_of(^^E).size()>
@@ -167,4 +169,5 @@ namespace mars::meta {
     consteval std::meta::info get_member_variable_by_index(std::meta::info r, std::size_t n) {
         return nonstatic_data_members_of(r, std::meta::access_context::current())[n];
     }
+
 } // namespace mars::meta
