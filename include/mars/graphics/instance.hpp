@@ -10,10 +10,10 @@ namespace mars::graphics {
     }
 
     inline void instance_destroy(instance& _instance) {
-        return _instance.engine->get_impl<instance_impl>().instance_destroy(_instance);
+        _instance.engine->get_impl<instance_impl>().instance_destroy(_instance);
     }
 
     inline void instance_listen_debug(instance& _instance, void (*_callback)(instance& _instance, const std::string_view& _message, mars_graphics_message_severity _error_severity)) {
-        return _instance.engine->get_impl<instance_impl>().instance_listen_debug(_instance, _callback);
+        _instance.engine->get_impl<instance_impl>().instance_listen_debug(_instance, _callback);
     }
 } // namespace mars::graphics

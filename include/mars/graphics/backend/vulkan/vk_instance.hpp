@@ -14,6 +14,7 @@ namespace mars::graphics::vulkan {
     struct vk_instance : event<vk_instance_events> {
         VkInstance instance = VK_NULL_HANDLE;
         VkDebugUtilsMessengerEXT debug_message = VK_NULL_HANDLE;
+        std::vector<const char*> instance_layers;
     };
 
     struct vk_instance_impl {

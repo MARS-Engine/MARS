@@ -1,7 +1,9 @@
 #pragma once
 
 #include "buffer.hpp"
+#include "device.hpp"
 #include "instance.hpp"
+#include "swapchain.hpp"
 #include "window.hpp"
 
 #include <mars/container/sparse_array.hpp>
@@ -17,6 +19,8 @@ namespace mars {
         buffer_impl buffer;
         window_impl window;
         instance_impl instance;
+        device_impl device;
+        swapchain_impl swapchain;
 
         template <typename T>
         T& get_impl() {

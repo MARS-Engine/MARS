@@ -79,8 +79,8 @@ namespace mars {
         }
 
         template <typename... Args>
-        void assert_if(const bool _condition, const log_channel& _channel, const std::string& _message, Args... args) {
-            if (_condition)
+        void assert_(const bool _condition, const log_channel& _channel, const std::string& _message, Args... args) {
+            if (!_condition)
                 assert_(_channel, _message, std::forward<Args>(args)...);
         }
     } // namespace logger

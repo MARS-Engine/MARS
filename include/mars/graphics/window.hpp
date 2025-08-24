@@ -30,6 +30,8 @@ namespace mars {
 
     struct window : event<window_event> {
         graphics_engine* engine;
+        void* data;
+
         SDL_Window* sdl_window = nullptr;
         Uint64 now = 0;
         Uint64 last = 0;
@@ -51,7 +53,10 @@ namespace mars {
 
     namespace graphics {
         window window_create(graphics_engine& _engine, const window_params& _params);
+        void window_create_surface(window& _window, instance& _instance);
         void window_get_extensions(const window& _window, std::vector<const char*>& _out);
+        void window_destroy_surface(window& _window, instance& _instance);
+        void window_destroy(window& _window);
     } // namespace graphics
 
     inline void window_process_events(window& _window) {
@@ -71,17 +76,5 @@ namespace mars {
             } else if (event.type == SDL_EVENT_QUIT)
                 _window.close();
         }
-    }
-
-    inline void window_destroy(window& _window) {
-        SDL_DestroyWindow(_window.sdl_window);
-
-        int windows_left = 0;
-        SDL_GetWindows(&windows_left);
-
-        if (windows_left == 0)
-            SDL_Quit();
-
-        _window = {};
     }
 } // namespace mars

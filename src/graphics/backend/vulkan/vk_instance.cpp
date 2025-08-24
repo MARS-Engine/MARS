@@ -1,13 +1,14 @@
-#include "mars/graphics/backend/instance.hpp"
-#include <cstdint>
+#include <mars/graphics/backend/vulkan/vk_instance.hpp>
+
 #include <mars/container/sparse_array.hpp>
 #include <mars/debug/logger.hpp>
-#include <mars/graphics/backend/vulkan/instance.hpp>
+#include <mars/graphics/backend/instance.hpp>
 #include <mars/graphics/backend/window.hpp>
 #include <mars/graphics/graphics_engine.hpp>
 #include <mars/graphics/window.hpp>
 #include <mars/meta.hpp>
 
+#include <cstdint>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -99,13 +100,16 @@ namespace mars::graphics::vulkan {
 
         instance new_instance;
 
+        detail::vk_instance_entry* v_instance = detail::instances.request_entry();
+        v_instance->engine = _engine.allocator;
+
         if (_params.debug_mode && !detail::check_validation_layer_support(validation_layers)) {
             logger::error(detail::instance_channel, "failed to get validation layers disabling debug mode");
             new_instance.debug_mode = false;
-        } else
+        } else {
             new_instance.debug_mode = _params.debug_mode;
-
-        detail::vk_instance_entry* v_instance = detail::instances.request_entry();
+            v_instance->instance_layers.append_range(validation_layers);
+        }
 
         VkApplicationInfo app_info{
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -122,7 +126,7 @@ namespace mars::graphics::vulkan {
         };
 
         std::vector<const char*> extensions;
-        _window.engine->get_impl<window_impl>().get_extensions(_window, extensions);
+        _window.engine->get_impl<window_impl>().window_get_extensions(_window, extensions);
 
         if (new_instance.debug_mode) {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -137,20 +141,11 @@ namespace mars::graphics::vulkan {
 
         VkResult result = vkCreateInstance(&create_info, nullptr, &v_instance->instance);
 
-        logger::assert_if(result != VK_SUCCESS, detail::instance_channel, "vkCreateInstance returned {}", meta::enum_to_string(result));
+        logger::assert_(result == VK_SUCCESS, detail::instance_channel, "vkCreateInstance returned {}", meta::enum_to_string(result));
 
         new_instance.engine = _engine.allocator;
         new_instance.data = v_instance;
         return new_instance;
-    }
-
-    void vk_instance_impl::vk_instance_destroy(instance& _instance) {
-        vk_instance* ptr = static_cast<vk_instance*>(_instance.data);
-
-        if (ptr->debug_message != VK_NULL_HANDLE)
-            detail::vk_destroy_debug_utils_messenger_ext(ptr->instance, ptr->debug_message, nullptr);
-
-        vkDestroyInstance(ptr->instance, nullptr);
     }
 
     void vk_instance_impl::vk_instance_listen_debug(instance& _instance, void (*_callback)(instance& _instance, const std::string_view& _message, mars_graphics_message_severity _error_severity)) {
@@ -180,4 +175,15 @@ namespace mars::graphics::vulkan {
 
         ptr->listen<&vk_instance_events::debug_callback>(_callback);
     }
+
+    void vk_instance_impl::vk_instance_destroy(instance& _instance) {
+        vk_instance* ptr = static_cast<vk_instance*>(_instance.data);
+
+        if (ptr->debug_message != VK_NULL_HANDLE)
+            detail::vk_destroy_debug_utils_messenger_ext(ptr->instance, ptr->debug_message, nullptr);
+
+        vkDestroyInstance(ptr->instance, nullptr);
+        detail::instances.remove(static_cast<detail::vk_instance_entry*>(ptr));
+    }
+
 } // namespace mars::graphics::vulkan

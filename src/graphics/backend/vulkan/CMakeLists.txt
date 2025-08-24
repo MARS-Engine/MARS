@@ -1,1 +1,1 @@
-target_sources(mars PUBLIC ./instance.cpp ./window.cpp)
+target_sources(mars PUBLIC ./vk_instance.cpp ./vk_window.cpp ./vk_device.cpp ./vk_swapchain.cpp)

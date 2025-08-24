@@ -38,7 +38,7 @@ namespace mars {
         void emplace_back(const entity& _entity, Args&&... _args) {
             if constexpr (mars::environment::is_debug) {
                 constexpr auto name_sv = std::meta::has_identifier(^^T) ? std::meta::identifier_of(^^T) : std::meta::display_string_of(^^T);
-                mars::logger::assert_if(lookup.contains(_entity.index), log_entity_channel, "attempted to add entity that already exists to entity_component_storage<{}>", name_sv);
+                mars::logger::assert_(!lookup.contains(_entity.index), log_entity_channel, "attempted to add entity that already exists to entity_component_storage<{}>", name_sv);
             }
 
             size_t pos = entities.size();
