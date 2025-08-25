@@ -5,11 +5,11 @@
 #include <mars/graphics/window.hpp>
 
 namespace mars::graphics {
-    inline swapchain swapchain_create(instance& _instance, window& _window) {
-        return _instance.engine->get_impl<swapchain_impl>().swapchain_create(_instance, _window);
+    inline swapchain swapchain_create(const device& _device, const window& _window) {
+        return _device.engine->get_impl<swapchain_impl>().swapchain_create(_device, _window);
     }
 
-    inline void swapchain_destroy(swapchain& _swapchain, instance& _instance) {
-        _instance.engine->get_impl<swapchain_impl>().swapchain_destroy(_swapchain, _instance);
+    inline void swapchain_destroy(swapchain& _swapchain, const device& _device) {
+        _swapchain.engine->get_impl<swapchain_impl>().swapchain_destroy(_swapchain, _device);
     }
 } // namespace mars::graphics

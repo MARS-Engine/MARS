@@ -1,12 +1,14 @@
-
-#include <cstdint>
+#include "mars/graphics/backend/window.hpp"
 #include <mars/graphics/backend/vulkan/vk_device.hpp>
 
 #include <mars/container/sparse_array.hpp>
 #include <mars/debug/logger.hpp>
 #include <mars/graphics/backend/vulkan/vk_instance.hpp>
+#include <mars/graphics/backend/vulkan/vk_utils.hpp>
+#include <mars/graphics/graphics_engine.hpp>
 #include <mars/meta.hpp>
 
+#include <cstdint>
 #include <set>
 #include <vector>
 
@@ -15,44 +17,62 @@ namespace mars::graphics::vulkan {
         sparse_vector<vk_device, 2> devices;
         log_channel device_channel("graphics/vulkan/device");
 
-        queue_family_indices find_queue_families(VkPhysicalDevice _device, VkSurfaceKHR _surface) {
-            queue_family_indices indices;
+        bool has_extensions(VkPhysicalDevice _device, const std::vector<const char*>& _extensions) {
+            uint32_t extension_count;
+            vkEnumerateDeviceExtensionProperties(_device, nullptr, &extension_count, nullptr);
 
-            uint32_t queue_family_count = 0;
-            vkGetPhysicalDeviceQueueFamilyProperties(_device, &queue_family_count, nullptr);
+            std::vector<VkExtensionProperties> available_extensions(extension_count);
+            vkEnumerateDeviceExtensionProperties(_device, nullptr, &extension_count, available_extensions.data());
 
-            std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
-            vkGetPhysicalDeviceQueueFamilyProperties(_device, &queue_family_count, queue_families.data());
+            std::set<std::string> result;
+            result.insert_range(_extensions);
 
-            for (int i = 0; i < queue_family_count; i++) {
-                if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-                    indices.graphics_family = i;
+            for (const auto& extension : available_extensions)
+                result.erase(extension.extensionName);
 
-                VkBool32 present_support = false;
-                vkGetPhysicalDeviceSurfaceSupportKHR(_device, i, _surface, &present_support);
-
-                if (present_support)
-                    indices.present_family = i;
-
-                if (indices.is_valid())
-                    break;
-            }
-
-            return indices;
+            return result.empty();
         }
 
-        bool is_device_suitable(VkPhysicalDevice _device, VkSurfaceKHR _surface) {
+        bool is_device_suitable(VkPhysicalDevice _device, VkSurfaceKHR _surface, const std::vector<const char*>& _required_extensions) {
             if (!find_queue_families(_device, _surface).is_valid())
                 return false;
 
-            VkPhysicalDeviceProperties device_properties;
-            VkPhysicalDeviceFeatures device_features;
-            vkGetPhysicalDeviceProperties(_device, &device_properties);
-            vkGetPhysicalDeviceFeatures(_device, &device_features);
+            if (!has_extensions(_device, _required_extensions))
+                return false;
 
-            return device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && device_features.geometryShader;
+            swapchain_support_details swapchain_support = query_swapchain_support(_device, _surface);
+            if (swapchain_support.formats.empty() || swapchain_support.present_modes.empty())
+                return false;
+
+            return true;
         }
     }; // namespace detail
+
+    queue_family_indices find_queue_families(VkPhysicalDevice _device, VkSurfaceKHR _surface) {
+        queue_family_indices indices;
+
+        uint32_t queue_family_count = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(_device, &queue_family_count, nullptr);
+
+        std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
+        vkGetPhysicalDeviceQueueFamilyProperties(_device, &queue_family_count, queue_families.data());
+
+        for (int i = 0; i < queue_family_count; i++) {
+            if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+                indices.graphics_family = i;
+
+            VkBool32 present_support = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR(_device, i, _surface, &present_support);
+
+            if (present_support)
+                indices.present_family = i;
+
+            if (indices.is_valid())
+                break;
+        }
+
+        return indices;
+    }
 
     device vk_device_impl::vk_device_create(instance& _instace, window& _window) {
         device result;
@@ -68,18 +88,22 @@ namespace mars::graphics::vulkan {
         std::vector<VkPhysicalDevice> physical_devices(device_count);
         vkEnumeratePhysicalDevices(instance_ptr->instance, &device_count, physical_devices.data());
 
-        VkPhysicalDevice physical_device = VK_NULL_HANDLE;
+        std::vector<const char*> required_extensions;
+
+        _window.engine->get_impl<window_impl>().window_get_device_extensions(_window, required_extensions);
+
+        vk_device* device_ptr = detail::devices.request_entry();
 
         for (const auto& device : physical_devices) {
-            if (detail::is_device_suitable(device, window_ptr->surface)) {
-                physical_device = device;
+            if (detail::is_device_suitable(device, window_ptr->surface, required_extensions)) {
+                device_ptr->physical_device = device;
                 break;
             }
         }
 
-        logger::assert_(physical_device != VK_NULL_HANDLE, detail::device_channel, "");
+        logger::assert_(device_ptr->physical_device != VK_NULL_HANDLE, detail::device_channel, "");
 
-        queue_family_indices indices = detail::find_queue_families(physical_device, window_ptr->surface);
+        queue_family_indices indices = find_queue_families(device_ptr->physical_device, window_ptr->surface);
 
         float queue_priority = 1.0f;
 
@@ -103,11 +127,10 @@ namespace mars::graphics::vulkan {
             .queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size()),
             .pQueueCreateInfos = queue_create_infos.data(),
             .enabledLayerCount = 0,
-            .enabledExtensionCount = 0,
+            .enabledExtensionCount = static_cast<uint32_t>(required_extensions.size()),
+            .ppEnabledExtensionNames = required_extensions.data(),
             .pEnabledFeatures = &device_features,
         };
-
-        vk_device* device_ptr = detail::devices.request_entry();
 
         device_ptr->debug_mode = _instace.debug_mode;
 
@@ -116,7 +139,7 @@ namespace mars::graphics::vulkan {
             create_info.ppEnabledLayerNames = instance_ptr->instance_layers.data();
         }
 
-        VkResult vk_result = vkCreateDevice(physical_device, &create_info, nullptr, &device_ptr->device);
+        VkResult vk_result = vkCreateDevice(device_ptr->physical_device, &create_info, nullptr, &device_ptr->device);
 
         logger::assert_(vk_result == VK_SUCCESS, detail::device_channel, "failed to create vulkan device with error {}", meta::enum_to_string(vk_result));
 
@@ -132,5 +155,6 @@ namespace mars::graphics::vulkan {
         vk_device* device_ptr = static_cast<vk_device*>(_device.data);
         vkDestroyDevice(device_ptr->device, nullptr);
         detail::devices.remove(device_ptr);
+        _device = {};
     }
 } // namespace mars::graphics::vulkan

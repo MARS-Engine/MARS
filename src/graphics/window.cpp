@@ -12,8 +12,12 @@ namespace mars::graphics {
         return _window.engine->get_impl<window_impl>().window_create_surface(_window, _instance);
     }
 
-    void window_get_extensions(const window& _window, std::vector<const char*>& _out) {
-        return _window.engine->get_impl<window_impl>().window_get_extensions(_window, _out);
+    void window_get_instance_extensions(const window& _window, std::vector<const char*>& _out) {
+        return _window.engine->get_impl<window_impl>().window_get_instance_extensions(_window, _out);
+    }
+
+    void window_get_device_extensions(const window& _window, std::vector<const char*>& _out) {
+        return _window.engine->get_impl<window_impl>().window_get_device_extensions(_window, _out);
     }
 
     void window_destroy_surface(window& _window, instance& _instance) {

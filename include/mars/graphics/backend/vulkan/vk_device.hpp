@@ -13,8 +13,11 @@ namespace mars::graphics::vulkan {
         inline bool is_valid() const { return graphics_family != -1 && present_family != -1; }
     };
 
+    queue_family_indices find_queue_families(VkPhysicalDevice _device, VkSurfaceKHR _surface);
+
     struct vk_device {
         VkDevice device = VK_NULL_HANDLE;
+        VkPhysicalDevice physical_device = VK_NULL_HANDLE;
         VkQueue graphics_queue = VK_NULL_HANDLE;
         VkQueue present_queue = VK_NULL_HANDLE;
         bool debug_mode = false;

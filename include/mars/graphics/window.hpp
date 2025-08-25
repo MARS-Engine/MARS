@@ -31,7 +31,7 @@ namespace mars {
     struct window : event<window_event> {
         graphics_engine* engine;
         void* data;
-
+        mars::vector2<size_t> size;
         SDL_Window* sdl_window = nullptr;
         Uint64 now = 0;
         Uint64 last = 0;
@@ -39,6 +39,7 @@ namespace mars {
         SDL_WindowFlags flags = 0;
 
         inline void resize(const mars::vector2<size_t>& _size) {
+            size = _size;
             broadcast<&window_event::on_resize>(*this, _size);
         }
 
@@ -54,7 +55,8 @@ namespace mars {
     namespace graphics {
         window window_create(graphics_engine& _engine, const window_params& _params);
         void window_create_surface(window& _window, instance& _instance);
-        void window_get_extensions(const window& _window, std::vector<const char*>& _out);
+        void window_get_instance_extensions(const window& _window, std::vector<const char*>& _out);
+        void window_get_device_extensions(const window& _window, std::vector<const char*>& _out);
         void window_destroy_surface(window& _window, instance& _instance);
         void window_destroy(window& _window);
     } // namespace graphics

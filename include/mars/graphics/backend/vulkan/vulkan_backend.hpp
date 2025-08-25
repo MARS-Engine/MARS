@@ -15,7 +15,8 @@ namespace mars {
                     .window = {
                         .window_create = &vulkan::vk_window_impl::vk_window_create,
                         .window_create_surface = &vulkan::vk_window_impl::vk_window_create_surface,
-                        .window_get_extensions = &vulkan::vk_window_impl::vk_window_get_extensions,
+                        .window_get_instance_extensions = &vulkan::vk_window_impl::vk_window_get_instance_extensions,
+                        .window_get_device_extensions = &vulkan::vk_window_impl::vk_window_get_device_extensions,
                         .window_destroy_surface = &vulkan::vk_window_impl::vk_window_destroy_surface,
                         .window_destroy = &vulkan::vk_window_impl::vk_window_destroy,
                     },

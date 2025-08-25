@@ -126,7 +126,7 @@ namespace mars::graphics::vulkan {
         };
 
         std::vector<const char*> extensions;
-        _window.engine->get_impl<window_impl>().window_get_extensions(_window, extensions);
+        _window.engine->get_impl<window_impl>().window_get_instance_extensions(_window, extensions);
 
         if (new_instance.debug_mode) {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -184,6 +184,7 @@ namespace mars::graphics::vulkan {
 
         vkDestroyInstance(ptr->instance, nullptr);
         detail::instances.remove(static_cast<detail::vk_instance_entry*>(ptr));
+        _instance = {};
     }
 
 } // namespace mars::graphics::vulkan

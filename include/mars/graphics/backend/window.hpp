@@ -23,7 +23,8 @@ namespace mars {
     struct window_impl {
         window (*window_create)(graphics_engine& _engine, const window_params& _params) = nullptr;
         void (*window_create_surface)(window& _window, instance& _instance) = nullptr;
-        void (*window_get_extensions)(const window& _window, std::vector<const char*>& _extensions) = nullptr;
+        void (*window_get_instance_extensions)(const window& _window, std::vector<const char*>& _extensions) = nullptr;
+        void (*window_get_device_extensions)(const window& _window, std::vector<const char*>& _extensions) = nullptr;
         void (*window_destroy_surface)(window& _window, instance& _instance) = nullptr;
         void (*window_destroy)(window& _window) = nullptr;
     };

@@ -20,6 +20,7 @@ namespace mars::graphics::vulkan {
         window new_window;
         new_window.engine = &_engine;
         new_window.data = detail::windows.request_entry();
+        new_window.size = _params.size;
 
         if (!SDL_WasInit(SDL_INIT_VIDEO))
             SDL_Init(SDL_INIT_VIDEO);
@@ -39,7 +40,7 @@ namespace mars::graphics::vulkan {
         logger::assert_(surface_result, detail::win_channel, "failed to create surface from sdl window");
     }
 
-    void vk_window_impl::vk_window_get_extensions(const window& _window, std::vector<const char*>& _extensions) {
+    void vk_window_impl::vk_window_get_instance_extensions(const window& _window, std::vector<const char*>& _extensions) {
         Uint32 count_instance_extensions;
         const char* const* instance_extensions = SDL_Vulkan_GetInstanceExtensions(&count_instance_extensions);
 
@@ -50,6 +51,10 @@ namespace mars::graphics::vulkan {
 
         for (size_t i = 0; i < count_instance_extensions; i++)
             _extensions.push_back(instance_extensions[i]);
+    }
+
+    void vk_window_impl::vk_window_get_device_extensions(const window& _window, std::vector<const char*>& _extensions) {
+        _extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
     void vk_window_impl::vk_window_destroy_surface(window& _window, instance& _instance) {
@@ -72,8 +77,7 @@ namespace mars::graphics::vulkan {
         if (windows_left == 0)
             SDL_Quit();
 
-        _window = {};
-
         detail::windows.remove(window_ptr);
+        _window = {};
     }
 } // namespace mars::graphics::vulkan
