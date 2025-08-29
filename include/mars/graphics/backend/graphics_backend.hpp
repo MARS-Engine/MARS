@@ -3,16 +3,17 @@
 #include "buffer.hpp"
 #include "device.hpp"
 #include "instance.hpp"
+#include "pipeline.hpp"
+#include "render_pass.hpp"
+#include "shader.hpp"
 #include "swapchain.hpp"
 #include "window.hpp"
 
 #include <mars/container/sparse_array.hpp>
 #include <mars/graphics/window.hpp>
+
 #include <meta>
-#include <ranges>
-#include <type_traits>
 #include <utility>
-#include <vector>
 
 namespace mars {
     struct graphics_backend_functions {
@@ -21,6 +22,9 @@ namespace mars {
         instance_impl instance;
         device_impl device;
         swapchain_impl swapchain;
+        shader_impl shader;
+        pipeline_impl pipeline;
+        render_pass_impl render_pass;
 
         template <typename T>
         T& get_impl() {

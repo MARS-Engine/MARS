@@ -72,6 +72,12 @@ namespace mars {
         }
 
         template <typename... Args>
+        void error_if(bool _condition, const log_channel& _channel, const std::string& _message, Args... args) {
+            if (_condition)
+                error(_channel, _message, std::forward<Args>(args)...);
+        }
+
+        template <typename... Args>
         [[noreturn]]
         void assert_(const log_channel& _channel, const std::string& _message, Args... args) {
             mars_print("assert", _channel, _message, std::forward<Args>(args)...);

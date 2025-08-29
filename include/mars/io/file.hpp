@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace mars::io {
     inline std::string read_file(const std::string& _file_name) {
@@ -10,6 +11,20 @@ namespace mars::io {
         std::stringstream ss;
         ss << file.rdbuf();
         return ss.str();
+    }
+
+    inline bool read_file(const std::string_view& _file_name, std::vector<char>& _out) {
+        std::ifstream file(_file_name.data(), std::ios::ate | std::ios::binary);
+
+        if (!file.is_open())
+            return false;
+
+        size_t file_size = (size_t)file.tellg();
+        _out.resize(file_size);
+        file.seekg(0);
+        file.read(_out.data(), file_size);
+        file.close();
+        return true;
     }
 
     inline bool file_exists(const std::string& path) {

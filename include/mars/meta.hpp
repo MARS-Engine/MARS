@@ -76,6 +76,10 @@ namespace mars::meta {
                 return member_index_impl<MemberPtr, Parent, I + 1>();
             }
         }
+
+        struct display_annotation {
+            const char* display_name;
+        };
     } // namespace detail
 
     template <std::size_t I, typename Spec>
@@ -117,13 +121,17 @@ namespace mars::meta {
         return result;
     }
 
+    inline static consteval detail::display_annotation dispaly(const char* _dispaly) { return { _dispaly }; }
+
     template <typename E, bool Enumerable = std::meta::is_enumerable_type(^^E)>
         requires std::is_enum_v<E>
     constexpr std::string_view enum_to_string(E _value) {
         if constexpr (Enumerable) {
             template for (constexpr auto e : std::define_static_array(std::meta::enumerators_of(^^E))) {
-                if (_value == [:e:])
-                    return std::meta::identifier_of(e);
+                if (_value == [:e:]) {
+                    auto annotation = get_annotation<detail::display_annotation>(e);
+                    return annotation.has_value() ? annotation.value().display_name : std::meta::identifier_of(e);
+                }
             }
         }
 

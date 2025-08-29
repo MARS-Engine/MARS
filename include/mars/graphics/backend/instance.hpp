@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mars/meta.hpp"
 #include <mars/math/vector3.hpp>
 #include <string>
 
