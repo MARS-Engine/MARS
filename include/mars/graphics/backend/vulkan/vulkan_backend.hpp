@@ -1,6 +1,8 @@
 #pragma once
 
+#include "vk_command_pool.hpp"
 #include "vk_device.hpp"
+#include "vk_framebuffer.hpp"
 #include "vk_instance.hpp"
 #include "vk_pipeline.hpp"
 #include "vk_render_pass.hpp"
@@ -42,11 +44,26 @@ namespace mars {
                     },
                     .pipeline = {
                         .pipeline_create = &vulkan::vk_pipeline_impl::vk_pipeline_create,
+                        .pipeline_bind = &vulkan::vk_pipeline_impl::vk_pipeline_bind,
                         .pipeline_destroy = &vulkan::vk_pipeline_impl::vk_pipeline_destroy,
                     },
                     .render_pass{
                         .render_pass_create = &vulkan::vk_render_pass_impl::vk_render_pass_create,
+                        .render_pass_bind = &vulkan::vk_render_pass_impl::vk_render_pass_bind,
+                        .render_pass_unbind = &vulkan::vk_render_pass_impl::vk_render_pass_unbind,
                         .render_pass_destroy = &vulkan::vk_render_pass_impl::vk_render_pass_destroy,
+                    },
+                    .framebuffer{
+                        .framebuffer_create = &vulkan::vk_framebuffer_impl::vk_framebuffer_create,
+                        .framebuffer_destroy = &vulkan::vk_framebuffer_impl::vk_framebuffer_destroy,
+                    },
+                    .command_pool{
+                        .command_pool_create = &vulkan::vk_command_pool_impl::vk_command_pool_create,
+                        .command_buffer_create = &vulkan::vk_command_pool_impl::vk_command_buffer_create,
+                        .command_buffer_record = &vulkan::vk_command_pool_impl::vk_command_buffer_record,
+                        .command_buffer_record_end = &vulkan::vk_command_pool_impl::vk_command_buffer_record_end,
+                        .command_buffer_draw = &vulkan::vk_command_pool_impl::vk_command_buffer_draw,
+                        .command_pool_destroy = &vulkan::vk_command_pool_impl::vk_command_pool_destroy,
                     },
                 };
 

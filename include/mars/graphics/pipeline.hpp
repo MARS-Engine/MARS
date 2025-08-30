@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mars/graphics/backend/command_pool.hpp>
 #include <mars/graphics/backend/device.hpp>
 #include <mars/graphics/backend/graphics_backend.hpp>
 #include <mars/graphics/backend/pipeline.hpp>
@@ -9,6 +10,10 @@ namespace mars {
 
         inline pipeline pipeline_create(const device& _device, const render_pass& _render_pass, const pipeline_setup& _setup) {
             return _device.engine->get_impl<pipeline_impl>().pipeline_create(_device, _render_pass, _setup);
+        }
+
+        inline void pipeline_bind(pipeline& _pipeline, const command_buffer& _command_buffer, const pipeline_bind_params& _params) {
+            _pipeline.engine->get_impl<pipeline_impl>().pipeline_bind(_pipeline, _command_buffer, _params);
         }
 
         inline void pipeline_destroy(pipeline& _pipeline, const device& _device) {

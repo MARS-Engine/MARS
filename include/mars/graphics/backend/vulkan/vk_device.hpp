@@ -18,6 +18,8 @@ namespace mars::graphics::vulkan {
     struct vk_device {
         VkDevice device = VK_NULL_HANDLE;
         VkPhysicalDevice physical_device = VK_NULL_HANDLE;
+
+        queue_family_indices queue_indices;
         VkQueue graphics_queue = VK_NULL_HANDLE;
         VkQueue present_queue = VK_NULL_HANDLE;
         bool debug_mode = false;

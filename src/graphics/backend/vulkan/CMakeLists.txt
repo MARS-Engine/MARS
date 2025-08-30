@@ -5,4 +5,6 @@ target_sources(mars PUBLIC
     ./vk_swapchain.cpp 
     ./vk_shader.cpp 
     ./vk_pipeline.cpp
-    ./vk_render_pass.cpp)
+    ./vk_render_pass.cpp
+    ./vk_framebuffer.cpp
+    ./vk_command_pool.cpp)

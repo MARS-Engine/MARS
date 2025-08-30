@@ -1,7 +1,9 @@
 #pragma once
 
 #include "buffer.hpp"
+#include "command_pool.hpp"
 #include "device.hpp"
+#include "framebuffer.hpp"
 #include "instance.hpp"
 #include "pipeline.hpp"
 #include "render_pass.hpp"
@@ -25,6 +27,8 @@ namespace mars {
         shader_impl shader;
         pipeline_impl pipeline;
         render_pass_impl render_pass;
+        framebuffer_impl framebuffer;
+        command_pool_impl command_pool;
 
         template <typename T>
         T& get_impl() {

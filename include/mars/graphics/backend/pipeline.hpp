@@ -5,7 +5,8 @@
 #include <mars/math/vector2.hpp>
 
 namespace mars {
-    class render_pass;
+    struct render_pass;
+    struct command_buffer;
 
     struct pipeline {
         graphics_backend_functions* engine;
@@ -22,8 +23,13 @@ namespace mars {
         viewport view;
     };
 
+    struct pipeline_bind_params {
+        mars::vector2<size_t> size;
+    };
+
     struct pipeline_impl {
         pipeline (*pipeline_create)(const device& _device, const render_pass& _render_pass, const pipeline_setup& _setup) = nullptr;
+        void (*pipeline_bind)(const pipeline& _pipeline, const command_buffer& _command_buffer, const pipeline_bind_params& _params) = nullptr;
         void (*pipeline_destroy)(pipeline& _pipeline, const device& _device) = nullptr;
     };
 } // namespace mars

@@ -1,8 +1,11 @@
+#include "mars/graphics/backend/vulkan/vk_command_pool.hpp"
+#include <cstdint>
 #include <mars/graphics/backend/vulkan/vk_render_pass.hpp>
 
 #include <mars/container/sparse_array.hpp>
 #include <mars/debug/logger.hpp>
 #include <mars/graphics/backend/vulkan/vk_device.hpp>
+#include <mars/graphics/backend/vulkan/vk_framebuffer.hpp>
 #include <mars/graphics/backend/vulkan/vk_swapchain.hpp>
 #include <mars/meta.hpp>
 
@@ -58,6 +61,33 @@ namespace mars::graphics::vulkan {
         logger::assert_(vk_result == VK_SUCCESS, detail::render_pass_channel, "failed to create render pass with error {}", meta::enum_to_string(vk_result));
 
         return result;
+    }
+
+    void vk_render_pass_impl::vk_render_pass_bind(const render_pass& _render_pass, const command_buffer& _command_buffer, const framebuffer& _framebuffer, const render_pass_bind_param& _params) {
+        vk_render_pass* render_pass_ptr = static_cast<vk_render_pass*>(_render_pass.data);
+        vk_framebuffer* framebuffer_ptr = static_cast<vk_framebuffer*>(_framebuffer.data);
+        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_buffer.data);
+
+        VkClearValue clear_color = { .color = { _params.clear_color.x, _params.clear_color.y, _params.clear_color.z, _params.clear_color.w } };
+
+        VkRenderPassBeginInfo render_pass_info{
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+            .renderPass = render_pass_ptr->vk_render_pass,
+            .framebuffer = framebuffer_ptr->framebuffers[_params.image_index],
+            .renderArea = {
+                .offset = { 0, 0 },
+                .extent = { static_cast<uint32_t>(_framebuffer.extent.x), static_cast<uint32_t>(_framebuffer.extent.y) },
+            },
+            .clearValueCount = 1,
+            .pClearValues = &clear_color,
+        };
+
+        vkCmdBeginRenderPass(command_pool_ptr->command_buffers[_command_buffer.buffer_index], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    void vk_render_pass_impl::vk_render_pass_unbind(const render_pass& _render_pass, const command_buffer& _command_buffer) {
+        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_buffer.data);
+        vkCmdEndRenderPass(command_pool_ptr->command_buffers[_command_buffer.buffer_index]);
     }
 
     void vk_render_pass_impl::vk_render_pass_destroy(render_pass& _render_pass, const device& _device) {

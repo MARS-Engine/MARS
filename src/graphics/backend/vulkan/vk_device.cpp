@@ -102,14 +102,14 @@ namespace mars::graphics::vulkan {
 
         logger::assert_(device_ptr->physical_device != VK_NULL_HANDLE, detail::device_channel, "");
 
-        queue_family_indices indices = find_queue_families(device_ptr->physical_device, window_ptr->surface);
+        device_ptr->queue_indices = find_queue_families(device_ptr->physical_device, window_ptr->surface);
 
         float queue_priority = 1.0f;
 
         VkPhysicalDeviceFeatures device_features{};
 
         std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
-        std::set<uint32_t> uniqueQueueFamilies = { indices.graphics_family, indices.present_family };
+        std::set<uint32_t> uniqueQueueFamilies = { device_ptr->queue_indices.graphics_family, device_ptr->queue_indices.present_family };
 
         for (uint32_t queue_family : uniqueQueueFamilies) {
             VkDeviceQueueCreateInfo queue_create_info{
@@ -142,8 +142,8 @@ namespace mars::graphics::vulkan {
 
         logger::assert_(vk_result == VK_SUCCESS, detail::device_channel, "failed to create vulkan device with error {}", meta::enum_to_string(vk_result));
 
-        vkGetDeviceQueue(device_ptr->device, indices.graphics_family, 0, &device_ptr->graphics_queue);
-        vkGetDeviceQueue(device_ptr->device, indices.present_family, 0, &device_ptr->present_queue);
+        vkGetDeviceQueue(device_ptr->device, device_ptr->queue_indices.graphics_family, 0, &device_ptr->graphics_queue);
+        vkGetDeviceQueue(device_ptr->device, device_ptr->queue_indices.present_family, 0, &device_ptr->present_queue);
 
         result.engine = _instace.engine;
         result.data = device_ptr;

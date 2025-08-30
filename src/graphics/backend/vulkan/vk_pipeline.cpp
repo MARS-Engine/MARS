@@ -3,6 +3,7 @@
 #include <mars/container/sparse_array.hpp>
 #include <mars/debug/logger.hpp>
 #include <mars/graphics/backend/shader.hpp>
+#include <mars/graphics/backend/vulkan/vk_command_pool.hpp>
 #include <mars/graphics/backend/vulkan/vk_device.hpp>
 #include <mars/graphics/backend/vulkan/vk_render_pass.hpp>
 #include <mars/graphics/backend/vulkan/vk_shader.hpp>
@@ -61,20 +62,6 @@ namespace mars::graphics::vulkan {
             .primitiveRestartEnable = VK_FALSE,
         };
 
-        VkViewport viewport{
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(_setup.view.size.x),
-            .height = static_cast<float>(_setup.view.size.y),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
-        };
-
-        VkRect2D scissor{
-            .offset = { 0, 0 },
-            .extent = { static_cast<uint32_t>(_setup.view.size.x), static_cast<uint32_t>(_setup.view.size.x) },
-        };
-
         std::vector<VkDynamicState> dynamic_states = {
             VK_DYNAMIC_STATE_VIEWPORT,
             VK_DYNAMIC_STATE_SCISSOR
@@ -89,9 +76,7 @@ namespace mars::graphics::vulkan {
         VkPipelineViewportStateCreateInfo viewport_state{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
             .viewportCount = 1,
-            .pViewports = &viewport,
             .scissorCount = 1,
-            .pScissors = &scissor,
         };
 
         VkPipelineRasterizationStateCreateInfo rasterizer{
@@ -135,7 +120,7 @@ namespace mars::graphics::vulkan {
 
         VkResult vk_result = vkCreatePipelineLayout(device_ptr->device, &pipeline_layout_info, nullptr, &pipeline_ptr->pipeline_layout);
 
-        logger::assert_(vk_result == VK_SUCCESS, detail::pipeline_channel, "failed to create pipeline with error code {}", meta::enum_to_string(vk_result));
+        logger::assert_(vk_result == VK_SUCCESS, detail::pipeline_channel, "failed to create pipeline layout with error code {}", meta::enum_to_string(vk_result));
 
         VkGraphicsPipelineCreateInfo pipeline_info{
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -153,7 +138,36 @@ namespace mars::graphics::vulkan {
             .subpass = 0,
             .basePipelineHandle = VK_NULL_HANDLE,
         };
+
+        vk_result = vkCreateGraphicsPipelines(device_ptr->device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &pipeline_ptr->vk_pipeline);
+
+        logger::assert_(vk_result == VK_SUCCESS, detail::pipeline_channel, "failed to create pipeline with error code {}", meta::enum_to_string(vk_result));
+
         return result;
+    }
+
+    void vk_pipeline_impl::vk_pipeline_bind(const pipeline& _pipeline, const command_buffer& _command_buffer, const pipeline_bind_params& _params) {
+        vk_pipeline* pipeline_ptr = static_cast<vk_pipeline*>(_pipeline.data);
+        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_buffer.data);
+
+        vkCmdBindPipeline(command_pool_ptr->command_buffers[_command_buffer.buffer_index], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_ptr->vk_pipeline);
+
+        VkViewport viewport{
+            .x = 0.0f,
+            .y = 0.0f,
+            .width = static_cast<float>(_params.size.x),
+            .height = static_cast<float>(_params.size.y),
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f,
+        };
+        vkCmdSetViewport(command_pool_ptr->command_buffers[_command_buffer.buffer_index], 0, 1, &viewport);
+
+        VkRect2D scissor{
+            .offset = { 0, 0 },
+            .extent = { static_cast<uint32_t>(_params.size.x), static_cast<uint32_t>(_params.size.y) },
+        };
+
+        vkCmdSetScissor(command_pool_ptr->command_buffers[_command_buffer.buffer_index], 0, 1, &scissor);
     }
 
     void vk_pipeline_impl::vk_pipeline_destroy(pipeline& _pipeline, const device& _device) {
