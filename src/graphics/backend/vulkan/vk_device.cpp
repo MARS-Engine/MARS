@@ -1,7 +1,11 @@
+#include "mars/graphics/backend/device.hpp"
+#include "mars/graphics/backend/vulkan/vk_swapchain.hpp"
+#include "mars/graphics/backend/vulkan/vk_sync.hpp"
 #include <mars/graphics/backend/vulkan/vk_device.hpp>
 
 #include <mars/container/sparse_array.hpp>
 #include <mars/debug/logger.hpp>
+#include <mars/graphics/backend/vulkan/vk_command_pool.hpp>
 #include <mars/graphics/backend/vulkan/vk_instance.hpp>
 #include <mars/graphics/backend/vulkan/vk_utils.hpp>
 #include <mars/graphics/graphics_engine.hpp>
@@ -10,6 +14,7 @@
 #include <cstdint>
 #include <set>
 #include <vector>
+#include <vulkan/vulkan_core.h>
 
 namespace mars::graphics::vulkan {
     namespace detail {
@@ -148,6 +153,69 @@ namespace mars::graphics::vulkan {
         result.engine = _instace.engine;
         result.data = device_ptr;
         return result;
+    }
+
+    void vk_device_impl::vk_device_submit_graphics_queue(const device& _device, const sync& _sync, size_t _current_index, size_t _image_index, const command_buffer* _buffers, size_t _n_buffers) {
+        if (_n_buffers == 0)
+            return logger::error(detail::device_channel, "attempted to submit 0 command buffers to queue");
+
+        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_sync* sync_ptr = static_cast<vk_sync*>(_sync.data);
+        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_buffers[0].data);
+
+        VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+        std::vector<VkCommandBuffer> buffers;
+        buffers.resize(_n_buffers);
+
+        for (size_t i = 0; i < _n_buffers; i++)
+            buffers[i] = command_pool_ptr->command_buffers[_buffers[i].buffer_index];
+
+        VkSubmitInfo submit_info{
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &sync_ptr->image_available_semaphore[_current_index],
+            .pWaitDstStageMask = wait_stages,
+            .commandBufferCount = static_cast<uint32_t>(_n_buffers),
+            .pCommandBuffers = buffers.data(),
+            .signalSemaphoreCount = 1,
+            .pSignalSemaphores = &sync_ptr->render_finished_semaphore[_image_index],
+        };
+
+        VkResult vk_result = vkQueueSubmit(device_ptr->graphics_queue, 1, &submit_info, sync_ptr->in_flight_fence[_current_index]);
+
+        logger::assert_(vk_result == VK_SUCCESS, detail::device_channel, "failed to queue submit with error {}", meta::enum_to_string(vk_result));
+    }
+
+    bool vk_device_impl::vk_device_present(const device& _device, const sync& _sync, const swapchain& _swapchain, size_t _image_index) {
+        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_sync* sync_ptr = static_cast<vk_sync*>(_sync.data);
+        vk_swapchain* swapchain_ptr = static_cast<vk_swapchain*>(_swapchain.data);
+
+        uint32_t image_index = _image_index;
+
+        VkPresentInfoKHR present_info{
+            .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = &sync_ptr->render_finished_semaphore[image_index],
+            .swapchainCount = 1,
+            .pSwapchains = &swapchain_ptr->swapchain,
+            .pImageIndices = &image_index,
+        };
+
+        VkResult result = vkQueuePresentKHR(device_ptr->present_queue, &present_info);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+            return true;
+
+        logger::assert_(result == VK_SUCCESS, detail::device_channel, "failed to queue present with error {}", meta::enum_to_string(result));
+
+        return false;
+    }
+
+    void vk_device_impl::vk_device_wait(const device& _device) {
+        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vkDeviceWaitIdle(device_ptr->device);
     }
 
     void vk_device_impl::vk_device_destroy(device& _device) {

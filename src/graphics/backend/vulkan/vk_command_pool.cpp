@@ -1,3 +1,4 @@
+#include "mars/graphics/backend/command_pool.hpp"
 #include <mars/graphics/backend/vulkan/vk_command_pool.hpp>
 
 #include <mars/container/sparse_array.hpp>
@@ -62,6 +63,11 @@ namespace mars::graphics::vulkan {
         }
 
         return result;
+    }
+
+    void vk_command_pool_impl::vk_command_buffer_reset(const command_buffer& _command_buffer) {
+        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_buffer.data);
+        vkResetCommandBuffer(command_pool_ptr->command_buffers[_command_buffer.buffer_index], 0);
     }
 
     void vk_command_pool_impl::vk_command_buffer_record(const command_buffer& _command_buffer) {

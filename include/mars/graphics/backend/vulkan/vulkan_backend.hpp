@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mars/graphics/backend/device.hpp"
 #include "vk_command_pool.hpp"
 #include "vk_device.hpp"
 #include "vk_framebuffer.hpp"
@@ -8,6 +9,7 @@
 #include "vk_render_pass.hpp"
 #include "vk_shader.hpp"
 #include "vk_swapchain.hpp"
+#include "vk_sync.hpp"
 #include "vk_window.hpp"
 
 #include <mars/graphics/backend/graphics_backend.hpp>
@@ -32,6 +34,9 @@ namespace mars {
                     },
                     .device = {
                         .device_create = &vulkan::vk_device_impl::vk_device_create,
+                        .device_submit_graphics_queue = &vulkan::vk_device_impl::vk_device_submit_graphics_queue,
+                        .device_present = &vulkan::vk_device_impl::vk_device_present,
+                        .device_wait = &vulkan::vk_device_impl::vk_device_wait,
                         .device_destroy = &vulkan::vk_device_impl::vk_device_destroy,
                     },
                     .swapchain = {
@@ -60,10 +65,18 @@ namespace mars {
                     .command_pool{
                         .command_pool_create = &vulkan::vk_command_pool_impl::vk_command_pool_create,
                         .command_buffer_create = &vulkan::vk_command_pool_impl::vk_command_buffer_create,
+                        .command_buffer_reset = &vulkan::vk_command_pool_impl::vk_command_buffer_reset,
                         .command_buffer_record = &vulkan::vk_command_pool_impl::vk_command_buffer_record,
                         .command_buffer_record_end = &vulkan::vk_command_pool_impl::vk_command_buffer_record_end,
                         .command_buffer_draw = &vulkan::vk_command_pool_impl::vk_command_buffer_draw,
                         .command_pool_destroy = &vulkan::vk_command_pool_impl::vk_command_pool_destroy,
+                    },
+                    .sync{
+                        .sync_create = &vulkan::vk_sync_impl::vk_sync_create,
+                        .sync_wait = &vulkan::vk_sync_impl::vk_sync_wait,
+                        .sync_reset = &vulkan::vk_sync_impl::vk_sync_reset,
+                        .sync_get_next_image = &vulkan::vk_sync_impl::vk_sync_get_next_image,
+                        .sync_destroy = &vulkan::vk_sync_impl::vk_sync_destroy,
                     },
                 };
 

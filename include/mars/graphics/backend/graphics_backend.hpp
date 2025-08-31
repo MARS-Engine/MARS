@@ -9,6 +9,7 @@
 #include "render_pass.hpp"
 #include "shader.hpp"
 #include "swapchain.hpp"
+#include "sync.hpp"
 #include "window.hpp"
 
 #include <mars/container/sparse_array.hpp>
@@ -29,6 +30,7 @@ namespace mars {
         render_pass_impl render_pass;
         framebuffer_impl framebuffer;
         command_pool_impl command_pool;
+        sync_impl sync;
 
         template <typename T>
         T& get_impl() {

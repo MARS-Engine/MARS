@@ -108,6 +108,8 @@ namespace mars::graphics::vulkan {
         swapchain_ptr->swapchain_extent = extent;
         swapchain_ptr->swapchain_format = surface_format.format;
 
+        result.swapchain_size = swapchain_ptr->swapchain_images.size();
+
         // create images (maybe turn it into its own function in the future)
         swapchain_ptr->swapchain_images_views.resize(swapchain_ptr->swapchain_images.size());
 

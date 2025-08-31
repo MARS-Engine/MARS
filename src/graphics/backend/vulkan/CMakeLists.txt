@@ -7,4 +7,5 @@ target_sources(mars PUBLIC
     ./vk_pipeline.cpp
     ./vk_render_pass.cpp
     ./vk_framebuffer.cpp
-    ./vk_command_pool.cpp)
+    ./vk_command_pool.cpp
+    ./vk_sync.cpp)

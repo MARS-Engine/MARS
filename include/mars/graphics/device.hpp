@@ -9,6 +9,18 @@ namespace mars::graphics {
         return _instance.engine->get_impl<device_impl>().device_create(_instance, _window);
     }
 
+    inline void device_submit_graphics_queue(const device& _device, const sync& _sync, size_t _current_index, size_t _image_index, const command_buffer* _buffers, size_t _n_buffers) {
+        _device.engine->get_impl<device_impl>().device_submit_graphics_queue(_device, _sync, _current_index, _image_index, _buffers, _n_buffers);
+    }
+
+    inline bool device_present(const device& _device, const sync& _sync, const swapchain& _swapchain, size_t _image_index) {
+        return _device.engine->get_impl<device_impl>().device_present(_device, _sync, _swapchain, _image_index);
+    }
+
+    inline void device_wait(const device& _device) {
+        _device.engine->get_impl<device_impl>().device_wait(_device);
+    }
+
     inline void device_destroy(device& _device) {
         _device.engine->get_impl<device_impl>().device_destroy(_device);
     }

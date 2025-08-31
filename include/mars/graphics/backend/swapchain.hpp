@@ -10,6 +10,7 @@ namespace mars {
     struct swapchain {
         graphics_backend_functions* engine;
         void* data = nullptr;
+        size_t swapchain_size = 0;
     };
 
     struct swapchain_impl {

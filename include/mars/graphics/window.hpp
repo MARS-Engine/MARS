@@ -68,7 +68,6 @@ namespace mars {
 
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-            ImGui_ImplSDL3_ProcessEvent(&event);
             if (event.type == SDL_EVENT_WINDOW_RESIZED) {
                 SDL_Window* sdl_win = SDL_GetWindowFromID(event.window.windowID);
                 if (sdl_win == _window.sdl_window)

@@ -19,6 +19,10 @@ namespace mars {
             return _command_buffer.engine->get_impl<command_pool_impl>().command_buffer_record(_command_buffer);
         }
 
+        inline void command_buffer_reset(const command_buffer& _command_buffer) {
+            return _command_buffer.engine->get_impl<command_pool_impl>().command_buffer_reset(_command_buffer);
+        }
+
         inline void command_buffer_record_end(const command_buffer& _command_buffer) {
             return _command_buffer.engine->get_impl<command_pool_impl>().command_buffer_record_end(_command_buffer);
         }
