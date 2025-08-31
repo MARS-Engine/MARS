@@ -78,11 +78,11 @@ namespace mars::graphics::vulkan {
         return indices;
     }
 
-    device vk_device_impl::vk_device_create(instance& _instace, window& _window) {
+    device vk_device_impl::vk_device_create(instance& _instance, window& _window) {
         device result;
 
-        vk_instance* instance_ptr = static_cast<vk_instance*>(_instace.data);
-        vk_window* window_ptr = static_cast<vk_window*>(_window.data);
+        vk_instance* instance_ptr = _instance.data.get<vk_instance>();
+        vk_window* window_ptr = _window.data.get<vk_window>();
 
         uint32_t device_count = 0;
         vkEnumeratePhysicalDevices(instance_ptr->instance, &device_count, nullptr);
@@ -136,7 +136,7 @@ namespace mars::graphics::vulkan {
             .pEnabledFeatures = &device_features,
         };
 
-        device_ptr->debug_mode = _instace.debug_mode;
+        device_ptr->debug_mode = _instance.debug_mode;
 
         if (device_ptr->debug_mode) {
             create_info.enabledLayerCount = static_cast<uint32_t>(instance_ptr->instance_layers.size());
@@ -150,7 +150,7 @@ namespace mars::graphics::vulkan {
         vkGetDeviceQueue(device_ptr->device, device_ptr->queue_indices.graphics_family, 0, &device_ptr->graphics_queue);
         vkGetDeviceQueue(device_ptr->device, device_ptr->queue_indices.present_family, 0, &device_ptr->present_queue);
 
-        result.engine = _instace.engine;
+        result.engine = _instance.engine;
         result.data = device_ptr;
         return result;
     }
@@ -159,9 +159,9 @@ namespace mars::graphics::vulkan {
         if (_n_buffers == 0)
             return logger::error(detail::device_channel, "attempted to submit 0 command buffers to queue");
 
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_sync* sync_ptr = static_cast<vk_sync*>(_sync.data);
-        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_buffers[0].data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_sync* sync_ptr = _sync.data.get<vk_sync>();
+        vk_command_pool* command_pool_ptr = _buffers[0].data.get<vk_command_pool>();
 
         VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
@@ -188,9 +188,9 @@ namespace mars::graphics::vulkan {
     }
 
     bool vk_device_impl::vk_device_present(const device& _device, const sync& _sync, const swapchain& _swapchain, size_t _image_index) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_sync* sync_ptr = static_cast<vk_sync*>(_sync.data);
-        vk_swapchain* swapchain_ptr = static_cast<vk_swapchain*>(_swapchain.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_sync* sync_ptr = _sync.data.get<vk_sync>();
+        vk_swapchain* swapchain_ptr = _swapchain.data.get<vk_swapchain>();
 
         uint32_t image_index = _image_index;
 
@@ -214,12 +214,12 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_device_impl::vk_device_wait(const device& _device) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
         vkDeviceWaitIdle(device_ptr->device);
     }
 
     void vk_device_impl::vk_device_destroy(device& _device) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
         vkDestroyDevice(device_ptr->device, nullptr);
         detail::devices.remove(device_ptr);
         _device = {};

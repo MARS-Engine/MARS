@@ -14,7 +14,7 @@ namespace mars::graphics::vulkan {
     } // namespace detail
 
     sync vk_sync_impl::vk_sync_create(const device& _device, size_t _size) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
         vk_sync* sync_ptr = detail::syncs.request_entry();
 
         sync result;
@@ -50,23 +50,23 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_sync_impl::vk_sync_wait(const sync& _sync, const device& _device, size_t _current_frame) {
-        vk_sync* sync_ptr = static_cast<vk_sync*>(_sync.data);
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_sync* sync_ptr = _sync.data.get<vk_sync>();
+        vk_device* device_ptr = _device.data.get<vk_device>();
 
         vkWaitForFences(device_ptr->device, 1, &sync_ptr->in_flight_fence[_current_frame], VK_TRUE, UINT64_MAX);
     }
 
     void vk_sync_impl::vk_sync_reset(const sync& _sync, const device& _device, size_t _current_frame) {
-        vk_sync* sync_ptr = static_cast<vk_sync*>(_sync.data);
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_sync* sync_ptr = _sync.data.get<vk_sync>();
+        vk_device* device_ptr = _device.data.get<vk_device>();
 
         vkResetFences(device_ptr->device, 1, &sync_ptr->in_flight_fence[_current_frame]);
     }
 
     bool vk_sync_impl::vk_sync_get_next_image(const sync& _sync, const device& _device, const swapchain& _swapchain, size_t _current_frame, size_t& _image_index) {
-        vk_sync* sync_ptr = static_cast<vk_sync*>(_sync.data);
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_swapchain* swapchain_ptr = static_cast<vk_swapchain*>(_swapchain.data);
+        vk_sync* sync_ptr = _sync.data.get<vk_sync>();
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_swapchain* swapchain_ptr = _swapchain.data.get<vk_swapchain>();
 
         uint32_t image_index;
 
@@ -84,8 +84,8 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_sync_impl::vk_sync_destroy(sync& _sync, const device& _device) {
-        vk_sync* sync_ptr = static_cast<vk_sync*>(_sync.data);
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_sync* sync_ptr = _sync.data.get<vk_sync>();
+        vk_device* device_ptr = _device.data.get<vk_device>();
 
         for (size_t i = 0; i < sync_ptr->image_available_semaphore.size(); i++) {
             vkDestroySemaphore(device_ptr->device, sync_ptr->image_available_semaphore[i], nullptr);

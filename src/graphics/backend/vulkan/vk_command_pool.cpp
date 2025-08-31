@@ -15,7 +15,7 @@ namespace mars::graphics::vulkan {
     } // namespace detail
 
     command_pool vk_command_pool_impl::vk_command_pool_create(const device& _device) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
         vk_command_pool* command_pool_ptr = detail::command_pools.request_entry();
 
         command_pool result;
@@ -36,8 +36,8 @@ namespace mars::graphics::vulkan {
     }
 
     std::vector<command_buffer> vk_command_pool_impl::vk_command_buffer_create(const command_pool& _command_pool, const device& _device, size_t _n_command_buffers) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_pool.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_command_pool* command_pool_ptr = _command_pool.data.get<vk_command_pool>();
 
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -66,12 +66,12 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_command_pool_impl::vk_command_buffer_reset(const command_buffer& _command_buffer) {
-        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_buffer.data);
+        vk_command_pool* command_pool_ptr = _command_buffer.data.get<vk_command_pool>();
         vkResetCommandBuffer(command_pool_ptr->command_buffers[_command_buffer.buffer_index], 0);
     }
 
     void vk_command_pool_impl::vk_command_buffer_record(const command_buffer& _command_buffer) {
-        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_buffer.data);
+        vk_command_pool* command_pool_ptr = _command_buffer.data.get<vk_command_pool>();
 
         VkCommandBufferBeginInfo begin_info{
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -83,7 +83,7 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_command_pool_impl::vk_command_buffer_record_end(const command_buffer& _command_buffer) {
-        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_buffer.data);
+        vk_command_pool* command_pool_ptr = _command_buffer.data.get<vk_command_pool>();
 
         VkResult result = vkEndCommandBuffer(command_pool_ptr->command_buffers[_command_buffer.buffer_index]);
 
@@ -91,14 +91,14 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_command_pool_impl::vk_command_buffer_draw(const command_buffer& _command_buffer, const command_buffer_draw_params& _params) {
-        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_buffer.data);
+        vk_command_pool* command_pool_ptr = _command_buffer.data.get<vk_command_pool>();
 
         vkCmdDraw(command_pool_ptr->command_buffers[_command_buffer.buffer_index], _params.vertex_count, _params.instance_count, _params.first_vertex, _params.first_instance);
     }
 
     void vk_command_pool_impl::vk_command_pool_destroy(command_pool& _command_pool, const device& _device) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_pool.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_command_pool* command_pool_ptr = _command_pool.data.get<vk_command_pool>();
 
         vkDestroyCommandPool(device_ptr->device, command_pool_ptr->command_pool, nullptr);
 

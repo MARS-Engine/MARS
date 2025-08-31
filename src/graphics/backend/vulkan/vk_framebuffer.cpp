@@ -16,9 +16,9 @@ namespace mars::graphics::vulkan {
     } // namespace detail
 
     framebuffer vk_framebuffer_impl::vk_framebuffer_create(const device& _device, const swapchain& _swapchain, const render_pass& _render_pass) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_swapchain* swapchain_ptr = static_cast<vk_swapchain*>(_swapchain.data);
-        vk_render_pass* render_pass_ptr = static_cast<vk_render_pass*>(_render_pass.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_swapchain* swapchain_ptr = _swapchain.data.get<vk_swapchain>();
+        vk_render_pass* render_pass_ptr = _render_pass.data.get<vk_render_pass>();
         vk_framebuffer* framebuffer_ptr = detail::framebuffers.request_entry();
 
         framebuffer result;
@@ -50,8 +50,8 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_framebuffer_impl::vk_framebuffer_destroy(framebuffer& _framebuffer, const device& _device) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_framebuffer* framebuffer_ptr = static_cast<vk_framebuffer*>(_framebuffer.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_framebuffer* framebuffer_ptr = _framebuffer.data.get<vk_framebuffer>();
 
         for (VkFramebuffer vk_framebuffer : framebuffer_ptr->framebuffers)
             vkDestroyFramebuffer(device_ptr->device, vk_framebuffer, nullptr);

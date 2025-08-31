@@ -1,7 +1,9 @@
 #pragma once
 
-#include "mars/meta.hpp"
 #include <mars/math/vector3.hpp>
+#include <mars/meta.hpp>
+#include <mars/meta/type_erasure.hpp>
+
 #include <string>
 
 enum mars_graphics_message_severity {
@@ -18,7 +20,7 @@ namespace mars {
 
     struct instance {
         graphics_backend_functions* engine;
-        void* data = nullptr;
+        meta::type_erasure_ptr data;
         bool debug_mode = false;
     };
 

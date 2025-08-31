@@ -144,7 +144,7 @@ namespace mars::graphics::vulkan {
         logger::assert_(result == VK_SUCCESS, detail::instance_channel, "vkCreateInstance returned {}", meta::enum_to_string(result));
 
         new_instance.engine = _engine.allocator;
-        new_instance.data = v_instance;
+        new_instance.data = static_cast<vk_instance*>(v_instance);
         return new_instance;
     }
 
@@ -154,7 +154,7 @@ namespace mars::graphics::vulkan {
             return;
         }
 
-        vk_instance* ptr = static_cast<vk_instance*>(_instance.data);
+        vk_instance* ptr = _instance.data.get<vk_instance>();
 
         if (ptr->debug_message == VK_NULL_HANDLE) {
             VkDebugUtilsMessengerCreateInfoEXT create_info{
@@ -162,7 +162,7 @@ namespace mars::graphics::vulkan {
                 .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
                 .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
                 .pfnUserCallback = detail::vk_debug_callback,
-                .pUserData = _instance.data,
+                .pUserData = _instance.data.get<void>(),
             };
 
             VkResult result = detail::vk_create_debug_utils_messenger_ext(ptr->instance, &create_info, nullptr, &ptr->debug_message);
@@ -177,7 +177,7 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_instance_impl::vk_instance_destroy(instance& _instance) {
-        vk_instance* ptr = static_cast<vk_instance*>(_instance.data);
+        vk_instance* ptr = _instance.data.get<vk_instance>();
 
         if (ptr->debug_message != VK_NULL_HANDLE)
             detail::vk_destroy_debug_utils_messenger_ext(ptr->instance, ptr->debug_message, nullptr);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mars/meta/type_erasure.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_init.h>
@@ -30,7 +31,7 @@ namespace mars {
 
     struct window : event<window_event> {
         graphics_engine* engine;
-        void* data;
+        meta::type_erasure_ptr data;
         mars::vector2<size_t> size;
         SDL_Window* sdl_window = nullptr;
         Uint64 now = 0;

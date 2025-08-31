@@ -9,7 +9,7 @@ namespace mars {
 
     struct swapchain {
         graphics_backend_functions* engine;
-        void* data = nullptr;
+        meta::type_erasure_ptr data;
         size_t swapchain_size = 0;
     };
 

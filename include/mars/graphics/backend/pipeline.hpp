@@ -3,6 +3,7 @@
 #include "shader.hpp"
 
 #include <mars/math/vector2.hpp>
+#include <mars/meta/type_erasure.hpp>
 
 namespace mars {
     struct render_pass;
@@ -10,7 +11,7 @@ namespace mars {
 
     struct pipeline {
         graphics_backend_functions* engine;
-        void* data = nullptr;
+        meta::type_erasure_ptr data;
     };
 
     struct viewport {

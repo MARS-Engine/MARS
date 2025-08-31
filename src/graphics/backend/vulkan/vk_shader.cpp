@@ -38,7 +38,7 @@ namespace mars::graphics::vulkan {
 
     shader vk_shader_impl::vk_shader_create(device& _device, const std::vector<shader_module>& _shaders) {
         vk_shader* shader_ptr = detail::shaders.request_entry();
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
 
         shader result;
         result.data = shader_ptr;
@@ -53,8 +53,8 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_shader_impl::vk_shader_destroy(shader& _shader, const device& _device) {
-        vk_shader* shader_ptr = static_cast<vk_shader*>(_shader.data);
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_shader* shader_ptr = _shader.data.get<vk_shader>();
+        vk_device* device_ptr = _device.data.get<vk_device>();
 
         for (vk_shader_module& module : shader_ptr->modules)
             vkDestroyShaderModule(device_ptr->device, module.module, nullptr);

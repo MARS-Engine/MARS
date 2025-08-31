@@ -1,6 +1,5 @@
 #pragma once
 
-#include "buffer.hpp"
 #include "command_pool.hpp"
 #include "device.hpp"
 #include "framebuffer.hpp"
@@ -20,7 +19,6 @@
 
 namespace mars {
     struct graphics_backend_functions {
-        buffer_impl buffer;
         window_impl window;
         instance_impl instance;
         device_impl device;

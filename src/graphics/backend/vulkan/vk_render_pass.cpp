@@ -18,8 +18,8 @@ namespace mars::graphics::vulkan {
     } // namespace detail
 
     render_pass vk_render_pass_impl::vk_render_pass_create(const device& _device, const swapchain& _swapchain) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_swapchain* swapchain_ptr = static_cast<vk_swapchain*>(_swapchain.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_swapchain* swapchain_ptr = _swapchain.data.get<vk_swapchain>();
         vk_render_pass* render_pass_ptr = detail::render_passes.request_entry();
 
         render_pass result;
@@ -64,9 +64,9 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_render_pass_impl::vk_render_pass_bind(const render_pass& _render_pass, const command_buffer& _command_buffer, const framebuffer& _framebuffer, const render_pass_bind_param& _params) {
-        vk_render_pass* render_pass_ptr = static_cast<vk_render_pass*>(_render_pass.data);
-        vk_framebuffer* framebuffer_ptr = static_cast<vk_framebuffer*>(_framebuffer.data);
-        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_buffer.data);
+        vk_render_pass* render_pass_ptr = _render_pass.data.get<vk_render_pass>();
+        vk_framebuffer* framebuffer_ptr = _framebuffer.data.get<vk_framebuffer>();
+        vk_command_pool* command_pool_ptr = _command_buffer.data.get<vk_command_pool>();
 
         VkClearValue clear_color = { .color = { _params.clear_color.x, _params.clear_color.y, _params.clear_color.z, _params.clear_color.w } };
 
@@ -86,13 +86,13 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_render_pass_impl::vk_render_pass_unbind(const render_pass& _render_pass, const command_buffer& _command_buffer) {
-        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_buffer.data);
+        vk_command_pool* command_pool_ptr = _command_buffer.data.get<vk_command_pool>();
         vkCmdEndRenderPass(command_pool_ptr->command_buffers[_command_buffer.buffer_index]);
     }
 
     void vk_render_pass_impl::vk_render_pass_destroy(render_pass& _render_pass, const device& _device) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_render_pass* render_pass_ptr = static_cast<vk_render_pass*>(_render_pass.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_render_pass* render_pass_ptr = _render_pass.data.get<vk_render_pass>();
         vkDestroyRenderPass(device_ptr->device, render_pass_ptr->vk_render_pass, nullptr);
         _render_pass = {};
     }

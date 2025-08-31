@@ -53,8 +53,8 @@ namespace mars::graphics::vulkan {
 
     swapchain vk_swapchain_impl::vk_swapchain_create(const device& _device, const window& _window) {
         vk_swapchain* swapchain_ptr = detail::swapchains.request_entry();
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_window* window_ptr = static_cast<vk_window*>(_window.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_window* window_ptr = _window.data.get<vk_window>();
 
         swapchain result;
         result.data = swapchain_ptr;
@@ -141,8 +141,8 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_swapchain_impl::vk_swapchain_destroy(swapchain& _swapchain, const device& _device) {
-        vk_swapchain* swapchain_ptr = static_cast<vk_swapchain*>(_swapchain.data);
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
+        vk_swapchain* swapchain_ptr = _swapchain.data.get<vk_swapchain>();
+        vk_device* device_ptr = _device.data.get<vk_device>();
 
         for (VkImageView image_view : swapchain_ptr->swapchain_images_views)
             vkDestroyImageView(device_ptr->device, image_view, nullptr);

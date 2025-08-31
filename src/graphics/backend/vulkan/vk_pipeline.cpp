@@ -20,15 +20,15 @@ namespace mars::graphics::vulkan {
     } // namespace detail
 
     pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const render_pass& _render_pass, const pipeline_setup& _setup) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_render_pass* render_pass_ptr = static_cast<vk_render_pass*>(_render_pass.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_render_pass* render_pass_ptr = _render_pass.data.get<vk_render_pass>();
         vk_pipeline* pipeline_ptr = detail::pipelines.request_entry();
 
         pipeline result;
         result.data = pipeline_ptr;
         result.engine = _device.engine;
 
-        vk_shader* shader_ptr = static_cast<vk_shader*>(_setup.pipeline_shader.data);
+        vk_shader* shader_ptr = _setup.pipeline_shader.data.get<vk_shader>();
 
         // at most there are 6 stages (tesselation counts as two seperate stages)
         std::array<VkPipelineShaderStageCreateInfo, 6> shader_stages;
@@ -147,8 +147,8 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_pipeline_impl::vk_pipeline_bind(const pipeline& _pipeline, const command_buffer& _command_buffer, const pipeline_bind_params& _params) {
-        vk_pipeline* pipeline_ptr = static_cast<vk_pipeline*>(_pipeline.data);
-        vk_command_pool* command_pool_ptr = static_cast<vk_command_pool*>(_command_buffer.data);
+        vk_pipeline* pipeline_ptr = _pipeline.data.get<vk_pipeline>();
+        vk_command_pool* command_pool_ptr = _command_buffer.data.get<vk_command_pool>();
 
         vkCmdBindPipeline(command_pool_ptr->command_buffers[_command_buffer.buffer_index], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_ptr->vk_pipeline);
 
@@ -171,8 +171,8 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_pipeline_impl::vk_pipeline_destroy(pipeline& _pipeline, const device& _device) {
-        vk_device* device_ptr = static_cast<vk_device*>(_device.data);
-        vk_pipeline* pipeline_ptr = static_cast<vk_pipeline*>(_pipeline.data);
+        vk_device* device_ptr = _device.data.get<vk_device>();
+        vk_pipeline* pipeline_ptr = _pipeline.data.get<vk_pipeline>();
         vkDestroyPipeline(device_ptr->device, pipeline_ptr->vk_pipeline, nullptr);
         vkDestroyPipelineLayout(device_ptr->device, pipeline_ptr->pipeline_layout, nullptr);
     }

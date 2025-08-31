@@ -10,7 +10,7 @@ namespace mars {
 
     struct device {
         graphics_backend_functions* engine;
-        void* data = nullptr;
+        meta::type_erasure_ptr data;
     };
 
     struct device_impl {

@@ -33,8 +33,8 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_window_impl::vk_window_create_surface(window& _window, instance& _instance) {
-        vk_window* window_ptr = static_cast<vk_window*>(_window.data);
-        vk_instance* instance_ptr = static_cast<vk_instance*>(_instance.data);
+        vk_window* window_ptr = _window.data.get<vk_window>();
+        vk_instance* instance_ptr = _instance.data.get<vk_instance>();
         bool surface_result = SDL_Vulkan_CreateSurface(_window.sdl_window, instance_ptr->instance, nullptr, &window_ptr->surface);
 
         logger::assert_(surface_result, detail::win_channel, "failed to create surface from sdl window");
@@ -58,8 +58,8 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_window_impl::vk_window_destroy_surface(window& _window, instance& _instance) {
-        vk_window* window_ptr = static_cast<vk_window*>(_window.data);
-        vk_instance* instance_ptr = static_cast<vk_instance*>(_instance.data);
+        vk_window* window_ptr = _window.data.get<vk_window>();
+        vk_instance* instance_ptr = _instance.data.get<vk_instance>();
 
         logger::assert_(window_ptr->surface != VK_NULL_HANDLE, detail::win_channel, "error destroying surface handle is null");
 
@@ -67,7 +67,7 @@ namespace mars::graphics::vulkan {
     }
 
     void vk_window_impl::vk_window_destroy(window& _window) {
-        vk_window* window_ptr = static_cast<vk_window*>(_window.data);
+        vk_window* window_ptr = _window.data.get<vk_window>();
 
         SDL_DestroyWindow(_window.sdl_window);
 

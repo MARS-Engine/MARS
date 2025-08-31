@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mars/math/vector4.hpp>
+#include <mars/meta/type_erasure.hpp>
 
 #include <cstddef>
 
@@ -13,7 +14,7 @@ namespace mars {
 
     struct render_pass {
         graphics_backend_functions* engine;
-        void* data = nullptr;
+        meta::type_erasure_ptr data;
     };
 
     struct render_pass_bind_param {
