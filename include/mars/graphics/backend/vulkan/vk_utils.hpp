@@ -1,9 +1,41 @@
 #pragma once
 
+#include <mars/graphics/backend/format.hpp>
+
 #include <vector>
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 namespace mars::graphics::vulkan {
+    inline VkFormat mars_format_to_vk(const format& _format) {
+        switch (_format.type) {
+        case MARS_FORMAT_TYPE_SFLOAT:
+            if (_format.size == 32) {
+                if (_format.number == 1)
+                    return VK_FORMAT_R32_SFLOAT;
+                if (_format.number == 2)
+                    return VK_FORMAT_R32G32_SFLOAT;
+                if (_format.number == 3)
+                    return VK_FORMAT_R32G32B32_SFLOAT;
+            }
+            break;
+        case MARS_FORMAT_TYPE_UINT:
+            if (_format.size == 32) {
+                if (_format.number == 1)
+                    return VK_FORMAT_R32_UINT;
+                if (_format.number == 2)
+                    return VK_FORMAT_R32G32_UINT;
+                if (_format.number == 3)
+                    return VK_FORMAT_R32G32B32_UINT;
+                if (_format.number == 4)
+                    return VK_FORMAT_R32G32B32A32_UINT;
+            }
+            break;
+        }
+
+        return VK_FORMAT_UNDEFINED;
+    }
+
     struct swapchain_support_details {
         VkSurfaceCapabilitiesKHR capabilities;
         std::vector<VkSurfaceFormatKHR> formats;

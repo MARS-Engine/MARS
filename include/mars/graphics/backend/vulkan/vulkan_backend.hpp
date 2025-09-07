@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mars/graphics/backend/device.hpp"
+#include "vk_buffer.hpp"
 #include "vk_command_pool.hpp"
 #include "vk_device.hpp"
 #include "vk_framebuffer.hpp"
@@ -69,6 +69,7 @@ namespace mars {
                         .command_buffer_record = &vulkan::vk_command_pool_impl::vk_command_buffer_record,
                         .command_buffer_record_end = &vulkan::vk_command_pool_impl::vk_command_buffer_record_end,
                         .command_buffer_draw = &vulkan::vk_command_pool_impl::vk_command_buffer_draw,
+                        .command_buffer_draw_indexed = &vulkan::vk_command_pool_impl::vk_command_buffer_draw_indexed,
                         .command_pool_destroy = &vulkan::vk_command_pool_impl::vk_command_pool_destroy,
                     },
                     .sync{
@@ -77,6 +78,14 @@ namespace mars {
                         .sync_reset = &vulkan::vk_sync_impl::vk_sync_reset,
                         .sync_get_next_image = &vulkan::vk_sync_impl::vk_sync_get_next_image,
                         .sync_destroy = &vulkan::vk_sync_impl::vk_sync_destroy,
+                    },
+                    .buffer{
+                        .buffer_create = &vulkan::vk_buffer_impl::vk_buffer_create,
+                        .buffer_bind = &vulkan::vk_buffer_impl::vk_buffer_bind,
+                        .buffer_bind_index = &vulkan::vk_buffer_impl::vk_buffer_bind_index,
+                        .buffer_map = &vulkan::vk_buffer_impl::vk_buffer_map,
+                        .buffer_unmap = &vulkan::vk_buffer_impl::vk_buffer_unmap,
+                        .buffer_destroy = &vulkan::vk_buffer_impl::vk_buffer_destroy,
                     },
                 };
 

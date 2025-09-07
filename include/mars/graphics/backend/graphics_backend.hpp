@@ -1,5 +1,6 @@
 #pragma once
 
+#include "buffer.hpp"
 #include "command_pool.hpp"
 #include "device.hpp"
 #include "framebuffer.hpp"
@@ -29,6 +30,7 @@ namespace mars {
         framebuffer_impl framebuffer;
         command_pool_impl command_pool;
         sync_impl sync;
+        buffer_impl buffer;
 
         template <typename T>
         T& get_impl() {

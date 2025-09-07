@@ -94,6 +94,8 @@ namespace mars::graphics::vulkan {
         vk_device* device_ptr = _device.data.get<vk_device>();
         vk_render_pass* render_pass_ptr = _render_pass.data.get<vk_render_pass>();
         vkDestroyRenderPass(device_ptr->device, render_pass_ptr->vk_render_pass, nullptr);
+
+        detail::render_passes.remove(render_pass_ptr);
         _render_pass = {};
     }
 } // namespace mars::graphics::vulkan

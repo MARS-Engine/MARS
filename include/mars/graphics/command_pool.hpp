@@ -31,6 +31,10 @@ namespace mars {
             return _command_buffer.engine->get_impl<command_pool_impl>().command_buffer_draw(_command_buffer, _params);
         }
 
+        inline void command_buffer_draw_indexed(const command_buffer& _command_buffer, const command_buffer_draw_indexed_params& _params) {
+            return _command_buffer.engine->get_impl<command_pool_impl>().command_buffer_draw_indexed(_command_buffer, _params);
+        }
+
         inline void command_pool_destroy(command_pool& _command_pool, const device& _device) {
             _command_pool.engine->get_impl<command_pool_impl>().command_pool_destroy(_command_pool, _device);
         }

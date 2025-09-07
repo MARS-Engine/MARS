@@ -18,6 +18,7 @@ namespace mars::graphics::vulkan {
         static void vk_command_buffer_record(const command_buffer& _command_buffer);
         static void vk_command_buffer_record_end(const command_buffer& _command_buffer);
         static void vk_command_buffer_draw(const command_buffer& _command_buffer, const command_buffer_draw_params& _params);
+        static void vk_command_buffer_draw_indexed(const command_buffer& _command_buffer, const command_buffer_draw_indexed_params& _params);
         static void vk_command_pool_destroy(command_pool& _command_pool, const device& _device);
     };
 } // namespace mars::graphics::vulkan

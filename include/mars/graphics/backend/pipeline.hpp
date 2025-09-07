@@ -1,9 +1,15 @@
 #pragma once
 
+#include "format.hpp"
 #include "shader.hpp"
 
 #include <mars/math/vector2.hpp>
 #include <mars/meta/type_erasure.hpp>
+
+enum mars_pipeline_input_advance_type {
+    MARS_PIPELINE_INPUT_ADVANCE_TYPE_VERTEX,
+    MARS_PIPELINE_INPUT_ADVANCE_TYPE_INSTANCE,
+};
 
 namespace mars {
     struct render_pass;
@@ -18,10 +24,24 @@ namespace mars {
         mars::vector2<size_t> size;
     };
 
+    struct pipeline_attribute_description {
+        size_t binding;
+        size_t location;
+        size_t offset;
+        graphics::format input_format;
+    };
+
+    struct pipeline_binding_description {
+        size_t stride;
+        size_t binding;
+        mars_pipeline_input_advance_type type = MARS_PIPELINE_INPUT_ADVANCE_TYPE_VERTEX;
+    };
+
     // todo: add support for custom stage info pname
     struct pipeline_setup {
         shader pipeline_shader;
-        viewport view;
+        std::vector<pipeline_binding_description> bindings;
+        std::vector<pipeline_attribute_description> attributes;
     };
 
     struct pipeline_bind_params {

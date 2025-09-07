@@ -96,12 +96,19 @@ namespace mars::graphics::vulkan {
         vkCmdDraw(command_pool_ptr->command_buffers[_command_buffer.buffer_index], _params.vertex_count, _params.instance_count, _params.first_vertex, _params.first_instance);
     }
 
+    void vk_command_pool_impl::vk_command_buffer_draw_indexed(const command_buffer& _command_buffer, const command_buffer_draw_indexed_params& _params) {
+        vk_command_pool* command_pool_ptr = _command_buffer.data.get<vk_command_pool>();
+
+        vkCmdDrawIndexed(command_pool_ptr->command_buffers[_command_buffer.buffer_index], _params.index_count, _params.instance_count, _params.first_index, _params.vertex_offset, _params.first_instance);
+    }
+
     void vk_command_pool_impl::vk_command_pool_destroy(command_pool& _command_pool, const device& _device) {
         vk_device* device_ptr = _device.data.get<vk_device>();
         vk_command_pool* command_pool_ptr = _command_pool.data.get<vk_command_pool>();
 
         vkDestroyCommandPool(device_ptr->device, command_pool_ptr->command_pool, nullptr);
 
+        detail::command_pools.remove(command_pool_ptr);
         _command_pool = {};
     }
 } // namespace mars::graphics::vulkan

@@ -56,6 +56,7 @@ namespace mars::graphics::vulkan {
         for (VkFramebuffer vk_framebuffer : framebuffer_ptr->framebuffers)
             vkDestroyFramebuffer(device_ptr->device, vk_framebuffer, nullptr);
 
+        detail::framebuffers.remove(framebuffer_ptr);
         _framebuffer = {};
     }
 } // namespace mars::graphics::vulkan

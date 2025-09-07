@@ -92,6 +92,7 @@ namespace mars::graphics::vulkan {
             vkDestroySemaphore(device_ptr->device, sync_ptr->render_finished_semaphore[i], nullptr);
             vkDestroyFence(device_ptr->device, sync_ptr->in_flight_fence[i], nullptr);
         }
+
         detail::syncs.remove(sync_ptr);
         _sync = {};
     }

@@ -1,3 +1,4 @@
+#include "mars/graphics/backend/pipeline.hpp"
 #include <mars/graphics/backend/vulkan/vk_pipeline.hpp>
 
 #include <mars/container/sparse_array.hpp>
@@ -7,10 +8,12 @@
 #include <mars/graphics/backend/vulkan/vk_device.hpp>
 #include <mars/graphics/backend/vulkan/vk_render_pass.hpp>
 #include <mars/graphics/backend/vulkan/vk_shader.hpp>
+#include <mars/graphics/backend/vulkan/vk_utils.hpp>
 #include <mars/meta.hpp>
 
 #include <array>
 #include <cstdint>
+#include <vector>
 #include <vulkan/vulkan_core.h>
 
 namespace mars::graphics::vulkan {
@@ -50,10 +53,33 @@ namespace mars::graphics::vulkan {
             }
         }
 
+        std::vector<VkVertexInputBindingDescription> bindings;
+        bindings.reserve(_setup.bindings.size());
+
+        for (const pipeline_binding_description& description : _setup.bindings) {
+            VkVertexInputBindingDescription& desc = bindings.emplace_back();
+            desc.binding = description.binding;
+            desc.stride = description.stride;
+            desc.inputRate = description.type == MARS_PIPELINE_INPUT_ADVANCE_TYPE_VERTEX ? VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE;
+        }
+
+        std::vector<VkVertexInputAttributeDescription> attributes;
+        attributes.reserve(_setup.attributes.size());
+
+        for (const pipeline_attribute_description& description : _setup.attributes) {
+            VkVertexInputAttributeDescription& desc = attributes.emplace_back();
+            desc.binding = description.binding;
+            desc.location = description.location;
+            desc.offset = description.offset;
+            desc.format = mars_format_to_vk(description.input_format);
+        }
+
         VkPipelineVertexInputStateCreateInfo vertex_input_info{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .vertexBindingDescriptionCount = 0,
-            .vertexAttributeDescriptionCount = 0,
+            .vertexBindingDescriptionCount = static_cast<uint32_t>(_setup.bindings.size()),
+            .pVertexBindingDescriptions = bindings.data(),
+            .vertexAttributeDescriptionCount = static_cast<uint32_t>(_setup.attributes.size()),
+            .pVertexAttributeDescriptions = attributes.data(),
         };
 
         VkPipelineInputAssemblyStateCreateInfo input_assembly{
@@ -175,5 +201,8 @@ namespace mars::graphics::vulkan {
         vk_pipeline* pipeline_ptr = _pipeline.data.get<vk_pipeline>();
         vkDestroyPipeline(device_ptr->device, pipeline_ptr->vk_pipeline, nullptr);
         vkDestroyPipelineLayout(device_ptr->device, pipeline_ptr->pipeline_layout, nullptr);
+
+        detail::pipelines.remove(pipeline_ptr);
+        _pipeline = {};
     }
 } // namespace mars::graphics::vulkan
