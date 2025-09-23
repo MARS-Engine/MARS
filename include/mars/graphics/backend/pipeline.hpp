@@ -5,10 +5,20 @@
 
 #include <mars/math/vector2.hpp>
 #include <mars/meta/type_erasure.hpp>
+#include <vector>
 
 enum mars_pipeline_input_advance_type {
     MARS_PIPELINE_INPUT_ADVANCE_TYPE_VERTEX,
     MARS_PIPELINE_INPUT_ADVANCE_TYPE_INSTANCE,
+};
+
+enum mars_pipeline_stage {
+    MARS_PIPELINE_STAGE_VERTEX,
+    MARS_PIPELINE_STAGE_FRAGMENT
+};
+
+enum mars_pipeline_descriptor_type {
+    MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 };
 
 namespace mars {
@@ -37,11 +47,18 @@ namespace mars {
         mars_pipeline_input_advance_type type = MARS_PIPELINE_INPUT_ADVANCE_TYPE_VERTEX;
     };
 
+    struct pipeline_descriptior_layout {
+        mars_pipeline_stage stage;
+        mars_pipeline_descriptor_type descriptor_type;
+        size_t binding;
+    };
+
     // todo: add support for custom stage info pname
     struct pipeline_setup {
         shader pipeline_shader;
         std::vector<pipeline_binding_description> bindings;
         std::vector<pipeline_attribute_description> attributes;
+        std::vector<pipeline_descriptior_layout> descriptors;
     };
 
     struct pipeline_bind_params {

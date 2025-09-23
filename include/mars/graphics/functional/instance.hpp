@@ -1,8 +1,8 @@
 #pragma once
 
 #include <mars/graphics/backend/instance.hpp>
-#include <mars/graphics/graphics_engine.hpp>
-#include <mars/graphics/window.hpp>
+#include <mars/graphics/functional/graphics_engine.hpp>
+#include <mars/graphics/functional/window.hpp>
 
 namespace mars::graphics {
     inline instance instance_create(graphics_engine& _engine, const instance_create_params& _params, window& _window) {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <mars/graphics/backend/sync.hpp>
-#include <mars/graphics/graphics_engine.hpp>
+#include <mars/graphics/functional/graphics_engine.hpp>
 
 namespace mars::graphics {
     inline sync sync_create(const device& _device, size_t _size) {

@@ -4,8 +4,8 @@
 #include <mars/debug/logger.hpp>
 #include <mars/graphics/backend/instance.hpp>
 #include <mars/graphics/backend/window.hpp>
-#include <mars/graphics/graphics_engine.hpp>
-#include <mars/graphics/window.hpp>
+#include <mars/graphics/functional/graphics_engine.hpp>
+#include <mars/graphics/functional/window.hpp>
 #include <mars/meta.hpp>
 
 #include <cstdint>

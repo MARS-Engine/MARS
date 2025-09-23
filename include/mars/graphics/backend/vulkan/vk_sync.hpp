@@ -1,8 +1,8 @@
 #pragma once
 
 #include <mars/graphics/backend/sync.hpp>
-#include <mars/graphics/device.hpp>
-#include <mars/graphics/window.hpp>
+#include <mars/graphics/functional/device.hpp>
+#include <mars/graphics/functional/window.hpp>
 
 #include <vulkan/vulkan.h>
 

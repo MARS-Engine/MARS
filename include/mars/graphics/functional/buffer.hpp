@@ -19,6 +19,10 @@ namespace mars {
             _buffer.engine->get_impl<buffer_impl>().buffer_bind_index(_buffer, _command_buffer);
         }
 
+        inline void buffer_copy(buffer& _buffer, buffer& _src_buffer, const command_buffer& _command_buffer, size_t _offset) {
+            _buffer.engine->get_impl<buffer_impl>().buffer_copy(_buffer, _src_buffer, _command_buffer, _offset);
+        }
+
         inline void* buffer_map(buffer& _buffer, const device& _device, size_t _size, size_t _offset) {
             return _buffer.engine->get_impl<buffer_impl>().buffer_map(_buffer, _device, _size, _offset);
         }

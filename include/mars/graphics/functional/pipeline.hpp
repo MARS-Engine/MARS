@@ -49,6 +49,11 @@ namespace mars {
                 return *this;
             }
 
+            pipeline_setup_builder& add_descriptor(pipeline_descriptior_layout _descriptor) {
+                setup.descriptors.push_back(_descriptor);
+                return *this;
+            }
+
             pipeline_setup build() const { return setup; }
         };
 

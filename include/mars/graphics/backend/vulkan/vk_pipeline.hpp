@@ -7,6 +7,7 @@
 
 namespace mars::graphics::vulkan {
     struct vk_pipeline {
+        VkDescriptorSetLayout descriptor_set_layout;
         VkPipelineLayout pipeline_layout;
         VkPipeline vk_pipeline;
     };

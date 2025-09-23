@@ -3,7 +3,7 @@
 #include <mars/container/sparse_array.hpp>
 #include <mars/debug/logger.hpp>
 #include <mars/graphics/backend/vulkan/vk_instance.hpp>
-#include <mars/graphics/window.hpp>
+#include <mars/graphics/functional/window.hpp>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>

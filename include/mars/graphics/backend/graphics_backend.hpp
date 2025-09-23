@@ -2,6 +2,7 @@
 
 #include "buffer.hpp"
 #include "command_pool.hpp"
+#include "descriptor.hpp"
 #include "device.hpp"
 #include "framebuffer.hpp"
 #include "instance.hpp"
@@ -13,7 +14,7 @@
 #include "window.hpp"
 
 #include <mars/container/sparse_array.hpp>
-#include <mars/graphics/window.hpp>
+#include <mars/graphics/functional/window.hpp>
 
 #include <meta>
 #include <utility>
@@ -31,6 +32,7 @@ namespace mars {
         command_pool_impl command_pool;
         sync_impl sync;
         buffer_impl buffer;
+        descriptor_impl descritor;
 
         template <typename T>
         T& get_impl() {

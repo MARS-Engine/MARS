@@ -20,6 +20,22 @@ namespace mars::graphics::vulkan {
     namespace detail {
         sparse_vector<vk_pipeline, 16> pipelines;
         log_channel pipeline_channel("graphics/vulkan/pipeline");
+
+        VkDescriptorType mars_descriptor_to_vk(mars_pipeline_descriptor_type _type) {
+            switch (_type) {
+            case MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+                return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            }
+        }
+
+        VkShaderStageFlagBits mars_shader_state_to_vk(mars_pipeline_stage _stage) {
+            switch (_stage) {
+            case MARS_PIPELINE_STAGE_VERTEX:
+                return VK_SHADER_STAGE_VERTEX_BIT;
+            case MARS_PIPELINE_STAGE_FRAGMENT:
+                return VK_SHADER_STAGE_FRAGMENT_BIT;
+            }
+        }
     } // namespace detail
 
     pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const render_pass& _render_pass, const pipeline_setup& _setup) {
@@ -32,6 +48,29 @@ namespace mars::graphics::vulkan {
         result.engine = _device.engine;
 
         vk_shader* shader_ptr = _setup.pipeline_shader.data.get<vk_shader>();
+
+        std::vector<VkDescriptorSetLayoutBinding> descriptors;
+
+        for (const pipeline_descriptior_layout& descriptor : _setup.descriptors) {
+            VkDescriptorSetLayoutBinding desc{
+                .binding = static_cast<uint32_t>(descriptor.binding),
+                .descriptorType = detail::mars_descriptor_to_vk(descriptor.descriptor_type),
+                .descriptorCount = 1,
+                .stageFlags = detail::mars_shader_state_to_vk(descriptor.stage),
+            };
+
+            descriptors.push_back(desc);
+        }
+
+        VkDescriptorSetLayoutCreateInfo layout_info{
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .bindingCount = static_cast<uint32_t>(descriptors.size()),
+            .pBindings = descriptors.data(),
+        };
+
+        VkResult vk_result = vkCreateDescriptorSetLayout(device_ptr->device, &layout_info, nullptr, &pipeline_ptr->descriptor_set_layout);
+
+        logger::assert_(vk_result == VK_SUCCESS, detail::pipeline_channel, "failed to create pipeline descriptor set layout with error {}", meta::enum_to_string(vk_result));
 
         // at most there are 6 stages (tesselation counts as two seperate stages)
         std::array<VkPipelineShaderStageCreateInfo, 6> shader_stages;
@@ -142,9 +181,11 @@ namespace mars::graphics::vulkan {
 
         VkPipelineLayoutCreateInfo pipeline_layout_info{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+            .setLayoutCount = 1,
+            .pSetLayouts = &pipeline_ptr->descriptor_set_layout
         };
 
-        VkResult vk_result = vkCreatePipelineLayout(device_ptr->device, &pipeline_layout_info, nullptr, &pipeline_ptr->pipeline_layout);
+        vk_result = vkCreatePipelineLayout(device_ptr->device, &pipeline_layout_info, nullptr, &pipeline_ptr->pipeline_layout);
 
         logger::assert_(vk_result == VK_SUCCESS, detail::pipeline_channel, "failed to create pipeline layout with error code {}", meta::enum_to_string(vk_result));
 
@@ -199,6 +240,7 @@ namespace mars::graphics::vulkan {
     void vk_pipeline_impl::vk_pipeline_destroy(pipeline& _pipeline, const device& _device) {
         vk_device* device_ptr = _device.data.get<vk_device>();
         vk_pipeline* pipeline_ptr = _pipeline.data.get<vk_pipeline>();
+        vkDestroyDescriptorSetLayout(device_ptr->device, pipeline_ptr->descriptor_set_layout, nullptr);
         vkDestroyPipeline(device_ptr->device, pipeline_ptr->vk_pipeline, nullptr);
         vkDestroyPipelineLayout(device_ptr->device, pipeline_ptr->pipeline_layout, nullptr);
 

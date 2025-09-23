@@ -1,7 +1,6 @@
+#include <mars/graphics/functional/window.hpp>
 
-#include <mars/graphics/window.hpp>
-
-#include <mars/graphics/graphics_engine.hpp>
+#include <mars/graphics/functional/graphics_engine.hpp>
 
 namespace mars::graphics {
     window window_create(graphics_engine& _engine, const window_params& _params) {

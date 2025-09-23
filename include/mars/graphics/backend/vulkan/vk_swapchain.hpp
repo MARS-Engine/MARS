@@ -2,8 +2,8 @@
 
 #include <mars/graphics/backend/instance.hpp>
 #include <mars/graphics/backend/swapchain.hpp>
-#include <mars/graphics/device.hpp>
-#include <mars/graphics/window.hpp>
+#include <mars/graphics/functional/device.hpp>
+#include <mars/graphics/functional/window.hpp>
 
 #include <vulkan/vulkan.h>
 

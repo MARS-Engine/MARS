@@ -2,6 +2,7 @@
 
 #include "vk_buffer.hpp"
 #include "vk_command_pool.hpp"
+#include "vk_descriptor.hpp"
 #include "vk_device.hpp"
 #include "vk_framebuffer.hpp"
 #include "vk_instance.hpp"
@@ -83,9 +84,16 @@ namespace mars {
                         .buffer_create = &vulkan::vk_buffer_impl::vk_buffer_create,
                         .buffer_bind = &vulkan::vk_buffer_impl::vk_buffer_bind,
                         .buffer_bind_index = &vulkan::vk_buffer_impl::vk_buffer_bind_index,
+                        .buffer_copy = &vulkan::vk_buffer_impl::vk_buffer_copy,
                         .buffer_map = &vulkan::vk_buffer_impl::vk_buffer_map,
                         .buffer_unmap = &vulkan::vk_buffer_impl::vk_buffer_unmap,
                         .buffer_destroy = &vulkan::vk_buffer_impl::vk_buffer_destroy,
+                    },
+                    .descritor{
+                        .descriptor_create = &vulkan::vk_descriptor_impl::vk_descriptor_create,
+                        .descriptor_set_create = &vulkan::vk_descriptor_impl::vk_descriptor_set_create,
+                        .descriptor_set_bind = &vulkan::vk_descriptor_impl::vk_descriptor_set_bind,
+                        .descriptor_destroy = &vulkan::vk_descriptor_impl::vk_descriptor_destroy,
                     },
                 };
 

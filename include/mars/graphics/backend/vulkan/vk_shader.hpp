@@ -1,7 +1,7 @@
 #pragma once
 
 #include <mars/graphics/backend/shader.hpp>
-#include <mars/graphics/device.hpp>
+#include <mars/graphics/functional/device.hpp>
 
 #include <vector>
 #include <vulkan/vulkan.h>

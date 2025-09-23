@@ -1,16 +1,16 @@
 #pragma once
 
 #include <mars/graphics/backend/device.hpp>
-#include <mars/graphics/graphics_engine.hpp>
-#include <mars/graphics/window.hpp>
+#include <mars/graphics/functional/graphics_engine.hpp>
+#include <mars/graphics/functional/window.hpp>
 
 namespace mars::graphics {
     inline device device_create(instance& _instance, window& _window) {
         return _instance.engine->get_impl<device_impl>().device_create(_instance, _window);
     }
 
-    inline void device_submit_graphics_queue(const device& _device, const sync& _sync, size_t _current_index, size_t _image_index, const command_buffer* _buffers, size_t _n_buffers) {
-        _device.engine->get_impl<device_impl>().device_submit_graphics_queue(_device, _sync, _current_index, _image_index, _buffers, _n_buffers);
+    inline void device_submit_graphics_queue(const device& _device, const sync& _sync, const device_submit_params& _submit_params, const command_buffer* _buffers, size_t _n_buffers) {
+        _device.engine->get_impl<device_impl>().device_submit_graphics_queue(_device, _sync, _submit_params, _buffers, _n_buffers);
     }
 
     inline bool device_present(const device& _device, const sync& _sync, const swapchain& _swapchain, size_t _image_index) {

@@ -29,7 +29,7 @@ namespace mars::graphics::vulkan {
 
     struct vk_device_impl {
         static device vk_device_create(instance& _instace, window& _window);
-        static void vk_device_submit_graphics_queue(const device& _device, const sync& _sync, size_t _current_index, size_t _image_index, const command_buffer* _buffers, size_t _n_buffers);
+        static void vk_device_submit_graphics_queue(const device& _device, const sync& _sync, device_submit_params _params, const command_buffer* _buffers, size_t _n_buffers);
         static bool vk_device_present(const device& _device, const sync& _sync, const swapchain& _swapchain, size_t _image_index);
         static void vk_device_wait(const device& _device);
         static void vk_device_destroy(device& _device);

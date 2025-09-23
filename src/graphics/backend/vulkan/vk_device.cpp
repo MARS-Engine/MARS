@@ -8,7 +8,7 @@
 #include <mars/graphics/backend/vulkan/vk_command_pool.hpp>
 #include <mars/graphics/backend/vulkan/vk_instance.hpp>
 #include <mars/graphics/backend/vulkan/vk_utils.hpp>
-#include <mars/graphics/graphics_engine.hpp>
+#include <mars/graphics/functional/graphics_engine.hpp>
 #include <mars/meta.hpp>
 
 #include <cstdint>
@@ -155,15 +155,13 @@ namespace mars::graphics::vulkan {
         return result;
     }
 
-    void vk_device_impl::vk_device_submit_graphics_queue(const device& _device, const sync& _sync, size_t _current_index, size_t _image_index, const command_buffer* _buffers, size_t _n_buffers) {
+    void vk_device_impl::vk_device_submit_graphics_queue(const device& _device, const sync& _sync, device_submit_params _params, const command_buffer* _buffers, size_t _n_buffers) {
         if (_n_buffers == 0)
             return logger::error(detail::device_channel, "attempted to submit 0 command buffers to queue");
 
         vk_device* device_ptr = _device.data.get<vk_device>();
         vk_sync* sync_ptr = _sync.data.get<vk_sync>();
         vk_command_pool* command_pool_ptr = _buffers[0].data.get<vk_command_pool>();
-
-        VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
         std::vector<VkCommandBuffer> buffers;
         buffers.resize(_n_buffers);
@@ -173,16 +171,24 @@ namespace mars::graphics::vulkan {
 
         VkSubmitInfo submit_info{
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .waitSemaphoreCount = 1,
-            .pWaitSemaphores = &sync_ptr->image_available_semaphore[_current_index],
-            .pWaitDstStageMask = wait_stages,
             .commandBufferCount = static_cast<uint32_t>(_n_buffers),
             .pCommandBuffers = buffers.data(),
             .signalSemaphoreCount = 1,
-            .pSignalSemaphores = &sync_ptr->render_finished_semaphore[_image_index],
+            .pSignalSemaphores = &sync_ptr->render_finished_semaphore[_params.signal_index],
         };
 
-        VkResult vk_result = vkQueueSubmit(device_ptr->graphics_queue, 1, &submit_info, sync_ptr->in_flight_fence[_current_index]);
+        if (_params.wait_stages != 0) {
+            uint32_t stages = 0;
+
+            if (_params.wait_stages & MARS_DEVICE_SUBMIT_WAIT_STAGE_COLOR)
+                stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+            submit_info.waitSemaphoreCount = 1;
+            submit_info.pWaitSemaphores = &sync_ptr->image_available_semaphore[_params.wait_index];
+            submit_info.pWaitDstStageMask = &stages;
+        }
+
+        VkResult vk_result = vkQueueSubmit(device_ptr->graphics_queue, 1, &submit_info, sync_ptr->in_flight_fence[_params.wait_index]);
 
         logger::assert_(vk_result == VK_SUCCESS, detail::device_channel, "failed to queue submit with error {}", meta::enum_to_string(vk_result));
     }
