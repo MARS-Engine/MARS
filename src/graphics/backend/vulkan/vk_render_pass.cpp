@@ -1,9 +1,8 @@
-#include "mars/graphics/backend/vulkan/vk_command_pool.hpp"
-#include <cstdint>
 #include <mars/graphics/backend/vulkan/vk_render_pass.hpp>
 
 #include <mars/container/sparse_array.hpp>
 #include <mars/debug/logger.hpp>
+#include <mars/graphics/backend/vulkan/vk_command_pool.hpp>
 #include <mars/graphics/backend/vulkan/vk_device.hpp>
 #include <mars/graphics/backend/vulkan/vk_framebuffer.hpp>
 #include <mars/graphics/backend/vulkan/vk_swapchain.hpp>
@@ -15,9 +14,19 @@ namespace mars::graphics::vulkan {
     namespace detail {
         sparse_vector<vk_render_pass, 16> render_passes;
         log_channel render_pass_channel("graphics/vulkan/render_pass");
+
+        VkAttachmentLoadOp mars_to_vk(mars_render_pass_load_op _op) {
+            switch (_op) {
+            case MARS_RENDER_PASS_LOAD_OP_LOAD:
+                return VK_ATTACHMENT_LOAD_OP_LOAD;
+            case MARS_RENDER_PASS_LOAD_OP_CLEAR:
+                return VK_ATTACHMENT_LOAD_OP_CLEAR;
+            }
+            return VK_ATTACHMENT_LOAD_OP_LOAD;
+        }
     } // namespace detail
 
-    render_pass vk_render_pass_impl::vk_render_pass_create(const device& _device, const swapchain& _swapchain) {
+    render_pass vk_render_pass_impl::vk_render_pass_create(const device& _device, const swapchain& _swapchain, const render_pass_create_params& _params) {
         vk_device* device_ptr = _device.data.get<vk_device>();
         vk_swapchain* swapchain_ptr = _swapchain.data.get<vk_swapchain>();
         vk_render_pass* render_pass_ptr = detail::render_passes.request_entry();
@@ -29,7 +38,7 @@ namespace mars::graphics::vulkan {
         VkAttachmentDescription color_attachment{
             .format = swapchain_ptr->swapchain_format,
             .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .loadOp = detail::mars_to_vk(_params.load_operation),
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,

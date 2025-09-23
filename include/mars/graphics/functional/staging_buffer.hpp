@@ -63,7 +63,6 @@ namespace mars {
         inline void staging_buffer_destroy(staging_buffer& _buffer, const device& _device) {
             buffer_unmap(_buffer.staging, _device);
             buffer_destroy(_buffer.staging, _device);
-            command_buffer_reset(_buffer.staging_command);
             command_pool_destroy(_buffer.pool, _device);
             sync_destroy(_buffer.stanging_sync, _device);
             _buffer = {};

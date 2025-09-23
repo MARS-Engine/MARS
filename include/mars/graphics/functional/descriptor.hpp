@@ -6,8 +6,8 @@
 namespace mars {
     namespace graphics {
 
-        inline descriptor descriptor_create(const device& _device, size_t _frames_in_flight) {
-            return _device.engine->get_impl<descriptor_impl>().descriptor_create(_device, _frames_in_flight);
+        inline descriptor descriptor_create(const device& _device, const descriptor_create_params& _params, size_t _frames_in_flight) {
+            return _device.engine->get_impl<descriptor_impl>().descriptor_create(_device, _params, _frames_in_flight);
         }
 
         inline descriptor_set descriptor_set_create(const descriptor& _descriptor, const device& _device, const pipeline& _pipeline, const std::vector<descriptor_set_create_params>& _params) {

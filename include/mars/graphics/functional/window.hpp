@@ -6,6 +6,7 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_scancode.h>
 #include <SDL3/SDL_stdinc.h>
+#include <cstddef>
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 
@@ -69,6 +70,9 @@ namespace mars {
 
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
+            if (ImGui::GetCurrentContext() != nullptr)
+                ImGui_ImplSDL3_ProcessEvent(&event);
+
             if (event.type == SDL_EVENT_WINDOW_RESIZED) {
                 SDL_Window* sdl_win = SDL_GetWindowFromID(event.window.windowID);
                 if (sdl_win == _window.sdl_window)

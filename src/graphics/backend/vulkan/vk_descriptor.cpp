@@ -1,5 +1,7 @@
 #include "mars/debug/logger.hpp"
+#include "mars/graphics/backend/descriptor.hpp"
 #include "mars/graphics/backend/vulkan/vk_command_pool.hpp"
+#include <array>
 #include <cstdint>
 #include <mars/graphics/backend/vulkan/vk_descriptor.hpp>
 
@@ -17,7 +19,7 @@ namespace mars::graphics::vulkan {
         log_channel descriptor_channel("graphics/vulkan/descriptor");
     } // namespace detail
 
-    descriptor vk_descriptor_impl::vk_descriptor_create(const device& _device, size_t _frames_in_flight) {
+    descriptor vk_descriptor_impl::vk_descriptor_create(const device& _device, const descriptor_create_params& _params, size_t _frames_in_flight) {
         descriptor result;
         vk_device* device_ptr = _device.data.get<vk_device>();
         vk_descriptor* descriptor_ptr = detail::descriptors.request_entry();
@@ -26,16 +28,59 @@ namespace mars::graphics::vulkan {
         result.data = descriptor_ptr;
         result.frames_in_flight = _frames_in_flight;
 
-        VkDescriptorPoolSize pool_size{
-            .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = static_cast<uint32_t>(_frames_in_flight),
-        };
+        std::array<VkDescriptorPoolSize, _params.descriptors_size.size()> pool_sizes;
+
+        size_t used_size = 0;
+
+        for (size_t i = 0; i < pool_sizes.size(); i++) {
+            switch (static_cast<mars_descriptor_type>(i)) {
+            case MARS_DESCRIPTOR_TYPE_SAMPLER:
+                pool_sizes[used_size].type = VK_DESCRIPTOR_TYPE_SAMPLER;
+                break;
+            case MARS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+                pool_sizes[used_size].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                break;
+            case MARS_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+                pool_sizes[used_size].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+                break;
+            case MARS_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+                pool_sizes[used_size].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                break;
+            case MARS_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+                pool_sizes[used_size].type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+                break;
+            case MARS_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+                pool_sizes[used_size].type = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+                break;
+            case MARS_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+                pool_sizes[used_size].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                break;
+            case MARS_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+                pool_sizes[used_size].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                break;
+            case MARS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+                pool_sizes[used_size].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+                break;
+            case MARS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+                pool_sizes[used_size].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+                break;
+            case MARS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+                pool_sizes[used_size].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+                break;
+            }
+
+            pool_sizes[used_size].descriptorCount = static_cast<uint32_t>(_params.descriptors_size[i]);
+
+            if (pool_sizes[used_size].descriptorCount != 0)
+                used_size++;
+        }
 
         VkDescriptorPoolCreateInfo pool_info{
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
             .maxSets = static_cast<uint32_t>(_frames_in_flight),
-            .poolSizeCount = 1,
-            .pPoolSizes = &pool_size,
+            .poolSizeCount = static_cast<uint32_t>(used_size),
+            .pPoolSizes = pool_sizes.data(),
+            .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
         };
 
         VkResult vk_result = vkCreateDescriptorPool(device_ptr->device, &pool_info, nullptr, &descriptor_ptr->descriptor_pool);
