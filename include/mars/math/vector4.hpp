@@ -43,4 +43,9 @@ namespace mars {
             return *(&x + _i);
         }
     };
+
+    template <typename T>
+    vector4<T> operator*(const T& _scalar, const vector4<T>& _value) {
+        return { _value.x * _scalar, _value.y * _scalar, _value.z * _scalar, _value.w * _scalar };
+    }
 } // namespace mars

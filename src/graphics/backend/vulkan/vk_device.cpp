@@ -178,9 +178,12 @@ namespace mars::graphics::vulkan {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .commandBufferCount = static_cast<uint32_t>(_n_buffers),
             .pCommandBuffers = buffers.data(),
-            .signalSemaphoreCount = 1,
-            .pSignalSemaphores = &sync_ptr->render_finished_semaphore[_params.signal_index],
         };
+
+        if (_params.should_signal) {
+            submit_info.signalSemaphoreCount = 1;
+            submit_info.pSignalSemaphores = &sync_ptr->render_finished_semaphore[_params.signal_index];
+        }
 
         if (_params.wait_stages != 0) {
             uint32_t stages = 0;

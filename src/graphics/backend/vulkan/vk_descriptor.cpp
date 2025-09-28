@@ -79,7 +79,7 @@ namespace mars::graphics::vulkan {
         VkDescriptorPoolCreateInfo pool_info{
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
             .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
-            .maxSets = static_cast<uint32_t>(_frames_in_flight),
+            .maxSets = static_cast<uint32_t>(_params.max_sets * _frames_in_flight),
             .poolSizeCount = static_cast<uint32_t>(used_size),
             .pPoolSizes = pool_sizes.data(),
         };

@@ -69,7 +69,10 @@ namespace mars {
             command_buffer_record_end(_stanging.staging_command);
             _stanging.current_offset = 0;
 
-            device_submit_graphics_queue(_device, _stanging.stanging_sync, {}, &_stanging.staging_command, 1);
+            device_submit_graphics_queue(_device, _stanging.stanging_sync, { .should_signal = false }, &_stanging.staging_command, 1);
+
+            _stanging.buffer_list.clear();
+            _stanging.texture_list.clear();
         }
 
         inline void staging_buffer_destroy(staging_buffer& _buffer, const device& _device) {

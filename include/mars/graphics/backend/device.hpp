@@ -21,6 +21,7 @@ namespace mars {
         size_t wait_index;
         size_t wait_stages;
         size_t signal_index;
+        bool should_signal = true;
     };
 
     struct device_impl {

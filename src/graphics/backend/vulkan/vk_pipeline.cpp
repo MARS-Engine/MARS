@@ -151,7 +151,7 @@ namespace mars::graphics::vulkan {
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
             .polygonMode = VK_POLYGON_MODE_FILL,
-            .cullMode = VK_CULL_MODE_BACK_BIT,
+            .cullMode = VK_CULL_MODE_NONE,
             .frontFace = VK_FRONT_FACE_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
             .lineWidth = 1.0f,
@@ -223,9 +223,9 @@ namespace mars::graphics::vulkan {
 
         VkViewport viewport{
             .x = 0.0f,
-            .y = 0.0f,
+            .y = static_cast<float>(_params.size.y),
             .width = static_cast<float>(_params.size.x),
-            .height = static_cast<float>(_params.size.y),
+            .height = -static_cast<float>(_params.size.y),
             .minDepth = 0.0f,
             .maxDepth = 1.0f,
         };

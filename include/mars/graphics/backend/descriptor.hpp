@@ -32,6 +32,7 @@ namespace mars {
 
     struct descriptor_create_params {
         std::array<size_t, std::meta::enumerators_of(^^mars_descriptor_type).size()> descriptors_size = {};
+        size_t max_sets;
     };
 
     struct descriptor_set {
