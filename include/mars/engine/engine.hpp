@@ -2,12 +2,22 @@
 
 #include <mars/debug/logger.hpp>
 #include <mars/hash/meta.hpp>
+#include <ranges>
 #include <unordered_map>
+#include <vector>
 
 namespace mars {
     struct entity {
         uint32_t index;
         uint32_t generation;
+
+        inline bool operator==(const entity& _other) const {
+            return index == _other.index && generation == _other.generation;
+        }
+
+        inline bool operator!=(const entity& _other) const {
+            return !(*this == _other);
+        }
     };
 
     template <typename T>
@@ -82,6 +92,7 @@ namespace mars {
 
         std::unordered_map<size_t, component_entry> m_components;
         std::vector<entity_slot> entities;
+        std::vector<entity> marked_entities;
         std::vector<uint32_t> free_slots;
 
         entity entity_create_internal() {
@@ -131,17 +142,63 @@ namespace mars {
             return new_entity;
         }
 
-        void entity_destroy(const entity& _entity) {
-            if (!is_alive(_entity))
-                return;
+        void entity_mark_destroy(const entity& _entity) {
+            marked_entities.push_back(_entity);
+        }
 
-            auto& entity = entities[_entity.index];
-            entity.alive = false;
-            ++entity.generation;
-            free_slots.push_back(_entity.index);
+        void destroy_marked() {
+            for (entity& entry : marked_entities) {
+                if (!is_alive(entry))
+                    return;
 
-            for (auto& pair : m_components)
-                pair.second.remove_entity(pair.second.ptr, _entity);
+                auto& entity = entities[entry.index];
+                entity.alive = false;
+                ++entity.generation;
+                free_slots.push_back(entry.index);
+
+                for (auto& pair : m_components)
+                    pair.second.remove_entity(pair.second.ptr, entry);
+            }
+        }
+
+        template <typename... Args>
+        void process_marked(void (*_ptr)(const entity&, Args...)) {
+            static_assert(sizeof...(Args) != 0, "At least one argument required");
+            size_t smallest = -1;
+            std::vector<uint32_t>* small_comp_entities = nullptr;
+            constexpr std::meta::access_context ctx = std::meta::access_context::current();
+            template for (constexpr auto mem : std::define_static_array(std::meta::template_arguments_of(^^process<Args...>))) {
+                using C = [:std::meta::remove_cvref(mem):];
+                constexpr size_t type_id = mars::hash::type_fingerprint_v<C>;
+                entity_component_storage<C>& component = *static_cast<entity_component_storage<C>*>(m_components[type_id].ptr);
+                if (component.size() < smallest) {
+                    smallest = component.size();
+                    small_comp_entities = &component.entities;
+                }
+            }
+
+            void* storage_ptrs[sizeof...(Args)];
+            size_t storage_ptr;
+            for (uint32_t index : *small_comp_entities) {
+                storage_ptr = 0;
+                template for (constexpr auto mem : std::define_static_array(std::meta::template_arguments_of(^^process<Args...>))) {
+                    using C = [:std::meta::remove_cvref(mem):];
+                    constexpr size_t type_id = mars::hash::type_fingerprint_v<C>;
+                    entity_component_storage<C>& component = *static_cast<entity_component_storage<C>*>(m_components[type_id].ptr);
+                    if (!component.has_index(index))
+                        continue;
+                    storage_ptrs[storage_ptr++] = &component.get(index);
+                }
+
+                entity e{ index, entities[index].generation };
+
+                if (std::ranges::find(marked_entities, e) == marked_entities.end())
+                    continue;
+
+                [&]<std::size_t... i>(std::index_sequence<i...>) {
+                    _ptr(e, *static_cast<std::remove_cvref_t<Args>*>(storage_ptrs[i])...);
+                }(std::make_index_sequence<sizeof...(Args)>{});
+            }
         }
 
         template <typename... Args>
