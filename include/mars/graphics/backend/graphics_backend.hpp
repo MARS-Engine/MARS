@@ -11,6 +11,7 @@
 #include "shader.hpp"
 #include "swapchain.hpp"
 #include "sync.hpp"
+#include "texture.hpp"
 #include "window.hpp"
 
 #include <mars/container/sparse_array.hpp>
@@ -33,6 +34,7 @@ namespace mars {
         sync_impl sync;
         buffer_impl buffer;
         descriptor_impl descritor;
+        texture_impl texture;
 
         template <typename T>
         T& get_impl() {

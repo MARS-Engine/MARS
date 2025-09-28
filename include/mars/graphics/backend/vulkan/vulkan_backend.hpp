@@ -11,6 +11,7 @@
 #include "vk_shader.hpp"
 #include "vk_swapchain.hpp"
 #include "vk_sync.hpp"
+#include "vk_texture.hpp"
 #include "vk_window.hpp"
 
 #include <mars/graphics/backend/graphics_backend.hpp>
@@ -95,6 +96,11 @@ namespace mars {
                         .descriptor_set_bind = &vulkan::vk_descriptor_impl::vk_descriptor_set_bind,
                         .descriptor_destroy = &vulkan::vk_descriptor_impl::vk_descriptor_destroy,
                     },
+                    .texture{
+                        .texture_create = &vulkan::vk_texture_impl::vk_texture_create,
+                        .texture_copy = &vulkan::vk_texture_impl::vk_texture_copy,
+                        .texture_destroy = &vulkan::vk_texture_impl::vk_texture_destroy,
+                    }
                 };
 
                 return &functions;

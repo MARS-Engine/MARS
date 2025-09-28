@@ -9,6 +9,7 @@
 #include <mars/graphics/backend/vulkan/vk_buffer.hpp>
 #include <mars/graphics/backend/vulkan/vk_device.hpp>
 #include <mars/graphics/backend/vulkan/vk_pipeline.hpp>
+#include <mars/graphics/backend/vulkan/vk_texture.hpp>
 #include <mars/meta.hpp>
 #include <vulkan/vulkan_core.h>
 
@@ -77,10 +78,10 @@ namespace mars::graphics::vulkan {
 
         VkDescriptorPoolCreateInfo pool_info{
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
             .maxSets = static_cast<uint32_t>(_frames_in_flight),
             .poolSizeCount = static_cast<uint32_t>(used_size),
             .pPoolSizes = pool_sizes.data(),
-            .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
         };
 
         VkResult vk_result = vkCreateDescriptorPool(device_ptr->device, &pool_info, nullptr, &descriptor_ptr->descriptor_pool);
@@ -119,25 +120,52 @@ namespace mars::graphics::vulkan {
         for (size_t i = 0; i < _descriptor.frames_in_flight; i++) {
 
             std::vector<VkDescriptorBufferInfo> buffer_infos;
+            std::vector<VkDescriptorImageInfo> texture_infos;
+
+            buffer_infos.reserve(_params[i].buffers.size());
+            texture_infos.reserve(_params[i].textures.size());
+
             std::vector<VkWriteDescriptorSet> descriptor_sets;
 
-            for (const buffer& entry : _params[i].buffers) {
-                vk_buffer* entry_ptr = entry.data.get<vk_buffer>();
-                VkDescriptorBufferInfo* aaaa = &buffer_infos.emplace_back(VkDescriptorBufferInfo({
+            for (const std::pair<buffer, size_t>& entry : _params[i].buffers) {
+                vk_buffer* entry_ptr = entry.first.data.get<vk_buffer>();
+                VkDescriptorBufferInfo* info = &buffer_infos.emplace_back(VkDescriptorBufferInfo({
                     .buffer = entry_ptr->vk_buffer,
                     .offset = 0,
-                    .range = entry.allocated_size,
+                    .range = entry.first.allocated_size,
                 }));
 
-                VkWriteDescriptorSet descriptorWrite{};
-                descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                descriptorWrite.dstSet = descriptor_set_ptr->descriptor_sets[i];
-                descriptorWrite.dstBinding = 0;
-                descriptorWrite.dstArrayElement = 0;
-                descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                descriptorWrite.descriptorCount = 1;
-                descriptorWrite.pBufferInfo = aaaa;
-                descriptor_sets.push_back(descriptorWrite);
+                VkWriteDescriptorSet descriptor_write{
+                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    .dstSet = descriptor_set_ptr->descriptor_sets[i],
+                    .dstBinding = static_cast<uint32_t>(entry.second),
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                    .pBufferInfo = info,
+                };
+                descriptor_sets.push_back(descriptor_write);
+            }
+
+            for (const std::pair<texture, size_t>& entry : _params[i].textures) {
+                vk_texture* entry_ptr = entry.first.data.get<vk_texture>();
+                VkDescriptorImageInfo* info = &texture_infos.emplace_back(VkDescriptorImageInfo({
+                    .sampler = entry_ptr->sampler,
+                    .imageView = entry_ptr->view,
+                    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                }));
+
+                VkWriteDescriptorSet descriptor_write{
+                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    .dstSet = descriptor_set_ptr->descriptor_sets[i],
+                    .dstBinding = static_cast<uint32_t>(entry.second),
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                    .pImageInfo = info,
+                };
+
+                descriptor_sets.push_back(descriptor_write);
             }
 
             vkUpdateDescriptorSets(device_ptr->device, static_cast<uint32_t>(descriptor_sets.size()), descriptor_sets.data(), 0, nullptr);

@@ -6,24 +6,12 @@
 #include <mars/debug/logger.hpp>
 #include <mars/graphics/backend/vulkan/vk_command_pool.hpp>
 #include <mars/graphics/backend/vulkan/vk_device.hpp>
-#include <vulkan/vulkan_core.h>
+#include <mars/graphics/backend/vulkan/vk_utils.hpp>
 
 namespace mars::graphics::vulkan {
     namespace detail {
         sparse_vector<vk_buffer, 6> buffers;
         log_channel buffer_channel("graphics/vulkan/buffer");
-
-        uint32_t find_memory_type(VkPhysicalDevice _device, uint32_t _type_filter, VkMemoryPropertyFlags _properties) {
-            VkPhysicalDeviceMemoryProperties memory_properties;
-            vkGetPhysicalDeviceMemoryProperties(_device, &memory_properties);
-
-            for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++)
-                if ((_type_filter & (1 << i)) && (memory_properties.memoryTypes[i].propertyFlags & _properties) == _properties)
-                    return i;
-
-            logger::assert_(buffer_channel, "failed to find valid memory type for buffer");
-            return -1;
-        }
 
         VkBufferUsageFlags mars_buffer_usage_to_vulkan(uint32_t _type) {
             VkBufferUsageFlags result = 0;
@@ -79,7 +67,9 @@ namespace mars::graphics::vulkan {
         VkMemoryAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memory_requirements.size;
-        allocInfo.memoryTypeIndex = detail::find_memory_type(device_ptr->physical_device, memory_requirements.memoryTypeBits, detail::mars_buffer_properties_to_vulkan(_params.buffer_property));
+        allocInfo.memoryTypeIndex = find_memory_type(device_ptr->physical_device, memory_requirements.memoryTypeBits, detail::mars_buffer_properties_to_vulkan(_params.buffer_property));
+
+        logger::assert_(allocInfo.memoryTypeIndex != -1, detail::buffer_channel, "failed to find a valid memoty type for a buffer");
 
         vk_result = vkAllocateMemory(device_ptr->device, &allocInfo, nullptr, &buffer_ptr->device_memory);
 

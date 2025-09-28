@@ -65,4 +65,15 @@ namespace mars::graphics::vulkan {
 
         return details;
     }
+
+    inline uint32_t find_memory_type(VkPhysicalDevice _device, uint32_t _type_filter, VkMemoryPropertyFlags _properties) {
+        VkPhysicalDeviceMemoryProperties memory_properties;
+        vkGetPhysicalDeviceMemoryProperties(_device, &memory_properties);
+
+        for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++)
+            if ((_type_filter & (1 << i)) && (memory_properties.memoryTypes[i].propertyFlags & _properties) == _properties)
+                return i;
+
+        return -1;
+    }
 } // namespace mars::graphics::vulkan

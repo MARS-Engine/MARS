@@ -4,6 +4,7 @@
 #include <mars/graphics/functional/command_pool.hpp>
 #include <mars/graphics/functional/device.hpp>
 #include <mars/graphics/functional/sync.hpp>
+#include <mars/graphics/functional/texture.hpp>
 
 #include <cstring>
 #include <utility>
@@ -17,7 +18,8 @@ namespace mars {
         buffer staging;
         void* data;
         size_t current_offset;
-        std::vector<std::pair<buffer, size_t>> copy_list;
+        std::vector<std::pair<buffer, size_t>> buffer_list;
+        std::vector<std::pair<texture, size_t>> texture_list;
     };
 
     namespace graphics {
@@ -41,8 +43,15 @@ namespace mars {
 
         inline void staging_buffer_copy(staging_buffer& _stanging, const void* _data, const buffer& _dst) {
             std::memcpy((char*)_stanging.data + _stanging.current_offset, _data, _dst.allocated_size);
-            _stanging.copy_list.emplace_back(_dst, _stanging.current_offset);
+            _stanging.buffer_list.emplace_back(_dst, _stanging.current_offset);
             _stanging.current_offset += _dst.allocated_size;
+        }
+
+        inline void staging_buffer_copy(staging_buffer& _stanging, const void* _data, const texture& _dst) {
+            size_t size = _dst.size.x * _dst.size.y * _dst.channels;
+            std::memcpy((char*)_stanging.data + _stanging.current_offset, _data, size);
+            _stanging.texture_list.emplace_back(_dst, _stanging.current_offset);
+            _stanging.current_offset += size;
         }
 
         inline void staging_buffer_commit(staging_buffer& _stanging, const device& _device) {
@@ -51,8 +60,11 @@ namespace mars {
 
             command_buffer_record(_stanging.staging_command);
 
-            for (std::pair<buffer, size_t>& entry : _stanging.copy_list)
+            for (std::pair<buffer, size_t>& entry : _stanging.buffer_list)
                 buffer_copy(entry.first, _stanging.staging, _stanging.staging_command, entry.second);
+
+            for (std::pair<texture, size_t>& entry : _stanging.texture_list)
+                texture_copy(entry.first, _stanging.staging, _stanging.staging_command, entry.second);
 
             command_buffer_record_end(_stanging.staging_command);
             _stanging.current_offset = 0;

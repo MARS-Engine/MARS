@@ -44,8 +44,11 @@ namespace mars::graphics::vulkan {
             if (!has_extensions(_device, _required_extensions))
                 return false;
 
+            VkPhysicalDeviceFeatures supported_features;
+            vkGetPhysicalDeviceFeatures(_device, &supported_features);
+
             swapchain_support_details swapchain_support = query_swapchain_support(_device, _surface);
-            if (swapchain_support.formats.empty() || swapchain_support.present_modes.empty())
+            if (swapchain_support.formats.empty() || swapchain_support.present_modes.empty() || !supported_features.samplerAnisotropy)
                 return false;
 
             return true;
@@ -111,7 +114,9 @@ namespace mars::graphics::vulkan {
 
         float queue_priority = 1.0f;
 
-        VkPhysicalDeviceFeatures device_features{};
+        VkPhysicalDeviceFeatures device_features{
+            .samplerAnisotropy = VK_TRUE
+        };
 
         std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
         std::set<uint32_t> uniqueQueueFamilies = { device_ptr->queue_indices.graphics_family, device_ptr->queue_indices.present_family };
