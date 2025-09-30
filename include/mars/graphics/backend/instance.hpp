@@ -2,7 +2,7 @@
 
 #include <mars/math/vector3.hpp>
 #include <mars/meta.hpp>
-#include <mars/meta/type_erasure.hpp>
+#include <mars/meta/type_erased.hpp>
 
 #include <string>
 
@@ -20,7 +20,7 @@ namespace mars {
 
     struct instance {
         graphics_backend_functions* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
         bool debug_mode = false;
     };
 

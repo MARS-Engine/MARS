@@ -54,28 +54,32 @@ namespace mars {
             _stanging.current_offset += size;
         }
 
-        inline void staging_buffer_commit(staging_buffer& _stanging, const device& _device) {
-            sync_wait(_stanging.stanging_sync, _device, 0);
-            sync_reset(_stanging.stanging_sync, _device, 0);
+        inline void staging_buffer_wait(const staging_buffer& _staging, const device& _device) {
+            sync_wait(_staging.stanging_sync, _device, 0);
+            sync_reset(_staging.stanging_sync, _device, 0);
+        };
 
-            command_buffer_record(_stanging.staging_command);
+        inline void staging_buffer_commit(staging_buffer& _buffer, const device& _device) {
+            staging_buffer_wait(_buffer, _device);
+            command_buffer_record(_buffer.staging_command);
 
-            for (std::pair<buffer, size_t>& entry : _stanging.buffer_list)
-                buffer_copy(entry.first, _stanging.staging, _stanging.staging_command, entry.second);
+            for (std::pair<buffer, size_t>& entry : _buffer.buffer_list)
+                buffer_copy(entry.first, _buffer.staging, _buffer.staging_command, entry.second);
 
-            for (std::pair<texture, size_t>& entry : _stanging.texture_list)
-                texture_copy(entry.first, _stanging.staging, _stanging.staging_command, entry.second);
+            for (std::pair<texture, size_t>& entry : _buffer.texture_list)
+                texture_copy(entry.first, _buffer.staging, _buffer.staging_command, entry.second);
 
-            command_buffer_record_end(_stanging.staging_command);
-            _stanging.current_offset = 0;
+            command_buffer_record_end(_buffer.staging_command);
+            _buffer.current_offset = 0;
 
-            device_submit_graphics_queue(_device, _stanging.stanging_sync, { .should_signal = false }, &_stanging.staging_command, 1);
+            device_submit_graphics_queue(_device, _buffer.stanging_sync, { .should_signal = false }, &_buffer.staging_command, 1);
 
-            _stanging.buffer_list.clear();
-            _stanging.texture_list.clear();
+            _buffer.buffer_list.clear();
+            _buffer.texture_list.clear();
         }
 
         inline void staging_buffer_destroy(staging_buffer& _buffer, const device& _device) {
+            staging_buffer_wait(_buffer, _device);
             buffer_unmap(_buffer.staging, _device);
             buffer_destroy(_buffer.staging, _device);
             command_pool_destroy(_buffer.pool, _device);

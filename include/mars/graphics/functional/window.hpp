@@ -1,6 +1,5 @@
 #pragma once
 
-#include "mars/meta/type_erasure.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_init.h>
@@ -13,6 +12,7 @@
 #include <mars/event/event.hpp>
 #include <mars/graphics/backend/window.hpp>
 #include <mars/math/vector2.hpp>
+#include <mars/meta/type_erased.hpp>
 #include <vector>
 
 namespace mars {
@@ -32,7 +32,7 @@ namespace mars {
 
     struct window : event<window_event> {
         graphics_engine* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
         mars::vector2<size_t> size;
         SDL_Window* sdl_window = nullptr;
         Uint64 now = 0;

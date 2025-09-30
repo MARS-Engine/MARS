@@ -7,33 +7,128 @@
 #include <vulkan/vulkan_core.h>
 
 namespace mars::graphics::vulkan {
-    inline VkFormat mars_format_to_vk(const format& _format) {
-        switch (_format.type) {
-        case MARS_FORMAT_TYPE_SFLOAT:
-            if (_format.size == 32) {
-                if (_format.number == 1)
-                    return VK_FORMAT_R32_SFLOAT;
-                if (_format.number == 2)
-                    return VK_FORMAT_R32G32_SFLOAT;
-                if (_format.number == 3)
-                    return VK_FORMAT_R32G32B32_SFLOAT;
-            }
-            break;
-        case MARS_FORMAT_TYPE_UINT:
-            if (_format.size == 32) {
-                if (_format.number == 1)
-                    return VK_FORMAT_R32_UINT;
-                if (_format.number == 2)
-                    return VK_FORMAT_R32G32_UINT;
-                if (_format.number == 3)
-                    return VK_FORMAT_R32G32B32_UINT;
-                if (_format.number == 4)
-                    return VK_FORMAT_R32G32B32A32_UINT;
-            }
-            break;
-        }
 
-        return VK_FORMAT_UNDEFINED;
+    inline VkFormat mars_to_vk(mars_format_type _type) {
+        switch (_type) {
+        /* UNORM */
+        case MARS_FORMAT_R8_UNORM:
+            return VK_FORMAT_R8_UNORM;
+        case MARS_FORMAT_RG8_UNORM:
+            return VK_FORMAT_R8G8_UNORM;
+        case MARS_FORMAT_RGB8_UNORM:
+            return VK_FORMAT_R8G8B8_UNORM;
+        case MARS_FORMAT_RGBA8_UNORM:
+            return VK_FORMAT_R8G8B8A8_UNORM;
+        /* RGB SRGB */
+        case MARS_FORMAT_R8_SRGB:
+            return VK_FORMAT_R8_SRGB;
+        case MARS_FORMAT_RG8_SRGB:
+            return VK_FORMAT_R8G8_SRGB;
+        case MARS_FORMAT_RGB8_SRGB:
+            return VK_FORMAT_R8G8B8_SRGB;
+        case MARS_FORMAT_RGBA8_SRGB:
+            return VK_FORMAT_R8G8B8A8_SRGB;
+        /* BGR SRGB */
+        case MARS_FORMAT_BGR8_SRGB:
+            return VK_FORMAT_B8G8R8_SRGB;
+        case MARS_FORMAT_BGRA8_SRGB:
+            return VK_FORMAT_B8G8R8A8_SRGB;
+        /* SFLOAT */
+        case MARS_FORMAT_R32_SFLOAT:
+            return VK_FORMAT_R32_SFLOAT;
+        case MARS_FORMAT_RG32_SFLOAT:
+            return VK_FORMAT_R32G32_SFLOAT;
+        case MARS_FORMAT_RGB32_SFLOAT:
+            return VK_FORMAT_R32G32B32_SFLOAT;
+        case MARS_FORMAT_RGBA32_SFLOAT:
+            return VK_FORMAT_R32G32B32A32_SFLOAT;
+        /* UINT */
+        case MARS_FORMAT_R32_UINT:
+            return VK_FORMAT_R32_UINT;
+        case MARS_FORMAT_RG32_UINT:
+            return VK_FORMAT_R32G32_UINT;
+        case MARS_FORMAT_RGB32_UINT:
+            return VK_FORMAT_R32G32B32_UINT;
+        case MARS_FORMAT_RGBA32_UINT:
+            return VK_FORMAT_R32G32B32A32_UINT;
+        default:
+            return VK_FORMAT_UNDEFINED;
+        }
+    }
+
+    inline mars_format_type vk_to_mars(VkFormat _format) {
+        switch (_format) {
+        /* UNORM */
+        case VK_FORMAT_R8_UNORM:
+            return MARS_FORMAT_R8_UNORM;
+        case VK_FORMAT_R8G8_UNORM:
+            return MARS_FORMAT_RG8_UNORM;
+        case VK_FORMAT_R8G8B8_UNORM:
+            return MARS_FORMAT_RGB8_UNORM;
+        case VK_FORMAT_R8G8B8A8_UNORM:
+            return MARS_FORMAT_RGBA8_UNORM;
+        /* RGB SRGB */
+        case VK_FORMAT_R8_SRGB:
+            return MARS_FORMAT_R8_SRGB;
+        case VK_FORMAT_R8G8_SRGB:
+            return MARS_FORMAT_RG8_SRGB;
+        case VK_FORMAT_R8G8B8_SRGB:
+            return MARS_FORMAT_RGB8_SRGB;
+        case VK_FORMAT_R8G8B8A8_SRGB:
+            return MARS_FORMAT_RGBA8_SRGB;
+        /* BGR SRGB */
+        case VK_FORMAT_B8G8R8_SRGB:
+            return MARS_FORMAT_BGR8_SRGB;
+        case VK_FORMAT_B8G8R8A8_SRGB:
+            return MARS_FORMAT_BGRA8_SRGB;
+        /* SFLOAT */
+        case VK_FORMAT_R32_SFLOAT:
+            return MARS_FORMAT_R32_SFLOAT;
+        case VK_FORMAT_R32G32_SFLOAT:
+            return MARS_FORMAT_RG32_SFLOAT;
+        case VK_FORMAT_R32G32B32_SFLOAT:
+            return MARS_FORMAT_RGB32_SFLOAT;
+        case VK_FORMAT_R32G32B32A32_SFLOAT:
+            return MARS_FORMAT_RGBA32_SFLOAT;
+        /* UINT */
+        case VK_FORMAT_R32_UINT:
+            return MARS_FORMAT_R32_UINT;
+        case VK_FORMAT_R32G32_UINT:
+            return MARS_FORMAT_RG32_UINT;
+        case VK_FORMAT_R32G32B32_UINT:
+            return MARS_FORMAT_RGB32_UINT;
+        case VK_FORMAT_R32G32B32A32_UINT:
+            return MARS_FORMAT_RGBA32_UINT;
+        default:
+            return MARS_FORMAT_UNDEFINED;
+        }
+    }
+
+    inline unsigned char mars_format_to_channels(mars_format_type _type) {
+        switch (_type) {
+        case MARS_FORMAT_R8_SRGB:
+        case MARS_FORMAT_R8_UNORM:
+        case MARS_FORMAT_R32_SFLOAT:
+        case MARS_FORMAT_R32_UINT:
+            return 1;
+        case MARS_FORMAT_RG8_SRGB:
+        case MARS_FORMAT_RG8_UNORM:
+        case MARS_FORMAT_RG32_SFLOAT:
+        case MARS_FORMAT_RG32_UINT:
+            return 2;
+        case MARS_FORMAT_RGB8_SRGB:
+        case MARS_FORMAT_RGB8_UNORM:
+        case MARS_FORMAT_RGB32_SFLOAT:
+        case MARS_FORMAT_RGB32_UINT:
+            return 3;
+        case MARS_FORMAT_RGBA8_SRGB:
+        case MARS_FORMAT_RGBA8_UNORM:
+        case MARS_FORMAT_RGBA32_SFLOAT:
+        case MARS_FORMAT_RGBA32_UINT:
+            return 4;
+        default:
+            return 0;
+        }
     }
 
     struct swapchain_support_details {

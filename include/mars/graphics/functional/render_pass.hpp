@@ -7,8 +7,8 @@
 namespace mars {
     namespace graphics {
 
-        inline render_pass render_pass_create(const device& _device, const swapchain& _swapchain, const render_pass_create_params& _params) {
-            return _device.engine->get_impl<render_pass_impl>().render_pass_create(_device, _swapchain, _params);
+        inline render_pass render_pass_create(const device& _device, const render_pass_create_params& _params) {
+            return _device.engine->get_impl<render_pass_impl>().render_pass_create(_device, _params);
         }
 
         inline void render_pass_bind(const render_pass& _render_pass, const command_buffer& _command_buffer, const framebuffer& _framebuffer, const render_pass_bind_param& _params) {

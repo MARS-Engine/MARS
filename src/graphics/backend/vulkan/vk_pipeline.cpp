@@ -112,7 +112,7 @@ namespace mars::graphics::vulkan {
             desc.binding = description.binding;
             desc.location = description.location;
             desc.offset = description.offset;
-            desc.format = mars_format_to_vk(description.input_format);
+            desc.format = mars_to_vk(description.input_format);
         }
 
         VkPipelineVertexInputStateCreateInfo vertex_input_info{

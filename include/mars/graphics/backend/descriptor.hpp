@@ -26,7 +26,7 @@ enum mars_descriptor_type {
 namespace mars {
     struct descriptor {
         graphics_backend_functions* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
         size_t frames_in_flight;
     };
 
@@ -37,7 +37,7 @@ namespace mars {
 
     struct descriptor_set {
         graphics_backend_functions* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
     };
 
     struct descriptor_set_create_params {

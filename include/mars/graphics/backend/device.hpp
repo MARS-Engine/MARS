@@ -14,7 +14,7 @@ namespace mars {
 
     struct device {
         graphics_backend_functions* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
     };
 
     struct device_submit_params {

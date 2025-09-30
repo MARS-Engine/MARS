@@ -1,7 +1,7 @@
 #pragma once
 
 #include <mars/math/vector2.hpp>
-#include <mars/meta/type_erasure.hpp>
+#include <mars/meta/type_erased.hpp>
 
 #include <cstddef>
 
@@ -13,7 +13,7 @@ namespace mars {
 
     struct framebuffer {
         graphics_backend_functions* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
         vector2<size_t> extent;
     };
 

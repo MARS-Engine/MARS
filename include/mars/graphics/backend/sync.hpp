@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <mars/meta/type_erasure.hpp>
+#include <mars/meta/type_erased.hpp>
 
 namespace mars {
     struct graphics_backend_functions;
@@ -10,7 +10,7 @@ namespace mars {
 
     struct sync {
         graphics_backend_functions* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
     };
 
     struct sync_impl {

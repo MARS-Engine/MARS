@@ -4,7 +4,7 @@
 #include "shader.hpp"
 
 #include <mars/math/vector2.hpp>
-#include <mars/meta/type_erasure.hpp>
+#include <mars/meta/type_erased.hpp>
 #include <vector>
 
 enum mars_pipeline_input_advance_type {
@@ -28,7 +28,7 @@ namespace mars {
 
     struct pipeline {
         graphics_backend_functions* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
     };
 
     struct viewport {
@@ -39,7 +39,7 @@ namespace mars {
         size_t binding;
         size_t location;
         size_t offset;
-        graphics::format input_format;
+        mars_format_type input_format;
     };
 
     struct pipeline_binding_description {

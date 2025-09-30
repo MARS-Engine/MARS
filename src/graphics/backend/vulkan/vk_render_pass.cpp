@@ -6,6 +6,7 @@
 #include <mars/graphics/backend/vulkan/vk_device.hpp>
 #include <mars/graphics/backend/vulkan/vk_framebuffer.hpp>
 #include <mars/graphics/backend/vulkan/vk_swapchain.hpp>
+#include <mars/graphics/backend/vulkan/vk_utils.hpp>
 #include <mars/meta.hpp>
 
 #include <vulkan/vulkan_core.h>
@@ -26,9 +27,8 @@ namespace mars::graphics::vulkan {
         }
     } // namespace detail
 
-    render_pass vk_render_pass_impl::vk_render_pass_create(const device& _device, const swapchain& _swapchain, const render_pass_create_params& _params) {
+    render_pass vk_render_pass_impl::vk_render_pass_create(const device& _device, const render_pass_create_params& _params) {
         vk_device* device_ptr = _device.data.get<vk_device>();
-        vk_swapchain* swapchain_ptr = _swapchain.data.get<vk_swapchain>();
         vk_render_pass* render_pass_ptr = detail::render_passes.request_entry();
 
         render_pass result;
@@ -36,7 +36,7 @@ namespace mars::graphics::vulkan {
         result.engine = _device.engine;
 
         VkAttachmentDescription color_attachment{
-            .format = swapchain_ptr->swapchain_format,
+            .format = mars_to_vk(_params.format),
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = detail::mars_to_vk(_params.load_operation),
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,

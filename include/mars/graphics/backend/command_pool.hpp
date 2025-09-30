@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mars/meta/type_erasure.hpp>
+#include <mars/meta/type_erased.hpp>
 
 #include <cstddef>
 #include <vector>
@@ -11,12 +11,12 @@ namespace mars {
 
     struct command_pool {
         graphics_backend_functions* engine = nullptr;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
     };
 
     struct command_buffer {
         graphics_backend_functions* engine = nullptr;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
         size_t buffer_index = 0;
     };
 

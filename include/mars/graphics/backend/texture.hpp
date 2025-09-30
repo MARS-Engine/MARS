@@ -1,13 +1,9 @@
 #pragma once
 
 #include <cstddef>
+#include <mars/graphics/backend/format.hpp>
 #include <mars/math/vector2.hpp>
-#include <mars/meta/type_erasure.hpp>
-
-enum mars_texture_format_type {
-    MARS_TEXTURE_FORMAT_RGBA8_UNORM,
-    MARS_TEXTURE_FORMAT_RGBA8_SRGB
-};
+#include <mars/meta/type_erased.hpp>
 
 namespace mars {
     struct graphics_backend_functions;
@@ -17,14 +13,14 @@ namespace mars {
 
     struct texture {
         graphics_backend_functions* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
         vector2<size_t> size;
         unsigned char channels;
     };
 
     struct texture_create_params {
         vector2<size_t> size;
-        mars_texture_format_type format;
+        mars_format_type format;
     };
 
     struct texture_impl {

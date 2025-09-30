@@ -16,26 +16,6 @@ namespace mars::graphics::vulkan {
         sparse_vector<vk_texture, 24> textures;
         log_channel texture_channel("graphics/vulkan/texture");
 
-        VkFormat mars_to_vk(mars_texture_format_type _type) {
-            switch (_type) {
-            case MARS_TEXTURE_FORMAT_RGBA8_SRGB:
-                return VK_FORMAT_R8G8B8A8_SRGB;
-            case MARS_TEXTURE_FORMAT_RGBA8_UNORM:
-                return VK_FORMAT_R8G8B8A8_UNORM;
-            }
-            return VK_FORMAT_UNDEFINED;
-        }
-
-        unsigned char mars_format_to_channels(mars_texture_format_type _type) {
-            switch (_type) {
-            case MARS_TEXTURE_FORMAT_RGBA8_SRGB:
-                return 4;
-            case MARS_TEXTURE_FORMAT_RGBA8_UNORM:
-                return 4;
-            }
-            return 0;
-        }
-
         void transition_image_layout(VkCommandBuffer _command_buffer, VkImage _image, VkImageLayout _old_layout, VkImageLayout _new_layout) {
             VkImageMemoryBarrier barrier{
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -82,12 +62,12 @@ namespace mars::graphics::vulkan {
         result.engine = _device.engine;
         result.data = texture_ptr;
         result.size = _params.size;
-        result.channels = detail::mars_format_to_channels(_params.format);
+        result.channels = mars_format_to_channels(_params.format);
 
         VkImageCreateInfo image_info{
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .imageType = VK_IMAGE_TYPE_2D,
-            .format = detail::mars_to_vk(_params.format),
+            .format = mars_to_vk(_params.format),
             .extent = {
                 .width = static_cast<uint32_t>(_params.size.x),
                 .height = static_cast<uint32_t>(_params.size.y),

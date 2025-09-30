@@ -66,6 +66,8 @@ namespace mars::graphics::vulkan {
         VkPresentModeKHR present_mode = detail::choose_swapchain_present_mode(swapchain_support.present_modes);
         VkExtent2D extent = detail::choose_swapchain_extent(swapchain_support.capabilities, _window);
 
+        result.format = vk_to_mars(surface_format.format);
+
         uint32_t image_count = swapchain_support.capabilities.minImageCount + 1;
 
         if (swapchain_support.capabilities.maxImageCount > 0 && image_count > swapchain_support.capabilities.maxImageCount)

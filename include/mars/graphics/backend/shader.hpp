@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mars/meta/type_erasure.hpp>
+#include <mars/meta/type_erased.hpp>
 
 #include <string_view>
 #include <vector>
@@ -16,7 +16,7 @@ namespace mars {
 
     struct shader {
         graphics_backend_functions* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
     };
 
     struct shader_module {

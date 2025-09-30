@@ -1,6 +1,8 @@
 #pragma once
 
+#include "format.hpp"
 #include "instance.hpp"
+#include "texture.hpp"
 
 namespace mars {
     struct graphics_backend_functions;
@@ -9,8 +11,9 @@ namespace mars {
 
     struct swapchain {
         graphics_backend_functions* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
         size_t swapchain_size = 0;
+        mars_format_type format;
     };
 
     struct swapchain_impl {

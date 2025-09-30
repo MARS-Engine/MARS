@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mars/meta/type_erasure.hpp>
+#include <mars/meta/type_erased.hpp>
 
 #include <cstddef>
 
@@ -24,7 +24,7 @@ namespace mars {
 
     struct buffer {
         graphics_backend_functions* engine;
-        meta::type_erasure_ptr data;
+        meta::type_erased_ptr data;
         size_t allocated_size;
     };
 

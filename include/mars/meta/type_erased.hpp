@@ -13,7 +13,7 @@ namespace mars::meta {
         inline static log_channel type_erasure_channel("mars/meta/type_erasure");
     } // namespace detail
 
-    struct type_erasure_ptr {
+    struct type_erased_ptr {
       private:
         struct empty {};
 
@@ -28,13 +28,13 @@ namespace mars::meta {
         }
 
       public:
-        type_erasure_ptr() {
+        type_erased_ptr() {
             if (!environment::is_shipping)
                 id = nullptr;
         }
 
         template <typename T>
-        type_erasure_ptr(T* _ptr) {
+        type_erased_ptr(T* _ptr) {
             store(_ptr);
         }
 
@@ -63,7 +63,7 @@ namespace mars::meta {
         }
 
         template <typename T>
-        type_erasure_ptr& operator=(T* _ptr) {
+        type_erased_ptr& operator=(T* _ptr) {
             store(_ptr);
             return *this;
         }
