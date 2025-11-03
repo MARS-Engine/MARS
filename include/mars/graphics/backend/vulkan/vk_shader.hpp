@@ -18,7 +18,7 @@ namespace mars::graphics::vulkan {
     };
 
     struct vk_shader_impl {
-        static shader vk_shader_create(device& _device, const std::vector<shader_module>& _shaders);
+        static shader vk_shader_create(const device& _device, const std::vector<shader_module>& _shaders);
         static void vk_shader_destroy(shader& _shader, const device& _device);
     };
 } // namespace mars::graphics::vulkan

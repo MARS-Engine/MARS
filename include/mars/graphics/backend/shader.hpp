@@ -25,7 +25,7 @@ namespace mars {
     };
 
     struct shader_impl {
-        shader (*shader_create)(device& _device, const std::vector<shader_module>& _shaders) = nullptr;
+        shader (*shader_create)(const device& _device, const std::vector<shader_module>& _shaders) = nullptr;
         void (*shader_destroy)(shader& _shader, const device& _device) = nullptr;
     };
 } // namespace mars

@@ -14,7 +14,7 @@ namespace mars {
     namespace graphics {
 
         template <typename T>
-        inline shader shader_create(device& _device, const T& _shaders) {
+        inline shader shader_create(const device& _device, const T& _shaders) {
             std::vector<shader_module> modules;
 
             static constexpr auto ctx = std::meta::access_context::current();

@@ -7,6 +7,7 @@
 
 #include <mars/container/sparse_array.hpp>
 #include <mars/graphics/backend/vulkan/vk_buffer.hpp>
+#include <mars/graphics/backend/vulkan/vk_buffer_view.hpp>
 #include <mars/graphics/backend/vulkan/vk_device.hpp>
 #include <mars/graphics/backend/vulkan/vk_pipeline.hpp>
 #include <mars/graphics/backend/vulkan/vk_texture.hpp>
@@ -122,7 +123,7 @@ namespace mars::graphics::vulkan {
             std::vector<VkDescriptorBufferInfo> buffer_infos;
             std::vector<VkDescriptorImageInfo> texture_infos;
 
-            buffer_infos.reserve(_params[i].buffers.size());
+            buffer_infos.reserve(_params[i].buffers.size() + _params[i].buffer_views.size());
             texture_infos.reserve(_params[i].textures.size());
 
             std::vector<VkWriteDescriptorSet> descriptor_sets;
@@ -163,6 +164,28 @@ namespace mars::graphics::vulkan {
                     .descriptorCount = 1,
                     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                     .pImageInfo = info,
+                };
+
+                descriptor_sets.push_back(descriptor_write);
+            }
+
+            for (const std::pair<buffer_view, size_t>& entry : _params[i].buffer_views) {
+                vk_buffer_view* entry_ptr = entry.first.data.get<vk_buffer_view>();
+                vk_buffer* buffer_ptr = entry.first.src_buffer.data.get<vk_buffer>();
+                VkDescriptorBufferInfo* info = &buffer_infos.emplace_back(VkDescriptorBufferInfo({
+                    .buffer = buffer_ptr->vk_buffer,
+                    .offset = 0,
+                    .range = entry.first.src_buffer.allocated_size,
+                }));
+
+                VkWriteDescriptorSet descriptor_write{
+                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    .dstSet = descriptor_set_ptr->descriptor_sets[i],
+                    .dstBinding = static_cast<uint32_t>(entry.second),
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
+                    .pTexelBufferView = &entry_ptr->vk_buffer_view,
                 };
 
                 descriptor_sets.push_back(descriptor_write);

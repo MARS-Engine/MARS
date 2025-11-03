@@ -1,3 +1,5 @@
+#include "mars/graphics/backend/texture.hpp"
+#include <cstdint>
 #include <mars/graphics/backend/vulkan/vk_framebuffer.hpp>
 
 #include <mars/container/sparse_array.hpp>
@@ -15,29 +17,32 @@ namespace mars::graphics::vulkan {
         log_channel framebuffer_channel("graphics/vulkan/framebuffer");
     } // namespace detail
 
-    framebuffer vk_framebuffer_impl::vk_framebuffer_create(const device& _device, const swapchain& _swapchain, const render_pass& _render_pass) {
+    framebuffer vk_framebuffer_impl::vk_framebuffer_create(const device& _device, const framebuffer_create_params& _params) {
         vk_device* device_ptr = _device.data.get<vk_device>();
-        vk_swapchain* swapchain_ptr = _swapchain.data.get<vk_swapchain>();
-        vk_render_pass* render_pass_ptr = _render_pass.data.get<vk_render_pass>();
+        vk_render_pass* render_pass_ptr = _params.render_pass.data;
         vk_framebuffer* framebuffer_ptr = detail::framebuffers.request_entry();
 
         framebuffer result;
         result.data = framebuffer_ptr;
         result.engine = _device.engine;
-        result.extent = { swapchain_ptr->swapchain_extent.width, swapchain_ptr->swapchain_extent.height };
+        result.extent = { _params.size.x, _params.size.y };
 
-        framebuffer_ptr->framebuffers.resize(swapchain_ptr->swapchain_images_views.size());
+        std::vector<VkImageView> views;
+
+        _params.view.view_extractor.operator()<void, const texture_view&, std::vector<VkImageView>&>(_params.view, views);
+
+        framebuffer_ptr->framebuffers.resize(views.size());
 
         for (size_t i = 0; i < framebuffer_ptr->framebuffers.size(); i++) {
-            VkImageView attachments[] = { swapchain_ptr->swapchain_images_views[i] };
+            VkImageView attachments[] = { views[i] };
 
             VkFramebufferCreateInfo framebufferInfo{
                 .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                 .renderPass = render_pass_ptr->vk_render_pass,
                 .attachmentCount = 1,
                 .pAttachments = attachments,
-                .width = swapchain_ptr->swapchain_extent.width,
-                .height = swapchain_ptr->swapchain_extent.height,
+                .width = static_cast<uint32_t>(_params.size.x),
+                .height = static_cast<uint32_t>(_params.size.y),
                 .layers = 1,
             };
 

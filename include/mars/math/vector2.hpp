@@ -32,6 +32,13 @@ namespace mars {
             return *this;
         }
 
+        vector2& operator-=(const vector2& _value) {
+            x -= _value.x;
+            y -= _value.y;
+
+            return *this;
+        }
+
         vector2& operator/=(const T& _value) {
             x /= _value;
             y /= _value;

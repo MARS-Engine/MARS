@@ -11,4 +11,5 @@ target_sources(mars PUBLIC
     ./vk_sync.cpp
     ./vk_buffer.cpp
     ./vk_descriptor.cpp
-    ./vk_texture.cpp)
+    ./vk_texture.cpp
+    ./vk_buffer_view.cpp)

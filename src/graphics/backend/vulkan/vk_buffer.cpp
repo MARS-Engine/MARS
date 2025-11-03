@@ -12,33 +12,6 @@ namespace mars::graphics::vulkan {
     namespace detail {
         sparse_vector<vk_buffer, 6> buffers;
         log_channel buffer_channel("graphics/vulkan/buffer");
-
-        VkBufferUsageFlags mars_buffer_usage_to_vulkan(uint32_t _type) {
-            VkBufferUsageFlags result = 0;
-
-            if (_type & MARS_BUFFER_TYPE_VERTEX)
-                result |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-            if (_type & MARS_BUFFER_TYPE_INDEX)
-                result |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-            if (_type & MARS_BUFFER_TYPE_UNIFORM)
-                result |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-            if (_type & MARS_BUFFER_TYPE_TRANSFER_DST)
-                result |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-            if (_type & MARS_BUFFER_TYPE_TRANSFER_SRC)
-                result |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
-            return result;
-        }
-
-        VkBufferUsageFlags mars_buffer_properties_to_vulkan(uint32_t _property) {
-            VkBufferUsageFlags result = 0;
-            if (_property & MARS_BUFFER_PROPERTY_HOST_VISIBLE)
-                result |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-            if (_property & MARS_BUFFER_PROPERTY_DEVICE_LOCAL)
-                result |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
-            return result;
-        }
     } // namespace detail
 
     buffer vk_buffer_impl::vk_buffer_create(const device& _device, const buffer_create_params& _params) {
@@ -53,7 +26,7 @@ namespace mars::graphics::vulkan {
         VkBufferCreateInfo buffer_info{
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .size = _params.allocated_size,
-            .usage = detail::mars_buffer_usage_to_vulkan(_params.buffer_type),
+            .usage = mars_buffer_usage_to_vulkan(_params.buffer_type),
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         };
 
@@ -67,7 +40,7 @@ namespace mars::graphics::vulkan {
         VkMemoryAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memory_requirements.size;
-        allocInfo.memoryTypeIndex = find_memory_type(device_ptr->physical_device, memory_requirements.memoryTypeBits, detail::mars_buffer_properties_to_vulkan(_params.buffer_property));
+        allocInfo.memoryTypeIndex = find_memory_type(device_ptr->physical_device, memory_requirements.memoryTypeBits, mars_buffer_properties_to_vulkan(_params.buffer_property));
 
         logger::assert_(allocInfo.memoryTypeIndex != -1, detail::buffer_channel, "failed to find a valid memoty type for a buffer");
 

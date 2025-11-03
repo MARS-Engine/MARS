@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer.hpp"
+#include "buffer_view.hpp"
 #include "command_pool.hpp"
 #include "descriptor.hpp"
 #include "device.hpp"
@@ -35,6 +36,7 @@ namespace mars {
         buffer_impl buffer;
         descriptor_impl descritor;
         texture_impl texture;
+        buffer_view_impl buffer_view;
 
         template <typename T>
         T& get_impl() {

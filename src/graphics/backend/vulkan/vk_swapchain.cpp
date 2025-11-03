@@ -10,6 +10,7 @@
 #include <mars/meta.hpp>
 
 #include <SDL3/SDL_vulkan.h>
+#include <vector>
 #include <vulkan/vulkan_core.h>
 
 namespace mars::graphics::vulkan {
@@ -49,6 +50,11 @@ namespace mars::graphics::vulkan {
             return actual_extent;
         }
 
+        void vk_extract_swapchain_view(const texture_view& _view, std::vector<VkImageView>& _out) {
+            vk_swapchain* swapchain_ptr = _view.data;
+
+            _out.append_range(swapchain_ptr->swapchain_images_views);
+        }
     } // namespace detail
 
     swapchain vk_swapchain_impl::vk_swapchain_create(const device& _device, const window& _window) {
@@ -59,6 +65,8 @@ namespace mars::graphics::vulkan {
         swapchain result;
         result.data = swapchain_ptr;
         result.engine = _device.engine;
+        result.view.data = swapchain_ptr;
+        result.view.view_extractor = &detail::vk_extract_swapchain_view;
 
         swapchain_support_details swapchain_support = query_swapchain_support(device_ptr->physical_device, window_ptr->surface);
 

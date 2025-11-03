@@ -40,6 +40,8 @@ namespace mars {
         float delta_time = 0.0f;
         SDL_WindowFlags flags = 0;
 
+        float wheel_change = 0.0f;
+
         inline void resize(const mars::vector2<size_t>& _size) {
             size = _size;
             broadcast<&window_event::on_resize>(*this, _size);
@@ -69,6 +71,9 @@ namespace mars {
         _window.last = _window.now;
 
         SDL_Event event;
+
+        _window.wheel_change = 0.0f;
+
         while (SDL_PollEvent(&event)) {
             if (ImGui::GetCurrentContext() != nullptr)
                 ImGui_ImplSDL3_ProcessEvent(&event);
@@ -81,6 +86,8 @@ namespace mars {
                 _window.mouse_change({ (size_t)event.motion.x, (size_t)event.motion.y }, { event.button.button == SDL_BUTTON_LEFT, event.button.button == SDL_BUTTON_RIGHT });
             } else if (event.type == SDL_EVENT_QUIT)
                 _window.close();
+            else if (event.type == SDL_EVENT_MOUSE_WHEEL)
+                _window.wheel_change = event.wheel.y - event.wheel.x;
         }
     }
 } // namespace mars

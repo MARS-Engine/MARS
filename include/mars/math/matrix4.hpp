@@ -27,7 +27,7 @@ namespace mars {
 
         matrix4(array<vector4<T>, 4> _mat) : columns(_mat) {}
 
-        vector4<T> operator*(const vector4<T>& _value) {
+        vector4<T> operator*(const vector4<T>& _value) const {
             return _value[0] * columns[0] +
                    _value[1] * columns[1] +
                    _value[2] * columns[2] +
@@ -63,13 +63,42 @@ namespace mars {
     };
 
     namespace math {
+
+        template <typename T>
+        T rad(T _deg) {
+            return _deg * static_cast<T>(M_PI) / static_cast<T>(180);
+        }
+
+        template <typename T>
+        T deg(T _rad) {
+            return _rad * (static_cast<T>(180) / static_cast<T>(M_PI));
+        }
+
+        template <typename T>
+        inline matrix4<T> scale(const matrix4<T>& _mat, const vector3<T>& _value) {
+            return _mat * matrix4<T>(_value.x, _value.y, _value.z);
+        }
+
+        template <typename T>
+        matrix4<T> ortho(T _left, T _right, T _bottom, T _top, T _near_z, T _far_z) {
+            matrix4<T> result(1);
+            result[0, 0] = 2.0f / (_right - _left);
+            result[1, 1] = 2.0f / (_top - _bottom);
+            result[2, 2] = -2.0f / (_far_z - _near_z);
+
+            result[3, 0] = -(_right + _left) / (_right - _left);
+            result[3, 1] = -(_top + _bottom) / (_top - _bottom);
+            result[3, 2] = -(_far_z + _near_z) / (_far_z - _near_z);
+            return result;
+        }
+
         template <typename T>
         inline matrix4<T> translate(const matrix4<T>& _mat, const vector3<T>& _value) {
-            matrix4<T> trans(1.0f);
-            trans[3, 0] = _value.x;
-            trans[3, 1] = _value.y;
-            trans[3, 2] = _value.z;
-            return _mat * trans;
+            matrix4<T> result = _mat;
+            result[3, 0] += _value.x;
+            result[3, 1] += _value.y;
+            result[3, 2] += _value.z;
+            return result;
         }
 
         template <typename T>
@@ -110,6 +139,86 @@ namespace mars {
             result[1, 3] = -dot(u, _eye);
             result[2, 3] = -dot(f, _eye);
             return result;
+        }
+
+        template <typename T>
+        matrix4<T> rotate(const matrix4<T>& _mat, T _angle, const vector3<T>& _v) {
+            T const a = _angle;
+            T const c = cos(a);
+            T const s = sin(a);
+
+            vector3<T> axis(normalize(_v));
+            vector3<T> temp((T(1) - c) * axis);
+
+            matrix4<T> rotate;
+            rotate[0, 0] = c + temp[0] * axis[0];
+            rotate[0, 1] = temp[0] * axis[1] + s * axis[2];
+            rotate[0, 2] = temp[0] * axis[2] - s * axis[1];
+
+            rotate[1, 0] = temp[1] * axis[0] - s * axis[2];
+            rotate[1, 1] = c + temp[1] * axis[1];
+            rotate[1, 2] = temp[1] * axis[2] + s * axis[0];
+
+            rotate[2, 0] = temp[2] * axis[0] + s * axis[1];
+            rotate[2, 1] = temp[2] * axis[1] - s * axis[0];
+            rotate[2, 2] = c + temp[2] * axis[2];
+
+            matrix4<T> result;
+            result[0] = _mat[0] * rotate[0, 0] + _mat[1] * rotate[0, 1] + _mat[2] * rotate[0, 2];
+            result[1] = _mat[0] * rotate[1, 0] + _mat[1] * rotate[1, 1] + _mat[2] * rotate[1, 2];
+            result[2] = _mat[0] * rotate[2, 0] + _mat[1] * rotate[2, 1] + _mat[2] * rotate[2, 2];
+            result[3] = _mat[3];
+            return result;
+        }
+
+        template <typename T>
+        matrix4<T> inverse(const matrix4<T>& _mat) {
+            T const SubFactor00 = _mat[2, 2] * _mat[3, 3] - _mat[2, 3] * _mat[3, 2];
+            T const SubFactor01 = _mat[2, 1] * _mat[3, 3] - _mat[2, 3] * _mat[3, 1];
+            T const SubFactor02 = _mat[2, 1] * _mat[3, 2] - _mat[2, 2] * _mat[3, 1];
+            T const SubFactor03 = _mat[2, 0] * _mat[3, 3] - _mat[2, 3] * _mat[3, 0];
+            T const SubFactor04 = _mat[2, 0] * _mat[3, 2] - _mat[2, 2] * _mat[3, 0];
+            T const SubFactor05 = _mat[2, 0] * _mat[3, 1] - _mat[2, 1] * _mat[3, 0];
+            T const SubFactor06 = _mat[1, 2] * _mat[3, 3] - _mat[1, 3] * _mat[3, 2];
+            T const SubFactor07 = _mat[1, 1] * _mat[3, 3] - _mat[1, 3] * _mat[3, 1];
+            T const SubFactor08 = _mat[1, 1] * _mat[3, 2] - _mat[1, 2] * _mat[3, 1];
+            T const SubFactor09 = _mat[1, 0] * _mat[3, 3] - _mat[1, 3] * _mat[3, 0];
+            T const SubFactor10 = _mat[1, 0] * _mat[3, 2] - _mat[1, 2] * _mat[3, 0];
+            T const SubFactor11 = _mat[1, 0] * _mat[3, 1] - _mat[1, 1] * _mat[3, 0];
+            T const SubFactor12 = _mat[1, 2] * _mat[2, 3] - _mat[1, 3] * _mat[2, 2];
+            T const SubFactor13 = _mat[1, 1] * _mat[2, 3] - _mat[1, 3] * _mat[2, 1];
+            T const SubFactor14 = _mat[1, 1] * _mat[2, 2] - _mat[1, 2] * _mat[2, 1];
+            T const SubFactor15 = _mat[1, 0] * _mat[2, 3] - _mat[1, 3] * _mat[2, 0];
+            T const SubFactor16 = _mat[1, 0] * _mat[2, 2] - _mat[1, 2] * _mat[2, 0];
+            T const SubFactor17 = _mat[1, 0] * _mat[2, 1] - _mat[1, 1] * _mat[2, 0];
+
+            T const Det = +_mat[0, 0] * SubFactor00 - _mat[0, 1] * SubFactor01 + _mat[0, 2] * SubFactor02 - _mat[0, 3] * SubFactor03;
+
+            matrix4<T> Inverse;
+
+            Inverse[0, 0] = +(_mat[1, 1] * SubFactor00 - _mat[1, 2] * SubFactor01 + _mat[1, 3] * SubFactor02);
+            Inverse[0, 1] = -(_mat[0, 1] * SubFactor00 - _mat[0, 2] * SubFactor01 + _mat[0, 3] * SubFactor02);
+            Inverse[0, 2] = +(_mat[0, 2] * SubFactor06 - _mat[0, 3] * SubFactor07 + _mat[0, 1] * SubFactor08);
+            Inverse[0, 3] = -(_mat[0, 3] * SubFactor12 - _mat[0, 2] * SubFactor13 + _mat[0, 1] * SubFactor14);
+
+            Inverse[1, 0] = -(_mat[1, 0] * SubFactor00 - _mat[1, 2] * SubFactor03 + _mat[1, 3] * SubFactor04);
+            Inverse[1, 1] = +(_mat[0, 0] * SubFactor00 - _mat[0, 2] * SubFactor03 + _mat[0, 3] * SubFactor04);
+            Inverse[1, 2] = -(_mat[0, 0] * SubFactor06 - _mat[0, 3] * SubFactor09 + _mat[0, 1] * SubFactor10);
+            Inverse[1, 3] = +(_mat[0, 0] * SubFactor12 - _mat[0, 2] * SubFactor15 + _mat[0, 1] * SubFactor16);
+
+            Inverse[2, 0] = +(_mat[1, 0] * SubFactor01 - _mat[1, 1] * SubFactor03 + _mat[1, 3] * SubFactor05);
+            Inverse[2, 1] = -(_mat[0, 0] * SubFactor01 - _mat[0, 1] * SubFactor03 + _mat[0, 3] * SubFactor05);
+            Inverse[2, 2] = +(_mat[0, 0] * SubFactor07 - _mat[0, 1] * SubFactor09 + _mat[0, 3] * SubFactor11);
+            Inverse[2, 3] = -(_mat[0, 0] * SubFactor13 - _mat[0, 1] * SubFactor15 + _mat[0, 2] * SubFactor17);
+
+            Inverse[3, 0] = -(_mat[1, 0] * SubFactor02 - _mat[1, 1] * SubFactor04 + _mat[1, 2] * SubFactor05);
+            Inverse[3, 1] = +(_mat[0, 0] * SubFactor02 - _mat[0, 1] * SubFactor04 + _mat[0, 2] * SubFactor05);
+            Inverse[3, 2] = -(_mat[0, 0] * SubFactor08 - _mat[0, 1] * SubFactor10 + _mat[0, 2] * SubFactor11);
+            Inverse[3, 3] = +(_mat[0, 0] * SubFactor14 - _mat[0, 1] * SubFactor16 + _mat[0, 2] * SubFactor17);
+
+            Inverse /= Det;
+
+            return Inverse;
         }
     } // namespace math
 } // namespace mars

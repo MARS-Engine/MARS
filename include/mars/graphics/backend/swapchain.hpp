@@ -14,6 +14,7 @@ namespace mars {
         meta::type_erased_ptr data;
         size_t swapchain_size = 0;
         mars_format_type format;
+        texture_view view;
     };
 
     struct swapchain_impl {

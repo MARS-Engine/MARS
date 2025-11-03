@@ -36,7 +36,7 @@ namespace mars::graphics::vulkan {
         }
     } // namespace detail
 
-    shader vk_shader_impl::vk_shader_create(device& _device, const std::vector<shader_module>& _shaders) {
+    shader vk_shader_impl::vk_shader_create(const device& _device, const std::vector<shader_module>& _shaders) {
         vk_shader* shader_ptr = detail::shaders.request_entry();
         vk_device* device_ptr = _device.data.get<vk_device>();
 

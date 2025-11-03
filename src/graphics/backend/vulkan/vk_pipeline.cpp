@@ -25,6 +25,8 @@ namespace mars::graphics::vulkan {
             switch (_type) {
             case MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
                 return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            case MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+                return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
             case MARS_PIPELINE_DESCRIPTOR_TYPE_IMAGE_SAMPLER:
                 return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             }

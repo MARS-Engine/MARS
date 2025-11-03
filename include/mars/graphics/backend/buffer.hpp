@@ -1,21 +1,9 @@
 #pragma once
 
+#include <mars/graphics/backend/vulkan/vk_utils.hpp>
 #include <mars/meta/type_erased.hpp>
 
 #include <cstddef>
-
-enum mars_buffer_type {
-    MARS_BUFFER_TYPE_VERTEX = 1 << 1,
-    MARS_BUFFER_TYPE_INDEX = 1 << 2,
-    MARS_BUFFER_TYPE_UNIFORM = 1 << 3,
-    MARS_BUFFER_TYPE_TRANSFER_SRC = 1 << 4,
-    MARS_BUFFER_TYPE_TRANSFER_DST = 1 << 5,
-};
-
-enum mars_buffer_property {
-    MARS_BUFFER_PROPERTY_HOST_VISIBLE = 1 << 1,
-    MARS_BUFFER_PROPERTY_DEVICE_LOCAL = 1 << 2,
-};
 
 namespace mars {
     struct device;

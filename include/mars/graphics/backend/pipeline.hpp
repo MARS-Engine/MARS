@@ -20,6 +20,7 @@ enum mars_pipeline_stage {
 enum mars_pipeline_descriptor_type {
     MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
     MARS_PIPELINE_DESCRIPTOR_TYPE_IMAGE_SAMPLER,
+    MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
 };
 
 namespace mars {

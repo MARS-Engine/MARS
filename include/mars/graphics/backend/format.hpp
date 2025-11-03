@@ -5,6 +5,20 @@
 #include <optional>
 #include <type_traits>
 
+enum mars_buffer_type {
+    MARS_BUFFER_TYPE_VERTEX = 1 << 1,
+    MARS_BUFFER_TYPE_INDEX = 1 << 2,
+    MARS_BUFFER_TYPE_UNIFORM = 1 << 3,
+    MARS_BUFFER_TYPE_UNIFORM_TEXEL_BUFFER = 1 << 4,
+    MARS_BUFFER_TYPE_TRANSFER_SRC = 1 << 5,
+    MARS_BUFFER_TYPE_TRANSFER_DST = 1 << 6,
+};
+
+enum mars_buffer_property {
+    MARS_BUFFER_PROPERTY_HOST_VISIBLE = 1 << 1,
+    MARS_BUFFER_PROPERTY_DEVICE_LOCAL = 1 << 2,
+};
+
 enum mars_format_type {
     MARS_FORMAT_UNDEFINED,
     MARS_FORMAT_R8_UNORM,
@@ -26,6 +40,28 @@ enum mars_format_type {
     MARS_FORMAT_RGB32_UINT,
     MARS_FORMAT_RGBA32_UINT,
 };
+
+enum mars_texture_filter_mode {
+    MARS_TEXTURE_FILTER_LINEAR,
+    MARS_TEXTURE_FILTER_NEAREST
+};
+
+enum mars_texture_usage : uint8_t {
+    MARS_TEXTURE_USAGE_TRANSFER_SRC = 1 << 1,
+    MARS_TEXTURE_USAGE_TRANSFER_DST = 1 << 2,
+    MARS_TEXTURE_USAGE_SAMPLED = 1 << 3,
+    MARS_TEXTURE_USAGE_COLOR_ATTACHMENT = 1 << 4,
+};
+
+inline mars_texture_usage operator|(mars_texture_usage _left, mars_texture_usage _right) {
+    using T = std::underlying_type_t<mars_texture_usage>;
+    return static_cast<mars_texture_usage>(static_cast<T>(_left) | static_cast<T>(_right));
+}
+
+inline mars_texture_usage operator&(mars_texture_usage _left, mars_texture_usage _right) {
+    using T = std::underlying_type_t<mars_texture_usage>;
+    return static_cast<mars_texture_usage>(static_cast<T>(_left) & static_cast<T>(_right));
+}
 
 namespace mars::graphics {
     template <typename T>

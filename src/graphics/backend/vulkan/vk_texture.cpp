@@ -1,4 +1,5 @@
 #include "mars/graphics/backend/command_pool.hpp"
+#include "mars/graphics/backend/format.hpp"
 #include "mars/meta.hpp"
 #include <cstdint>
 #include <mars/graphics/backend/vulkan/vk_texture.hpp>
@@ -52,6 +53,11 @@ namespace mars::graphics::vulkan {
             vkCmdPipelineBarrier(_command_buffer, source_stage, destination_stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
         }
 
+        void vk_extract_texture_view(const texture_view& _view, std::vector<VkImageView>& _out) {
+            vk_texture* texture_ptr = _view.data;
+
+            _out.push_back(texture_ptr->view);
+        }
     } // namespace detail
 
     texture vk_texture_impl::vk_texture_create(const device& _device, const texture_create_params& _params) {
@@ -63,6 +69,9 @@ namespace mars::graphics::vulkan {
         result.data = texture_ptr;
         result.size = _params.size;
         result.channels = mars_format_to_channels(_params.format);
+        result.format_size = mars_format_size(_params.format);
+        result.view.data = texture_ptr;
+        result.view.view_extractor = &detail::vk_extract_texture_view;
 
         VkImageCreateInfo image_info{
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -74,10 +83,10 @@ namespace mars::graphics::vulkan {
                 .depth = 1,
             },
             .mipLevels = 1,
-            .arrayLayers = 1,
+            .arrayLayers = static_cast<uint32_t>(_params.array_size),
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            .usage = mars_to_vk(_params.usage),
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         };
@@ -128,9 +137,9 @@ namespace mars::graphics::vulkan {
 
         VkSamplerCreateInfo sampler_info{
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-            .magFilter = VK_FILTER_LINEAR,
-            .minFilter = VK_FILTER_LINEAR,
-            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+            .magFilter = _params.filter == MARS_TEXTURE_FILTER_LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
+            .minFilter = _params.filter == MARS_TEXTURE_FILTER_LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
+            .mipmapMode = _params.filter == MARS_TEXTURE_FILTER_LINEAR ? VK_SAMPLER_MIPMAP_MODE_LINEAR : VK_SAMPLER_MIPMAP_MODE_NEAREST,
             .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
             .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
             .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,

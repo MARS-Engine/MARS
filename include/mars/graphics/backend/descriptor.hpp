@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mars/graphics/backend/buffer.hpp>
+#include <mars/graphics/backend/buffer_view.hpp>
 #include <mars/graphics/backend/device.hpp>
 #include <mars/graphics/backend/pipeline.hpp>
 #include <mars/graphics/backend/texture.hpp>
@@ -42,6 +42,7 @@ namespace mars {
 
     struct descriptor_set_create_params {
         std::vector<std::pair<buffer, size_t>> buffers;
+        std::vector<std::pair<buffer_view, size_t>> buffer_views;
         std::vector<std::pair<texture, size_t>> textures;
     };
 

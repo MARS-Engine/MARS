@@ -59,6 +59,12 @@ namespace mars::meta {
             return result;
         }
 
+        template <typename R, typename... Args>
+        R operator()(Args... args) const {
+            R (*fn)(Args...) = get<R (*)(Args...)>();
+            return fn(std::forward<Args>(args)...);
+        }
+
         template <typename T>
             requires is_function_ptr<T>
         type_erased_fn& operator=(T _ptr) {

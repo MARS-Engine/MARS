@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vk_buffer.hpp"
+#include "vk_buffer_view.hpp"
 #include "vk_command_pool.hpp"
 #include "vk_descriptor.hpp"
 #include "vk_device.hpp"
@@ -100,6 +101,10 @@ namespace mars {
                         .texture_create = &vulkan::vk_texture_impl::vk_texture_create,
                         .texture_copy = &vulkan::vk_texture_impl::vk_texture_copy,
                         .texture_destroy = &vulkan::vk_texture_impl::vk_texture_destroy,
+                    },
+                    .buffer_view{
+                        .buffer_view_create = &vulkan::vk_buffer_view_impl::vk_buffer_view_create,
+                        .buffer_view_destroy = &vulkan::vk_buffer_view_impl::vk_buffer_view_destroy,
                     }
                 };
 

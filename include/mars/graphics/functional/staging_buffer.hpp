@@ -48,7 +48,7 @@ namespace mars {
         }
 
         inline void staging_buffer_copy(staging_buffer& _stanging, const void* _data, const texture& _dst) {
-            size_t size = _dst.size.x * _dst.size.y * _dst.channels;
+            size_t size = _dst.size.x * _dst.size.y * _dst.channels * _dst.format_size;
             std::memcpy((char*)_stanging.data + _stanging.current_offset, _data, size);
             _stanging.texture_list.emplace_back(_dst, _stanging.current_offset);
             _stanging.current_offset += size;

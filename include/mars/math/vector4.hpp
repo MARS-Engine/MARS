@@ -48,4 +48,10 @@ namespace mars {
     vector4<T> operator*(const T& _scalar, const vector4<T>& _value) {
         return { _value.x * _scalar, _value.y * _scalar, _value.z * _scalar, _value.w * _scalar };
     }
+
+    template <typename T>
+    T dot(const vector4<T>& _left, const vector4<T>& _right) {
+        return _left.x * _right.x + _left.y * _right.y + _left.z * _right.z + _left.w * _right.w;
+    }
+
 } // namespace mars

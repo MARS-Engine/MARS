@@ -100,7 +100,7 @@ namespace mars::meta {
 
     template <typename T>
     consteval bool has_annotation(std::meta::info _type) {
-        for (auto& annotation : std::meta::annotations_of(std::meta::type_of(_type)))
+        for (auto& annotation : std::meta::annotations_of(_type))
             if (std::meta::is_same_type(^^T, std::meta::type_of(annotation)))
                 return true;
         return false;

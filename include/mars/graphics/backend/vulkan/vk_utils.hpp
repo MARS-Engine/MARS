@@ -104,6 +104,21 @@ namespace mars::graphics::vulkan {
         }
     }
 
+    inline VkImageUsageFlags mars_to_vk(mars_texture_usage _usage) {
+        VkImageUsageFlags result = 0;
+
+        if (_usage & MARS_TEXTURE_USAGE_TRANSFER_SRC)
+            result |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        if (_usage & MARS_TEXTURE_USAGE_TRANSFER_DST)
+            result |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        if (_usage & MARS_TEXTURE_USAGE_SAMPLED)
+            result |= VK_IMAGE_USAGE_SAMPLED_BIT;
+        if (_usage & MARS_TEXTURE_USAGE_COLOR_ATTACHMENT)
+            result |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+        return result;
+    }
+
     inline unsigned char mars_format_to_channels(mars_format_type _type) {
         switch (_type) {
         case MARS_FORMAT_R8_SRGB:
@@ -129,6 +144,60 @@ namespace mars::graphics::vulkan {
         default:
             return 0;
         }
+    }
+
+    inline unsigned char mars_format_size(mars_format_type _type) {
+        switch (_type) {
+        case MARS_FORMAT_R8_SRGB:
+        case MARS_FORMAT_R8_UNORM:
+        case MARS_FORMAT_RGB8_SRGB:
+        case MARS_FORMAT_RGB8_UNORM:
+        case MARS_FORMAT_RGBA8_SRGB:
+        case MARS_FORMAT_RGBA8_UNORM:
+            return 1;
+        case MARS_FORMAT_RG8_SRGB:
+        case MARS_FORMAT_RG8_UNORM:
+        case MARS_FORMAT_R32_SFLOAT:
+        case MARS_FORMAT_R32_UINT:
+        case MARS_FORMAT_RG32_SFLOAT:
+        case MARS_FORMAT_RG32_UINT:
+        case MARS_FORMAT_RGB32_SFLOAT:
+        case MARS_FORMAT_RGB32_UINT:
+        case MARS_FORMAT_RGBA32_SFLOAT:
+        case MARS_FORMAT_RGBA32_UINT:
+            return 4;
+        default:
+            return 0;
+        }
+    }
+
+    inline VkBufferUsageFlags mars_buffer_usage_to_vulkan(uint32_t _type) {
+        VkBufferUsageFlags result = 0;
+
+        if (_type & MARS_BUFFER_TYPE_VERTEX)
+            result |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        if (_type & MARS_BUFFER_TYPE_INDEX)
+            result |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+        if (_type & MARS_BUFFER_TYPE_UNIFORM_TEXEL_BUFFER)
+            result |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
+        if (_type & MARS_BUFFER_TYPE_UNIFORM)
+            result |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        if (_type & MARS_BUFFER_TYPE_TRANSFER_DST)
+            result |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        if (_type & MARS_BUFFER_TYPE_TRANSFER_SRC)
+            result |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+        return result;
+    }
+
+    inline VkBufferUsageFlags mars_buffer_properties_to_vulkan(uint32_t _property) {
+        VkBufferUsageFlags result = 0;
+        if (_property & MARS_BUFFER_PROPERTY_HOST_VISIBLE)
+            result |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        if (_property & MARS_BUFFER_PROPERTY_DEVICE_LOCAL)
+            result |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+        return result;
     }
 
     struct swapchain_support_details {
