@@ -1,1 +1,32 @@
+# Build directories
+/build/
+/cmake-build-*/
+/out/
+
+# CMake/Ninja generated files
+/CMakeCache.txt
+/CMakeFiles/
+/cmake_install.cmake
+/install_manifest.txt
+/compile_commands.json
+/build.ninja
+/.ninja_deps
+/.ninja_log
+
+# IDE/editor metadata
+/.idea/
+/.vs/
+/.vscode/
+
+# MSVC/Windows artifacts
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.dll
+*.exe
+*.stackdump
+
+# Shader compiler outputs
 /**/*.spv

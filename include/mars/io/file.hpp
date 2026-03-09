@@ -6,57 +6,57 @@
 #include <vector>
 
 namespace mars::io {
-    inline std::string read_file(const std::string& _file_name) {
-        std::ifstream file(_file_name);
-        std::stringstream ss;
-        ss << file.rdbuf();
-        return ss.str();
-    }
+inline std::string read_file(const std::string& _file_name) {
+	std::ifstream file(_file_name);
+	std::stringstream ss;
+	ss << file.rdbuf();
+	return ss.str();
+}
 
-    inline bool read_file(const std::string_view& _file_name, std::vector<char>& _out) {
-        std::ifstream file(_file_name.data(), std::ios::ate | std::ios::binary);
+inline bool read_file(const std::string_view& _file_name, std::vector<char>& _out) {
+	std::ifstream file(_file_name.data(), std::ios::ate | std::ios::binary);
 
-        if (!file.is_open())
-            return false;
+	if (!file.is_open())
+		return false;
 
-        size_t file_size = (size_t)file.tellg();
-        _out.resize(file_size);
-        file.seekg(0);
-        file.read(_out.data(), file_size);
-        file.close();
-        return true;
-    }
+	size_t file_size = (size_t)file.tellg();
+	_out.resize(file_size);
+	file.seekg(0);
+	file.read(_out.data(), file_size);
+	file.close();
+	return true;
+}
 
-    inline bool file_exists(const std::string& path) {
-        return std::filesystem::exists(path);
-    }
+inline bool file_exists(const std::string& path) {
+	return std::filesystem::exists(path);
+}
 
-    inline bool save_to_file(const std::string& file_name, const std::string& content) {
-        std::ofstream file(file_name, std::ios::out | std::ios::trunc);
-        if (!file.is_open())
-            return false;
+inline bool save_to_file(const std::string& file_name, const std::string& content) {
+	std::ofstream file(file_name, std::ios::out | std::ios::trunc);
+	if (!file.is_open())
+		return false;
 
-        file << content;
-        return true;
-    }
+	file << content;
+	return true;
+}
 
-    inline std::vector<std::string> get_file_names_in_folder(const std::string& folder_path) {
-        std::vector<std::string> file_names;
+inline std::vector<std::string> get_file_names_in_folder(const std::string& folder_path) {
+	std::vector<std::string> file_names;
 
-        for (const auto& entry : std::filesystem::directory_iterator(folder_path))
-            if (entry.is_regular_file())
-                file_names.push_back(entry.path().filename().string());
+	for (const auto& entry : std::filesystem::directory_iterator(folder_path))
+		if (entry.is_regular_file())
+			file_names.push_back(entry.path().filename().string());
 
-        return file_names;
-    }
+	return file_names;
+}
 
-    inline std::vector<std::string> get_subdirectories(const std::string& parent_path) {
-        std::vector<std::string> subdirectories;
+inline std::vector<std::string> get_subdirectories(const std::string& parent_path) {
+	std::vector<std::string> subdirectories;
 
-        for (const auto& entry : std::filesystem::directory_iterator(parent_path))
-            if (entry.is_directory())
-                subdirectories.push_back(entry.path().filename().string());
+	for (const auto& entry : std::filesystem::directory_iterator(parent_path))
+		if (entry.is_directory())
+			subdirectories.push_back(entry.path().filename().string());
 
-        return subdirectories;
-    }
+	return subdirectories;
+}
 } // namespace mars::io

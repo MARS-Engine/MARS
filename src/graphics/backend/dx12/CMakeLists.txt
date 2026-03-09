@@ -1,0 +1,23 @@
+target_sources(
+    mars
+    PRIVATE
+        dx_append_buffer.cpp
+        dx_backend.cpp
+        dx_buffer.cpp
+        dx_command_pool.cpp
+        dx_command_queue.cpp
+        dx_compute_pipeline.cpp
+        dx_descriptor.cpp
+        dx_device.cpp
+        dx_framebuffer.cpp
+        dx_indirect_executor.cpp
+        dx_pipeline.cpp
+        dx_readback_buffer.cpp
+        dx_render_pass.cpp
+        dx_shader.cpp
+        dx_swapchain.cpp
+        dx_texture.cpp
+        dx_timeline_fence.cpp
+        dx_upload_ring.cpp
+        dx_window.cpp
+)

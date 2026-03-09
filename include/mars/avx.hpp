@@ -3,6 +3,15 @@
 #include <immintrin.h>
 
 namespace mars::avx {
-    static constexpr bool avx2 = __AVX2__;
-    static constexpr bool avx512 = __AVX512F__;
+#ifdef __AVX2__
+static constexpr bool avx2 = true;
+#else
+static constexpr bool avx2 = false;
+#endif
+
+#ifdef __AVX512F__
+static constexpr bool avx512 = true;
+#else
+static constexpr bool avx512 = false;
+#endif
 }; // namespace mars::avx

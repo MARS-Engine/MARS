@@ -1,62 +1,77 @@
 #pragma once
 
+#include <cmath>
+
 namespace mars {
-    template <typename T>
-    struct vector2 {
-        T x, y;
+template <typename T>
+struct vector2 {
+	T x, y;
 
-        vector2 operator*(const T& _value) const {
-            return { x * _value, y * _value };
-        }
+	vector2 operator*(const T& _value) const {
+		return {x * _value, y * _value};
+	}
 
-        vector2 operator/(const T& _value) const {
-            return { x / _value, y / _value };
-        }
+	vector2 operator/(const T& _value) const {
+		return {x / _value, y / _value};
+	}
 
-        vector2 operator-(const vector2& _value) const {
-            return { x - _value.x, y - _value.y };
-        }
+	vector2 operator-(const vector2& _value) const {
+		return {x - _value.x, y - _value.y};
+	}
 
-        vector2 operator+(const vector2& _value) const {
-            return { x + _value.x, y + _value.y };
-        }
+	vector2 operator+(const vector2& _value) const {
+		return {x + _value.x, y + _value.y};
+	}
 
-        vector2 operator/(const vector2& _value) const {
-            return { x / _value.x, y / _value.y };
-        }
+	vector2 operator/(const vector2& _value) const {
+		return {x / _value.x, y / _value.y};
+	}
 
-        vector2& operator+=(const vector2& _value) {
-            x += _value.x;
-            y += _value.y;
+	vector2& operator+=(const vector2& _value) {
+		x += _value.x;
+		y += _value.y;
 
-            return *this;
-        }
+		return *this;
+	}
 
-        vector2& operator-=(const vector2& _value) {
-            x -= _value.x;
-            y -= _value.y;
+	vector2& operator-=(const vector2& _value) {
+		x -= _value.x;
+		y -= _value.y;
 
-            return *this;
-        }
+		return *this;
+	}
 
-        vector2& operator/=(const T& _value) {
-            x /= _value;
-            y /= _value;
+	vector2& operator/=(const T& _value) {
+		x /= _value;
+		y /= _value;
 
-            return *this;
-        }
+		return *this;
+	}
 
-        bool operator==(const vector2& _other) {
-            return x == _other.x && y == _other.y;
-        }
+	bool operator==(const vector2& _other) {
+		return x == _other.x && y == _other.y;
+	}
 
-        bool operator!=(const vector2& _other) {
-            return !(*this == _other);
-        }
-    };
+	bool operator!=(const vector2& _other) {
+		return !(*this == _other);
+	}
+};
 
-    template <typename T>
-    vector2<T> operator*(const T& _scalar, const vector2<T>& _value) {
-        return { _value.x * _scalar, _value.y * _scalar };
-    }
+template <typename T>
+vector2<T> operator*(const T& _scalar, const vector2<T>& _value) {
+	return {_value.x * _scalar, _value.y * _scalar};
+}
+
+template <typename T>
+T length_sq(const vector2<T>& _value) {
+	return _value.x * _value.x + _value.y * _value.y;
+}
+
+template <typename T>
+vector2<T> normalize_or(const vector2<T>& _value, const vector2<T>& _fallback) {
+	const T len_sq = length_sq(_value);
+	if (len_sq > T(0))
+		return _value / static_cast<T>(sqrt(len_sq));
+	return _fallback;
+}
 } // namespace mars

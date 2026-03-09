@@ -13,6 +13,31 @@ string_editor.render("Name" /* label */);
 
 But our struct editor is much more powerful than simply auto render a single type, it also supports structs. By default it uses `std::meta::nonstatic_data_members_of` to go through each data member in a struct and calls `mars::imgui::struct_editor<T>::render` on it.
 
+It also understands a few reflection annotations directly on struct members. For example:
+
+```c++
+static void clamp_ratio(float& value) {
+    value = std::clamp(value, 0.0f, 1.0f);
+}
+
+enum class render_mode {
+    shaded [[=mars::meta::display("Shaded")]],
+    clusters [[=mars::meta::display("Clusters")]],
+};
+
+struct detail_data {
+    [[=mars::meta::display("Detail Weight")]]
+    [[=mars::imgui::slider(0.0f, 1.0f, &clamp_ratio)]]
+    float value1 = 0.5f;
+
+    int value2 = 4; // falls back to a normal scalar input
+    bool enabled = true; // renders as a checkbox
+    render_mode mode = render_mode::shaded; // renders as an enum combo
+};
+```
+
+`mars::imgui::slider(...)` currently works for scalar numeric fields and optionally accepts a callback that runs after the widget is drawn. Field labels can be overridden with `[[=mars::meta::display("...")]]`.
+
 To customize a type editor you simply specialize the `struct_editor` like this:
 
 ```c++

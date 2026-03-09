@@ -14,121 +14,116 @@
 #include <stack>
 
 namespace mars {
-    namespace ui {
+namespace ui {
 
-        class ui_hierarchy {
-          private:
-            // keeps track of widget hierarchy
-            dependency_chain<widget_flex> widget_chain;
-            // actua data of widget
-            sparse_vector<widget_flex, 64> widget_data;
+class ui_hierarchy {
+      private:
+	dependency_chain<widget_flex> widget_chain;
 
-          public:
-            auto begin() const { return widget_chain.begin(); }
-            auto end() const { return widget_chain.end(); }
+	sparse_vector<widget_flex, 64> widget_data;
 
-            widget_flex* request_widget(widget_flex* _parent = nullptr) {
-                widget_flex* result = widget_data.request_entry();
+      public:
+	auto begin() const { return widget_chain.begin(); }
+	auto end() const { return widget_chain.end(); }
 
-                if (_parent)
-                    widget_chain.add(_parent, result);
-                else
-                    widget_chain.make(result);
+	widget_flex* request_widget(widget_flex* _parent = nullptr) {
+		widget_flex* result = widget_data.request_entry();
 
-                return result;
-            }
+		if (_parent)
+			widget_chain.add(_parent, result);
+		else
+			widget_chain.make(result);
 
-            void process_data(mars::ui_instance_data* _data, mars::vector2<float> _size) {
-                struct parent_entry {
-                    const mars::dependency_entry<mars::ui::widget_flex>* ptr;
-                    mars::vector4<float> render_rect;
-                    mars::vector2<float> offset;
-                    size_t children_left;
-                    size_t children;
-                };
+		return result;
+	}
 
-                std::stack<parent_entry> parents;
-                mars::ui::widget_flex window_flex{};
-                mars::dependency_entry<mars::ui::widget_flex> window_flex_entry{ &window_flex, 1 };
-                parents.emplace(parent_entry{ &window_flex_entry, { { 0, 0 }, _size }, { 0, 0 }, 1, 1 });
+	void process_data(mars::ui_instance_data* _data, mars::vector2<float> _size) {
+		struct parent_entry {
+			const mars::dependency_entry<mars::ui::widget_flex>* ptr;
+			mars::vector4<float> render_rect;
+			mars::vector2<float> offset;
+			size_t children_left;
+			size_t children;
+		};
 
-                size_t i = 0;
+		std::stack<parent_entry> parents;
+		mars::ui::widget_flex window_flex{};
+		mars::dependency_entry<mars::ui::widget_flex> window_flex_entry{&window_flex, 1};
+		parents.emplace(parent_entry{&window_flex_entry, {{0, 0}, _size}, {0, 0}, 1, 1});
 
-                for (const mars::dependency_entry<mars::ui::widget_flex>& flex_entry : widget_chain) {
-                    vector4<float> render_rect = parents.top().ptr->entry->get_child_rect(parents.top().render_rect, parents.top().children);
-                    flex_entry.entry->apply_render_changes(render_rect);
+		size_t i = 0;
 
-                    _data[i] = mars::ui_instance_data{
-                        .position = { render_rect.xy() + parents.top().offset, 100.0f - i * 0.01f },
-                        .size = render_rect.zw(),
-                        .uv_rect = {},
-                        .color = flex_entry.entry->colour,
-                        .radius = { 10.0f },
-                    };
+		for (const mars::dependency_entry<mars::ui::widget_flex>& flex_entry : widget_chain) {
+			vector4<float> render_rect = parents.top().ptr->entry->get_child_rect(parents.top().render_rect, parents.top().children);
+			flex_entry.entry->apply_render_changes(render_rect);
 
-                    flex_entry.entry->apply_offset(*parents.top().ptr->entry, parents.top().offset, render_rect);
+			_data[i] = mars::ui_instance_data{
+			    .position = {render_rect.xy() + parents.top().offset, 100.0f - i * 0.01f},
+			    .size = render_rect.zw(),
+			    .uv_rect = {},
+			    .color = flex_entry.entry->colour,
+			    .radius = {10.0f},
+			};
 
-                    if (!(--parents.top().children_left) && flex_entry.dependents == 0)
-                        parents.pop();
+			flex_entry.entry->apply_offset(*parents.top().ptr->entry, parents.top().offset, render_rect);
 
-                    if (flex_entry.dependents) {
-                        parents.emplace(parent_entry{ &flex_entry, render_rect, { 0, 0 }, flex_entry.dependents, flex_entry.dependents });
-                    }
+			if (!(--parents.top().children_left) && flex_entry.dependents == 0)
+				parents.pop();
 
-                    i++;
+			if (flex_entry.dependents)
+				parents.emplace(parent_entry{&flex_entry, render_rect, {0, 0}, flex_entry.dependents, flex_entry.dependents});
 
-                    while (parents.size() && !(parents.top().children_left) && flex_entry.dependents == 0)
-                        parents.pop();
-                }
-            }
-        };
+			i++;
 
-        struct widget_event {
-            void (*on_click)(widget_flex&);
-        };
+			while (parents.size() && !(parents.top().children_left) && flex_entry.dependents == 0)
+				parents.pop();
+		}
+	}
+};
 
-        struct widget_annotation {
-        };
+struct widget_event {
+	void (*on_click)(widget_flex&);
+};
 
-        void spawn_widget(ui_hierarchy& _hierarchy, html_loader& _loader) {
-            std::stack<mars::dependency_entry<widget_flex>> parents;
+struct widget_annotation {
+};
 
-            for (const mars::dependency_entry<html_block>& entry : _loader.get_widget_chain()) {
-                widget_flex* new_widget = _hierarchy.request_widget(parents.size() ? parents.top().entry.get() : nullptr);
-                new_widget->content = entry.entry->content;
+void spawn_widget(ui_hierarchy& _hierarchy, html_loader& _loader) {
+	std::stack<mars::dependency_entry<widget_flex>> parents;
 
-                if (parents.size()) {
-                    parents.top().dependents--;
-                }
+	for (const mars::dependency_entry<html_block>& entry : _loader.get_widget_chain()) {
+		widget_flex* new_widget = _hierarchy.request_widget(parents.size() ? parents.top().entry.get() : nullptr);
+		new_widget->content = entry.entry->content;
 
-                if (entry.dependents) {
-                    parents.push({ pointer<widget_flex>(new_widget), entry.dependents });
-                }
+		if (parents.size())
+			parents.top().dependents--;
 
-                while (parents.size() && parents.top().dependents == 0) {
-                    parents.pop();
-                }
-            }
-        }
+		if (entry.dependents)
+			parents.push({pointer<widget_flex>(new_widget), entry.dependents});
 
-        template <typename T>
-        void bind_widget() {
-            constexpr std::optional<widget_annotation> annoation = mars::meta::get_annotation<widget_annotation>(^^T);
+		while (parents.size() && parents.top().dependents == 0)
+			parents.pop();
+	}
+}
 
-            if constexpr (!annoation.has_value())
-                static_assert(0, "pipeline draw call missing draw_propery");
-        }
-    } // namespace ui
+template <typename T>
+void bind_widget() {
+	constexpr std::optional<widget_annotation> annoation = mars::meta::get_annotation<widget_annotation>(^^T);
 
-    namespace prop {
-        static constexpr mars::ui::widget_annotation widget(const char*) {
-            return {};
-        }
+	if constexpr (!annoation.has_value())
+		static_assert(0, "pipeline draw call missing draw_propery");
+}
+} // namespace ui
 
-        template <auto T>
-        static constexpr mars::ui::widget_annotation widget_event() {
-            return {};
-        }
+namespace prop {
+static constexpr mars::ui::widget_annotation widget(const char*) {
+	return {};
+}
 
-    } // namespace prop
+template <auto T>
+static constexpr mars::ui::widget_annotation widget_event() {
+	return {};
+}
+
+} // namespace prop
 } // namespace mars

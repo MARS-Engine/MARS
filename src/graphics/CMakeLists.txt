@@ -1,3 +1,2 @@
 add_subdirectory(backend)
-add_subdirectory(imgui)
-target_sources(mars PUBLIC ./window.cpp)
+target_sources(mars PRIVATE ./window.cpp)
