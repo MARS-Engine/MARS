@@ -27,6 +27,7 @@ struct raw_simplify_input {
 	std::span<const uint32_t> indices = {};
 	std::size_t target_triangle_count = 0;
 	std::size_t position_offset = 0;
+	bool position_has_w = false;
 	bool has_normal = false;
 	std::size_t normal_offset = 0;
 	bool has_uv = false;

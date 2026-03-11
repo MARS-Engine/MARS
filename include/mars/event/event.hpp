@@ -14,9 +14,9 @@ template <typename T>
 struct event_storage {
 	template <typename... Args>
 	struct helper {
-    	// function used to pass extra arguments
+		// function used to pass extra arguments
 		void (*helper_function)(const helper&, Args...) = nullptr;
-        // function used for simple (runtime) callbacks
+		// function used for simple (runtime) callbacks
 		void (*simple_function)(Args...) = nullptr;
 		uintptr_t data = 0;
 	};
@@ -26,7 +26,7 @@ struct event_storage {
 		std::vector<std::meta::info> result = {};
 		auto ctx = std::meta::access_context::current();
 
-        // for each function in the type we extract the arguments and generate a meta::info helper with said arguments
+		// for each function in the type we extract the arguments and generate a meta::info helper with said arguments
 		for (auto mem : std::meta::members_of(^^T, ctx)) {
 			if (!std::meta::is_function(mem) || std::meta::is_special_member_function(mem))
 				continue;
@@ -37,7 +37,7 @@ struct event_storage {
 				std::meta::parameters_of(mem) | std::views::transform(std::meta::type_of) | std::ranges::to<std::vector>()));
 		}
 
-        // define storage as struct { std::vector<helper<Args...>>, repeat for each function in T }
+		// define storage as struct { std::vector<helper<Args...>>, repeat for each function in T }
 		std::meta::define_aggregate(^^storage, std::views::transform(result, [](auto t) {
 			return std::meta::data_member_spec(
 			    std::meta::substitute(^^std::vector, {*std::views::single(t).data()}));
@@ -73,8 +73,8 @@ struct event : public event_storage<T> {
 		typedef void (*signature)(Args...);
 	};
 
-    // if your object lives at 0x1 you are cooked.
-    // I am not sacrificing AVX compatibility and 8 bytes per entry for you
+	// if your object lives at 0x1 you are cooked.
+	// I am not sacrificing AVX compatibility and 8 bytes per entry for you
 	static constexpr uintptr_t dead_mark = 1;
 
 	template <auto MemberPtr, auto F, typename C>

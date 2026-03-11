@@ -32,7 +32,7 @@ struct entity_component_storage {
 
 	bool has(const entity& _entity) { return lookup.contains(_entity.index); }
 
-    // we recommend using this in case the storage changes in the future
+	// we recommend using this in case the storage changes in the future
 	bool has_index(uint32_t _index) { return lookup.contains(_index); }
 
 	T& get(const entity& _entity) { return const_cast<T&>(const_cast<const entity_component_storage<T>*>(this)->get(_entity)); }

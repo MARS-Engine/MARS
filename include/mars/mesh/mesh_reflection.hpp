@@ -93,7 +93,9 @@ struct vertex_layout {
 	static_assert(position_member != std::meta::info{}, "mars::mesh vertex_type must expose a position field");
 
 	using position_type = typename[:std::meta::type_of(position_member):];
-	static_assert(std::is_same_v<position_type, mars::vector3<float>>, "mars::mesh position field must be mars::vector3<float>");
+	static constexpr bool has_vec3_position = std::is_same_v<position_type, mars::vector3<float>>;
+	static constexpr bool has_vec4_position = std::is_same_v<position_type, mars::vector4<float>>;
+	static_assert(has_vec3_position || has_vec4_position, "mars::mesh position field must be mars::vector3<float> or mars::vector4<float>");
 
 	static constexpr bool has_normal = normal_member != std::meta::info{};
 	static constexpr bool has_uv = uv_member != std::meta::info{};

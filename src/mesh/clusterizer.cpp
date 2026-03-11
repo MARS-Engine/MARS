@@ -1,5 +1,5 @@
-#include <mars/mesh/mesh.hpp>
 #include <mars/mesh/detail/clusterizer_types.hpp>
+#include <mars/mesh/mesh.hpp>
 
 #include <assert.h>
 #include <float.h>

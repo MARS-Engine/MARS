@@ -41,6 +41,7 @@ simplify_result<vertex_type> simplify_mesh(
 	    .indices = indices,
 	    .target_triangle_count = settings.target_triangle_count,
 	    .position_offset = detail::vertex_layout<vertex_type>::position_offset(),
+	    .position_has_w = detail::vertex_layout<vertex_type>::has_vec4_position,
 	    .has_normal = detail::vertex_layout<vertex_type>::has_normal,
 	    .normal_offset = detail::vertex_layout<vertex_type>::normal_offset(),
 	    .has_uv = detail::vertex_layout<vertex_type>::has_uv,

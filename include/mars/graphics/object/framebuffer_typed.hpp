@@ -2,7 +2,6 @@
 
 #include <mars/debug/logger.hpp>
 #include <mars/graphics/functional/framebuffer.hpp>
-#include <mars/graphics/functional/framebuffer.hpp>
 #include <mars/graphics/object/pass_description.hpp>
 #include <mars/graphics/object/schema.hpp>
 #include <vector>

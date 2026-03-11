@@ -1,6 +1,1 @@
-* text=auto
-*.cpp text
-*.hpp text
-*.base_shader text
-*.vert text
-*.frag text
+* text=auto eol=lf

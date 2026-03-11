@@ -1,5 +1,5 @@
-#include <mars/mesh/meshlets.hpp>
 #include <mars/mesh/mesh.hpp>
+#include <mars/mesh/meshlets.hpp>
 
 #include <vector>
 

@@ -39,7 +39,7 @@ class append_buffer {
 	void destroy() {
 		if (m_ab.engine && m_dev)
 			m_ab.engine->get_impl<append_buffer_impl>().append_buffer_destroy(m_ab, *m_dev);
-		
+
 		m_ab.engine = nullptr;
 		m_dev = nullptr;
 	}

@@ -32,7 +32,12 @@ std::vector<working_vertex> make_working_vertices(const raw_simplify_input& inpu
 	for (size_t i = 0; i < vertex_count; ++i) {
 		const std::byte* source = input.vertex_bytes.data() + i * input.vertex_stride;
 		vertices[i].bytes.assign(source, source + input.vertex_stride);
-		vertices[i].position = load_attribute<mars::vector3<float>>(source, input.position_offset);
+		if (input.position_has_w) {
+			const mars::vector4<float> position = load_attribute<mars::vector4<float>>(source, input.position_offset);
+			vertices[i].position = {position.x, position.y, position.z};
+		} else {
+			vertices[i].position = load_attribute<mars::vector3<float>>(source, input.position_offset);
+		}
 		if (input.has_normal)
 			vertices[i].normal = load_attribute<mars::vector3<float>>(source, input.normal_offset);
 		if (input.has_uv)
@@ -75,7 +80,15 @@ std::vector<uint8_t> build_vertex_flags(
 }
 
 void write_vertex_bytes(working_vertex& vertex, const raw_simplify_input& input) {
-	store_attribute(vertex.bytes.data(), input.position_offset, vertex.position);
+	if (input.position_has_w) {
+		mars::vector4<float> position = load_attribute<mars::vector4<float>>(vertex.bytes.data(), input.position_offset);
+		position.x = vertex.position.x;
+		position.y = vertex.position.y;
+		position.z = vertex.position.z;
+		store_attribute(vertex.bytes.data(), input.position_offset, position);
+	} else {
+		store_attribute(vertex.bytes.data(), input.position_offset, vertex.position);
+	}
 	if (input.has_normal)
 		store_attribute(vertex.bytes.data(), input.normal_offset, vertex.normal);
 	if (input.has_uv)

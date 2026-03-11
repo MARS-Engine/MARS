@@ -1,5 +1,5 @@
-#include <mars/mesh/mesh.hpp>
 #include <mars/mesh/detail/types.hpp>
+#include <mars/mesh/mesh.hpp>
 
 #include <array>
 #include <assert.h>
@@ -2394,4 +2394,3 @@ float mesh_simplify_scale(const float* vertex_positions, size_t vertex_count, si
 }
 
 } // namespace mars::mesh
-

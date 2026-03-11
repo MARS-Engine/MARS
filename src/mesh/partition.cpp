@@ -1,5 +1,5 @@
-#include <mars/mesh/mesh.hpp>
 #include <mars/mesh/detail/partition_types.hpp>
+#include <mars/mesh/mesh.hpp>
 
 #include <assert.h>
 #include <math.h>

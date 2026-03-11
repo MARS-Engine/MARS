@@ -20,4 +20,10 @@ target_include_directories(
         "${MARS_IMGUI_DIR}/backends"
 )
 
+if(MSVC)
+    target_compile_options(mars PRIVATE /arch:AVX2)
+else()
+    target_compile_options(mars PRIVATE -mavx2)
+endif()
+
 mars_win32_configure_target(mars)

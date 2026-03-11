@@ -16,8 +16,7 @@ struct pass_desc_traits {
 		if constexpr (has_size_annotation) {
 			constexpr auto sz = meta::get_annotation<mars::graphics::rp_size>(^^PassTag).value();
 			return vector2<size_t>{sz.width, sz.height};
-		} 
-		else
+		} else
 			return vector2<size_t>{0, 0};
 	}();
 
