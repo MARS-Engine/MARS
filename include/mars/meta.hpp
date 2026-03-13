@@ -2,6 +2,7 @@
 
 #include <array>
 #include <meta>
+#include <string_view>
 #include <type_traits>
 #include <typeinfo>
 #include <vector>
@@ -59,13 +60,13 @@ consteval size_t member_index_impl() {
 	constexpr auto ctx = std::meta::access_context::current();
 
 	constexpr size_t N =
-	    std::meta::nonstatic_data_members_of(^^Parent, ctx).size();
+		std::meta::nonstatic_data_members_of(^^Parent, ctx).size();
 
 	if constexpr (I == N)
 		return -1;
 	else {
 		constexpr auto M =
-		    std::meta::nonstatic_data_members_of(^^Parent, ctx)[I];
+			std::meta::nonstatic_data_members_of(^^Parent, ctx)[I];
 
 		using ptr_t = decltype(MemberPtr);
 		auto current_ptr = &[:M:];
@@ -93,6 +94,21 @@ consteval bool is_type(std::meta::info _type) {
 }
 
 template <typename T>
+constexpr std::string_view type_name() {
+	using value_type = std::remove_cvref_t<T>;
+	return std::meta::display_string_of(^^value_type);
+}
+
+template <auto Value>
+constexpr std::string_view value_name() {
+	constexpr auto reflected = std::meta::reflect_constant(Value);
+	if constexpr (std::meta::has_identifier(reflected))
+		return std::meta::identifier_of(reflected);
+	else
+		return std::meta::display_string_of(reflected);
+}
+
+template <typename T>
 consteval std::optional<T> get_annotation(std::meta::info _type) {
 	for (auto& annotation : std::meta::annotations_of(_type))
 		if (std::meta::is_same_type(^^T, std::meta::type_of(annotation)))
@@ -106,6 +122,19 @@ consteval bool has_annotation(std::meta::info _type) {
 		if (std::meta::is_same_type(^^T, std::meta::type_of(annotation)))
 			return true;
 	return false;
+}
+
+consteval std::string_view display_name(std::meta::info reflected) {
+	if (const auto annotation = get_annotation<display_annotation>(reflected); annotation.has_value())
+		return annotation->display_name;
+	if (std::meta::has_identifier(reflected))
+		return std::meta::identifier_of(reflected);
+	return std::meta::display_string_of(reflected);
+}
+
+template <auto Reflected>
+consteval std::string_view display_name() {
+	return display_name(std::meta::reflect_constant(Reflected));
 }
 
 template <auto MemberPtr>
@@ -131,10 +160,8 @@ template <typename E, bool Enumerable = std::meta::is_enumerable_type(^^E)>
 constexpr std::string_view enum_to_string(E _value) {
 	if constexpr (Enumerable) {
 		template for (constexpr auto e : std::define_static_array(std::meta::enumerators_of(^^E))) {
-			if (_value == [:e:]) {
-				auto annotation = get_annotation<display_annotation>(e);
-				return annotation.has_value() ? annotation.value().display_name : std::meta::identifier_of(e);
-			}
+			if (_value == [:e:])
+				return display_name(e);
 		}
 	}
 
@@ -166,8 +193,7 @@ consteval size_t get_member_function_position() {
 			continue;
 		else {
 			auto current_ptr = &[:mem:];
-			if constexpr (std::is_same_v<decltype(current_ptr),
-						     decltype(MemberPtr)>) {
+			if constexpr (std::is_same_v<decltype(current_ptr), decltype(MemberPtr)>) {
 				if (current_ptr == MemberPtr)
 					return index;
 			}

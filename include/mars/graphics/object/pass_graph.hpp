@@ -31,15 +31,15 @@ template <typename... Nodes>
 class pass_graph {
 	static_assert(sizeof...(Nodes) > 0, "pass_graph must have at least one node");
 
-      private:
+  private:
 	std::tuple<Nodes*...> m_node_ptrs;
 	device m_device;
 
 	std::unordered_map<size_t, std::pair<mars::texture*, mars_texture_state>> m_textures;
 
-      public:
+  public:
 	pass_graph(const device& dev, Nodes&... nodes)
-	    : m_device(dev), m_node_ptrs(std::make_tuple(&nodes...)) {}
+		: m_device(dev), m_node_ptrs(std::make_tuple(&nodes...)) {}
 
 	~pass_graph() { destroy(); }
 
@@ -47,8 +47,7 @@ class pass_graph {
 	pass_graph& operator=(const pass_graph&) = delete;
 
 	template <typename ProducerTag>
-	void register_texture(mars::texture& tex,
-			      mars_texture_state initial_state = MARS_TEXTURE_STATE_SHADER_READ) {
+	void register_texture(mars::texture& tex, mars_texture_state initial_state = MARS_TEXTURE_STATE_SHADER_READ) {
 		m_textures[detail::type_id<ProducerTag>()] = {&tex, initial_state};
 	}
 
@@ -56,7 +55,7 @@ class pass_graph {
 		std::apply([&](auto*... ptrs) {
 			(ptrs->create_descriptors(frames_in_flight, pool_size), ...);
 		},
-			   m_node_ptrs);
+				   m_node_ptrs);
 	}
 
 	void destroy() {
@@ -65,22 +64,21 @@ class pass_graph {
 		std::apply([&](auto*... ptrs) {
 			(ptrs->destroy(), ...);
 		},
-			   m_node_ptrs);
+				   m_node_ptrs);
 		m_textures.clear();
 		m_device = {};
 	}
 
 	template <typename... Fns>
 	void execute(command_buffer& cmd, vector2<size_t> window_size, Fns&&... fns) {
-		static_assert(sizeof...(Fns) == sizeof...(Nodes),
-			      "execute() must receive exactly one callback per node");
+		static_assert(sizeof...(Fns) == sizeof...(Nodes), "execute() must receive exactly one callback per node");
 		auto fn_tuple = std::forward_as_tuple(std::forward<Fns>(fns)...);
 		[this, &cmd, &window_size, &fn_tuple]<size_t... Is>(std::index_sequence<Is...>) {
 			(execute_node<Is>(cmd, window_size, std::get<Is>(fn_tuple)), ...);
 		}(std::make_index_sequence<sizeof...(Nodes)>{});
 	}
 
-      private:
+  private:
 	template <size_t I, typename Fn>
 	void execute_node(command_buffer& cmd, vector2<size_t> window_size, Fn&& fn) {
 		using NodePtrT = std::tuple_element_t<I, std::tuple<Nodes*...>>;
@@ -100,14 +98,14 @@ class pass_graph {
 				auto& [tex_ptr, cur_state] = it->second;
 				if (cur_state != MARS_TEXTURE_STATE_UNORDERED_ACCESS) {
 					graphics::texture_transition(
-					    cmd, *tex_ptr, cur_state, MARS_TEXTURE_STATE_UNORDERED_ACCESS);
+						cmd, *tex_ptr, cur_state, MARS_TEXTURE_STATE_UNORDERED_ACCESS
+					);
 					cur_state = MARS_TEXTURE_STATE_UNORDERED_ACCESS;
 				}
 			}
 		}
 
 		if constexpr (!NodeT::is_compute) {
-
 			vector2<size_t> pass_size = window_size;
 			if constexpr (meta::has_annotation<graphics::rp_size>(^^typename NodeT::tag_type)) {
 				constexpr auto sz = meta::get_annotation<graphics::rp_size>(^^typename NodeT::tag_type).value();
@@ -134,22 +132,24 @@ class pass_graph {
 	template <size_t ProducerIdx, typename ConsumerLayoutT>
 	void insert_read_barriers_for_producer(command_buffer& cmd) {
 		using ProducerNodeT = std::remove_pointer_t<
-		    std::tuple_element_t<ProducerIdx, std::tuple<Nodes*...>>>;
+			std::tuple_element_t<ProducerIdx, std::tuple<Nodes*...>>>;
 		using ProducerTag = typename ProducerNodeT::tag_type;
 
 		constexpr auto ctx = std::meta::access_context::current();
 		template for (constexpr auto mem :
-			      std::define_static_array(
-				  std::meta::nonstatic_data_members_of(^^ConsumerLayoutT, ctx))) {
+					  std::define_static_array(
+						  std::meta::nonstatic_data_members_of(^^ConsumerLayoutT, ctx)
+					  )) {
 			if constexpr (meta::has_annotation<graphics::reads_from<ProducerTag>>(mem)) {
 				constexpr auto ann =
-				    meta::get_annotation<graphics::reads_from<ProducerTag>>(mem).value();
+					meta::get_annotation<graphics::reads_from<ProducerTag>>(mem).value();
 				auto it = m_textures.find(detail::type_id<ProducerTag>());
 				if (it != m_textures.end()) {
 					auto& [tex_ptr, cur_state] = it->second;
 					if (cur_state != ann.required_state) {
 						graphics::texture_transition(
-						    cmd, *tex_ptr, cur_state, ann.required_state);
+							cmd, *tex_ptr, cur_state, ann.required_state
+						);
 						cur_state = ann.required_state;
 					}
 				}

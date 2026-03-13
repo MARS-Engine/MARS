@@ -29,7 +29,7 @@ class sparse_vector {
 		std::unreachable();
 	}
 
-      public:
+  public:
 	sparse_vector() = default;
 	sparse_vector(const sparse_vector&) = delete;
 	sparse_vector(sparse_vector&& _move) noexcept { *this = std::move(_move); }

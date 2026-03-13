@@ -29,9 +29,8 @@ class framebuffer_resource {
 	framebuffer_handle<PassTag> m_handle;
 	device m_device{};
 
-      public:
-	static_assert(!pass_desc_traits<PassTag>::uses_swapchain,
-		      "framebuffer_resource<PassTag>: PassTag uses swapchain; use swapchain_framebuffer_set instead");
+  public:
+	static_assert(!pass_desc_traits<PassTag>::uses_swapchain, "framebuffer_resource<PassTag>: PassTag uses swapchain; use swapchain_framebuffer_set instead");
 
 	framebuffer_resource() = default;
 	~framebuffer_resource() { destroy(); }
@@ -40,7 +39,7 @@ class framebuffer_resource {
 	framebuffer_resource& operator=(const framebuffer_resource&) = delete;
 
 	framebuffer_resource(framebuffer_resource&& other) noexcept
-	    : m_handle(other.m_handle), m_device(other.m_device) {
+		: m_handle(other.m_handle), m_device(other.m_device) {
 		other.m_handle.value = {};
 		other.m_device = {};
 	}
@@ -86,9 +85,8 @@ class swapchain_framebuffer_set {
 	std::vector<swapchain_framebuffer_handle<PassTag>> m_handles;
 	device m_device{};
 
-      public:
-	static_assert(pass_desc_traits<PassTag>::uses_swapchain,
-		      "swapchain_framebuffer_set<PassTag>: PassTag must be annotated with [[=mars::prop::rp_uses_swapchain()]]");
+  public:
+	static_assert(pass_desc_traits<PassTag>::uses_swapchain, "swapchain_framebuffer_set<PassTag>: PassTag must be annotated with [[=mars::prop::rp_uses_swapchain()]]");
 
 	swapchain_framebuffer_set() = default;
 	~swapchain_framebuffer_set() { destroy_all(); }
@@ -97,7 +95,7 @@ class swapchain_framebuffer_set {
 	swapchain_framebuffer_set& operator=(const swapchain_framebuffer_set&) = delete;
 
 	swapchain_framebuffer_set(swapchain_framebuffer_set&& other) noexcept
-	    : m_handles(std::move(other.m_handles)), m_device(other.m_device) {
+		: m_handles(std::move(other.m_handles)), m_device(other.m_device) {
 		other.m_device = {};
 	}
 
@@ -112,18 +110,20 @@ class swapchain_framebuffer_set {
 	}
 
 	static swapchain_framebuffer_set create(
-	    const device& dev,
-	    const swapchain& sc,
-	    const render_pass& rp) {
+		const device& dev,
+		const swapchain& sc,
+		const render_pass& rp
+	) {
 		swapchain_framebuffer_set out;
 		out.recreate(dev, sc, rp);
 		return out;
 	}
 
 	void recreate(
-	    const device& dev,
-	    const swapchain& sc,
-	    const render_pass& rp) {
+		const device& dev,
+		const swapchain& sc,
+		const render_pass& rp
+	) {
 		destroy_all();
 		m_device = dev;
 		std::vector<framebuffer> raw = mars::graphics::framebuffer_create_from_swapchain(dev, sc, rp);

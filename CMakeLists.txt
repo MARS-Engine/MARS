@@ -20,6 +20,8 @@ target_include_directories(
         "${MARS_IMGUI_DIR}/backends"
 )
 
+target_link_libraries(mars PUBLIC Vulkan::Vulkan)
+
 if(MSVC)
     target_compile_options(mars PRIVATE /arch:AVX2)
 else()

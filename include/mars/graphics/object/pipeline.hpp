@@ -6,9 +6,10 @@
 namespace mars::graphics::object {
 
 inline mars::pipeline pipeline_create(
-    const mars::device& device,
-    const mars::render_pass& render_pass,
-    const mars::pipeline_setup& setup) {
+	const mars::device& device,
+	const mars::render_pass& render_pass,
+	const mars::pipeline_setup& setup
+) {
 	return device.engine->get_impl<pipeline_impl>().pipeline_create(device, render_pass, setup);
 }
 

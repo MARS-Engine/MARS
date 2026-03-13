@@ -14,12 +14,13 @@ static DXGI_FORMAT mars_depth_format_to_dxgi(mars_format_type fmt) {
 }
 
 framebuffer dx_framebuffer_impl::dx_framebuffer_create(const device& _device, const framebuffer_create_params& _params) {
-	auto device_data = dx_expect_backend_data(_device.data.get<dx_device_data>(), __func__, "device.data");
-	auto tex_data = dx_expect_backend_data(_params.view.data.get<dx_texture_data>(), __func__, "texture_view.data");
-	auto rp_data = dx_expect_backend_data(_params.render_pass.data.get<dx_render_pass_data>(), __func__, "render_pass.data");
+	auto device_data = _device.data.expect<dx_device_data>();
+	auto tex_data = _params.view.data.expect<dx_texture_data>();
+	auto rp_data = _params.render_pass.data.expect<dx_render_pass_data>();
 
 	auto fb_data = new dx_framebuffer_data();
 	fb_data->render_target = tex_data->resource;
+	fb_data->render_target_texture = tex_data;
 	fb_data->is_swapchain = false;
 	fb_data->before_render_state = D3D12_RESOURCE_STATE_COMMON;
 
@@ -50,9 +51,10 @@ framebuffer dx_framebuffer_impl::dx_framebuffer_create(const device& _device, co
 		heap_props.Type = D3D12_HEAP_TYPE_DEFAULT;
 
 		device_data->device->CreateCommittedResource(
-		    &heap_props, D3D12_HEAP_FLAG_NONE,
-		    &depth_desc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &clear_value,
-		    IID_PPV_ARGS(&fb_data->depth_target));
+			&heap_props, D3D12_HEAP_FLAG_NONE,
+			&depth_desc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &clear_value,
+			IID_PPV_ARGS(&fb_data->depth_target)
+		);
 
 		D3D12_DESCRIPTOR_HEAP_DESC dsv_heap_desc = {};
 		dsv_heap_desc.NumDescriptors = 1;
@@ -70,9 +72,9 @@ framebuffer dx_framebuffer_impl::dx_framebuffer_create(const device& _device, co
 }
 
 std::vector<framebuffer> dx_framebuffer_impl::dx_framebuffer_create_from_swapchain(const device& _device, const swapchain& _swapchain, const render_pass& _render_pass) {
-	auto device_data = dx_expect_backend_data(_device.data.get<dx_device_data>(), __func__, "device.data");
-	auto sc_data = dx_expect_backend_data(_swapchain.data.get<dx_swapchain_data>(), __func__, "swapchain.data");
-	auto rp_data = dx_expect_backend_data(_render_pass.data.get<dx_render_pass_data>(), __func__, "render_pass.data");
+	auto device_data = _device.data.expect<dx_device_data>();
+	auto sc_data = _swapchain.data.expect<dx_swapchain_data>();
+	auto rp_data = _render_pass.data.expect<dx_render_pass_data>();
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> depth_resource;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsv_heap;
@@ -135,7 +137,7 @@ std::vector<framebuffer> dx_framebuffer_impl::dx_framebuffer_create_from_swapcha
 }
 
 void dx_framebuffer_impl::dx_framebuffer_destroy(framebuffer& _framebuffer, const device& _device) {
-	auto data = dx_expect_backend_data(_framebuffer.data.get<dx_framebuffer_data>(), __func__, "framebuffer.data");
+	auto data = _framebuffer.data.expect<dx_framebuffer_data>();
 	delete data;
 	_framebuffer = {};
 }

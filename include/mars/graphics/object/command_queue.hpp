@@ -8,7 +8,7 @@ class command_queue {
 	mars::device* m_device = nullptr;
 	bool m_created = false;
 
-      public:
+  public:
 	command_queue() = default;
 
 	static command_queue create(mars::device& device) {
@@ -23,7 +23,7 @@ class command_queue {
 	command_queue& operator=(const command_queue&) = delete;
 
 	command_queue(command_queue&& other) noexcept
-	    : m_device(other.m_device), m_created(other.m_created) {
+		: m_device(other.m_device), m_created(other.m_created) {
 		other.m_device = nullptr;
 		other.m_created = false;
 	}

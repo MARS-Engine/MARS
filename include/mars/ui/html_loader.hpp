@@ -21,7 +21,6 @@ class html_loader {
 	std::vector<html_block> widget_data;
 
 	struct html_load_helper {
-
 		mars::dependency_chain<html_block> helper_widget_chain;
 
 		mars::sparse_vector<html_block, 64> helper_widget_data;
@@ -139,7 +138,7 @@ class html_loader {
 		return res;
 	}
 
-      public:
+  public:
 	const mars::dependency_chain<html_block>& get_widget_chain() const { return widget_chain; }
 
 	void load_file(const std::string& _file) {

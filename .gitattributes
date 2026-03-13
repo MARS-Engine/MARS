@@ -1,1 +1,10 @@
 * text=auto eol=lf
+
+*.cpp      text eol=lf working-tree-encoding=UTF-8
+*.hpp      text eol=lf working-tree-encoding=UTF-8
+*.h        text eol=lf working-tree-encoding=UTF-8
+*.c        text eol=lf working-tree-encoding=UTF-8
+
+*.hlsl     text eol=lf working-tree-encoding=UTF-8
+*.fx       text eol=lf working-tree-encoding=UTF-8
+*.hlsli    text eol=lf working-tree-encoding=UTF-8

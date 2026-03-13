@@ -183,7 +183,6 @@ static void build_position_remap(unsigned int* remap, unsigned int* wedge, const
 }
 
 static unsigned int* build_sparse_remap(unsigned int* indices, size_t index_count, size_t vertex_count, size_t* out_vertex_count, array_stack_heap_allocator<24>& allocator) {
-
 	unsigned char* filter = allocator.allocate<unsigned char>((vertex_count + 7) / 8);
 
 	for (size_t i = 0; i < index_count; ++i) {
@@ -240,19 +239,19 @@ enum mars_vertex_type {
 };
 
 constexpr std::array<std::array<unsigned char, MARS_VERTEX_TYPE_COUNT>, MARS_VERTEX_TYPE_COUNT> k_can_collapse = {{
-    {{1, 1, 1, 1, 1}},
-    {{0, 1, 0, 0, 1}},
-    {{0, 0, 1, 0, 1}},
-    {{0, 0, 0, 1, 1}},
-    {{0, 0, 0, 0, 0}},
+	{{1, 1, 1, 1, 1}},
+	{{0, 1, 0, 0, 1}},
+	{{0, 0, 1, 0, 1}},
+	{{0, 0, 0, 1, 1}},
+	{{0, 0, 0, 0, 0}},
 }};
 
 constexpr std::array<std::array<unsigned char, MARS_VERTEX_TYPE_COUNT>, MARS_VERTEX_TYPE_COUNT> k_has_opposite = {{
-    {{1, 1, 1, 1, 1}},
-    {{1, 0, 1, 0, 0}},
-    {{1, 1, 1, 0, 1}},
-    {{1, 0, 0, 0, 0}},
-    {{1, 0, 1, 0, 0}},
+	{{1, 1, 1, 1, 1}},
+	{{1, 0, 1, 0, 0}},
+	{{1, 1, 1, 0, 1}},
+	{{1, 0, 0, 0, 0}},
+	{{1, 0, 1, 0, 0}},
 }};
 
 static bool has_edge(const vertex_edge_adjacency& adjacency, unsigned int a, unsigned int b) {
@@ -300,7 +299,6 @@ static void classify_vertices(unsigned char* result, unsigned int* loop, unsigne
 			unsigned int target = edges[j].next;
 
 			if (target == vertex) {
-
 				openinc[vertex] = openout[vertex] = vertex;
 			} else if (!has_edge(adjacency, target, vertex)) {
 				openinc[target] = (openinc[target] == ~0u) ? vertex : target;
@@ -316,13 +314,11 @@ static void classify_vertices(unsigned char* result, unsigned int* loop, unsigne
 	for (size_t i = 0; i < vertex_count; ++i) {
 		if (remap[i] == i) {
 			if (wedge[i] == i) {
-
 				unsigned int openi = openinc[i], openo = openout[i];
 
 				if (openi == ~0u && openo == ~0u) {
 					result[i] = MARS_VERTEX_TYPE_MANIFOLD;
 				} else if (openi != ~0u && openo != ~0u && remap[openi] == remap[openo] && openi != i) {
-
 					result[i] = MARS_VERTEX_TYPE_SEAM;
 				} else if (openi != i && openo != i) {
 					result[i] = MARS_VERTEX_TYPE_BORDER;
@@ -331,13 +327,12 @@ static void classify_vertices(unsigned char* result, unsigned int* loop, unsigne
 					TRACESTATS(0);
 				}
 			} else if (wedge[wedge[i]] == i) {
-
 				unsigned int w = wedge[i];
 				unsigned int openiv = openinc[i], openov = openout[i];
 				unsigned int openiw = openinc[w], openow = openout[w];
 
 				if (openiv != ~0u && openiv != i && openov != ~0u && openov != i &&
-				    openiw != ~0u && openiw != w && openow != ~0u && openow != w) {
+					openiw != ~0u && openiw != w && openow != ~0u && openow != w) {
 					if (remap[openiv] == remap[openow] && remap[openov] == remap[openiw] && remap[openiv] != remap[openov]) {
 						result[i] = MARS_VERTEX_TYPE_SEAM;
 					} else {
@@ -349,7 +344,6 @@ static void classify_vertices(unsigned char* result, unsigned int* loop, unsigne
 					TRACESTATS(2);
 				}
 			} else {
-
 				result[i] = MARS_VERTEX_TYPE_LOCKED;
 				TRACESTATS(3);
 			}
@@ -364,7 +358,6 @@ static void classify_vertices(unsigned char* result, unsigned int* loop, unsigne
 		for (size_t i = 0; i < vertex_count; ++i)
 			if (result[i] == MARS_VERTEX_TYPE_SEAM || result[i] == MARS_VERTEX_TYPE_LOCKED) {
 				if (remap[i] != i) {
-
 					result[i] = result[remap[i]];
 					continue;
 				}
@@ -391,7 +384,6 @@ static void classify_vertices(unsigned char* result, unsigned int* loop, unsigne
 			}
 
 	if (vertex_lock) {
-
 		for (size_t i = 0; i < vertex_count; ++i) {
 			unsigned int ri = sparse_remap ? sparse_remap[i] : unsigned(i);
 
@@ -410,8 +402,7 @@ static void classify_vertices(unsigned char* result, unsigned int* loop, unsigne
 				result[i] = MARS_VERTEX_TYPE_LOCKED;
 
 #if TRACE
-	printf("locked: many open edges %d, disconnected seam %d, many seam edges %d, many wedges %d\n",
-	       int(stats[0]), int(stats[1]), int(stats[2]), int(stats[3]));
+	printf("locked: many open edges %d, disconnected seam %d, many seam edges %d, many wedges %d\n", int(stats[0]), int(stats[1]), int(stats[2]), int(stats[3]));
 #endif
 }
 
@@ -658,7 +649,6 @@ static void quadric_from_triangle_edge(error_quadric& Q, const mars::vector3<flo
 }
 
 static void quadric_from_attributes(error_quadric& Q, quadric_gradient* G, const mars::vector3<float>& p0, const mars::vector3<float>& p1, const mars::vector3<float>& p2, const float* va0, const float* va1, const float* va2, size_t attribute_count) {
-
 	mars::vector3<float> p10 = {p1.x - p0.x, p1.y - p0.y, p1.z - p0.z};
 	mars::vector3<float> p20 = {p2.x - p0.x, p2.y - p0.y, p2.z - p0.z};
 
@@ -720,15 +710,14 @@ static void quadric_volume_gradient(quadric_gradient& G, const mars::vector3<flo
 	float area = normalize(normal) * 0.5f;
 
 	G.coefficients = {
-	    normal.x * area,
-	    normal.y * area,
-	    normal.z * area,
-	    (-p0.x * normal.x - p0.y * normal.y - p0.z * normal.z) * area,
+		normal.x * area,
+		normal.y * area,
+		normal.z * area,
+		(-p0.x * normal.x - p0.y * normal.y - p0.z * normal.z) * area,
 	};
 }
 
 static bool quadric_solve(mars::vector3<float>& p, const error_quadric& Q, const quadric_gradient& GV) {
-
 	float a00 = Q.diagonal.x, a11 = Q.diagonal.y, a22 = Q.diagonal.z;
 	float a10 = Q.off_diagonal.x, a20 = Q.off_diagonal.y, a21 = Q.off_diagonal.z;
 	float x0 = -Q.linear.x, x1 = -Q.linear.y, x2 = -Q.linear.z;
@@ -779,7 +768,6 @@ static bool quadric_solve(mars::vector3<float>& p, const error_quadric& Q, const
 }
 
 static void quadric_reduce_attributes(error_quadric& Q, const error_quadric& A, const quadric_gradient* G, size_t attribute_count) {
-
 	Q.diagonal.x += A.diagonal.x * Q.weight;
 	Q.diagonal.y += A.diagonal.y * Q.weight;
 	Q.diagonal.z += A.diagonal.z * Q.weight;
@@ -833,7 +821,6 @@ static void fill_face_quadrics(error_quadric* vertex_quadrics, quadric_gradient*
 }
 
 static void fill_vertex_quadrics(error_quadric* vertex_quadrics, const mars::vector3<float>* vertex_positions, size_t vertex_count, const unsigned int* remap, unsigned int options) {
-
 	float factor = (options & mesh_simplify_regularize_flag) ? 1e-1f : 1e-7f;
 
 	for (size_t i = 0; i < vertex_count; ++i) {
@@ -1056,7 +1043,6 @@ static size_t pick_edge_collapses(edge_collapse* collapses, size_t collapse_capa
 				edge_collapse c = {i0, i1, true};
 				collapses[collapse_count++] = c;
 			} else {
-
 				unsigned int e0 = k_can_collapse[k0][k1] ? i0 : i1;
 				unsigned int e1 = k_can_collapse[k0][k1] ? i1 : i0;
 
@@ -1089,7 +1075,6 @@ static void rank_edge_collapses(edge_collapse* collapses, size_t collapse_count,
 			ej += bidi ? quadric_error(attribute_quadrics[i1], &attribute_gradients[i1 * attribute_count], attribute_count, vertex_positions[i0], &vertex_attributes[i0 * attribute_count]) : 0;
 
 			if (vertex_kind[i0] == MARS_VERTEX_TYPE_SEAM) {
-
 				unsigned int s0 = wedge[i0];
 				unsigned int s1 = loop[i0] == i1 ? loopback[s0] : loop[s0];
 
@@ -1101,7 +1086,6 @@ static void rank_edge_collapses(edge_collapse* collapses, size_t collapse_count,
 				ei += quadric_error(attribute_quadrics[s0], &attribute_gradients[s0 * attribute_count], attribute_count, vertex_positions[s1], &vertex_attributes[s1 * attribute_count]);
 				ej += bidi ? quadric_error(attribute_quadrics[s1], &attribute_gradients[s1 * attribute_count], attribute_count, vertex_positions[s0], &vertex_attributes[s0 * attribute_count]) : 0;
 			} else {
-
 				if (vertex_kind[i0] == MARS_VERTEX_TYPE_COMPLEX)
 					for (unsigned int v = wedge[i0]; v != i0; v = wedge[v]) {
 						unsigned int t = get_complex_target(v, i1, remap, loop, loopback);
@@ -1126,10 +1110,7 @@ static void rank_edge_collapses(edge_collapse* collapses, size_t collapse_count,
 
 #if TRACE >= 3
 		if (bidi)
-			printf("edge eval %d -> %d: error %f (pos %f, attr %f); reverse %f (pos %f, attr %f)\n",
-			       rev ? i1 : i0, rev ? i0 : i1,
-			       sqrtf(rev ? ej : ei), sqrtf(rev ? dj : di), sqrtf(rev ? ej - dj : ei - di),
-			       sqrtf(rev ? ei : ej), sqrtf(rev ? di : dj), sqrtf(rev ? ei - di : ej - dj));
+			printf("edge eval %d -> %d: error %f (pos %f, attr %f); reverse %f (pos %f, attr %f)\n", rev ? i1 : i0, rev ? i0 : i1, sqrtf(rev ? ej : ei), sqrtf(rev ? dj : di), sqrtf(rev ? ej - dj : ei - di), sqrtf(rev ? ei : ej), sqrtf(rev ? di : dj), sqrtf(rev ? ei - di : ej - dj));
 		else
 			printf("edge eval %d -> %d: error %f (pos %f, attr %f)\n", i0, i1, sqrtf(c.error), sqrtf(di), sqrtf(ei - di));
 #endif
@@ -1137,7 +1118,6 @@ static void rank_edge_collapses(edge_collapse* collapses, size_t collapse_count,
 }
 
 static void sort_edge_collapses(unsigned int* sort_order, const edge_collapse* collapses, size_t collapse_count) {
-
 	const unsigned int sort_bits = 12;
 	const unsigned int sort_bins = 2048 + 512;
 
@@ -1145,7 +1125,6 @@ static void sort_edge_collapses(unsigned int* sort_order, const edge_collapse* c
 	memset(histogram, 0, sizeof(histogram));
 
 	for (size_t i = 0; i < collapse_count; ++i) {
-
 		unsigned int error = sortable_error_bits(collapses[i].error);
 		unsigned int key = (error << 1) >> (32 - sort_bits);
 		key = key < sort_bins ? key : sort_bins - 1;
@@ -1164,7 +1143,6 @@ static void sort_edge_collapses(unsigned int* sort_order, const edge_collapse* c
 	assert(histogram_sum == collapse_count);
 
 	for (size_t i = 0; i < collapse_count; ++i) {
-
 		unsigned int error = sortable_error_bits(collapses[i].error);
 		unsigned int key = (error << 1) >> (32 - sort_bits);
 		key = key < sort_bins ? key : sort_bins - 1;
@@ -1219,7 +1197,6 @@ static size_t perform_edge_collapses(unsigned int* collapse_remap, unsigned char
 		}
 
 		if (has_triangle_flips(adjacency, vertex_positions, collapse_remap, r0, r1)) {
-
 			edge_collapse_goal++;
 
 			TRACESTATS(2);
@@ -1234,7 +1211,6 @@ static size_t perform_edge_collapses(unsigned int* collapse_remap, unsigned char
 		assert(collapse_remap[r1] == r1);
 
 		if (kind == MARS_VERTEX_TYPE_COMPLEX) {
-
 			unsigned int v = i0;
 
 			do {
@@ -1244,7 +1220,6 @@ static size_t perform_edge_collapses(unsigned int* collapse_remap, unsigned char
 				v = wedge[v];
 			} while (v != i0);
 		} else if (kind == MARS_VERTEX_TYPE_SEAM) {
-
 			unsigned int s0 = wedge[i0];
 			unsigned int s1 = loop[i0] == i1 ? loopback[s0] : loop[s0];
 			assert(wedge[s0] == i0);
@@ -1277,10 +1252,7 @@ static size_t perform_edge_collapses(unsigned int* collapse_remap, unsigned char
 	float error_goal_last = edge_collapse_goal < collapse_count ? 1.5f * collapses[collapse_order[edge_collapse_goal]].error : FLT_MAX;
 	float error_goal_limit = error_goal_last < error_limit ? error_goal_last : error_limit;
 
-	printf("removed %d triangles, error %e (goal %e); evaluated %d/%d collapses (done %d, skipped %d, invalid %d); %s\n",
-	       int(triangle_collapses), sqrtf(result_error), sqrtf(error_goal_limit),
-	       int(stats[0]), int(collapse_count), int(edge_collapses), int(stats[1]), int(stats[2]),
-	       stats[4] ? "error limit" : (stats[5] ? "count limit" : (stats[6] ? "error goal" : "out of collapses")));
+	printf("removed %d triangles, error %e (goal %e); evaluated %d/%d collapses (done %d, skipped %d, invalid %d); %s\n", int(triangle_collapses), sqrtf(result_error), sqrtf(error_goal_limit), int(stats[0]), int(collapse_count), int(edge_collapses), int(stats[1]), int(stats[2]), stats[4] ? "error limit" : (stats[5] ? "count limit" : (stats[6] ? "error goal" : "out of collapses")));
 #endif
 
 	return edge_collapses;
@@ -1309,7 +1281,6 @@ static void update_quadrics(const unsigned int* collapse_remap, size_t vertex_co
 			quadric_add(&attribute_gradients[i1 * attribute_count], &attribute_gradients[i0 * attribute_count], attribute_count);
 
 			if (i0 == r0) {
-
 				float derr = quadric_error(vertex_quadrics[r0], vertex_positions[r1]);
 				vertex_error = vertex_error < derr ? derr : vertex_error;
 			}
@@ -1346,7 +1317,6 @@ static void solve_positions(mars::vector3<float>* vertex_positions, size_t verte
 		quadric_add(Q, R);
 
 		if (attribute_count) {
-
 			unsigned int v = unsigned(i);
 			do {
 				quadric_reduce_attributes(Q, attribute_quadrics[v], &attribute_gradients[v * attribute_count], attribute_count);
@@ -1458,7 +1428,6 @@ static size_t remap_index_buffer(unsigned int* indices, size_t index_count, cons
 
 static void remap_edge_loops(unsigned int* loop, size_t vertex_count, const unsigned int* collapse_remap) {
 	for (size_t i = 0; i < vertex_count; ++i) {
-
 		if (loop[i] != ~0u) {
 			unsigned int l = loop[i];
 			unsigned int r = collapse_remap[l];
@@ -1561,8 +1530,7 @@ static void measure_components(float* component_errors, size_t component_count, 
 
 	for (size_t i = 0; i < component_count; ++i) {
 #if TRACE >= 2
-		printf("component %d: center %f %f %f, error %e\n", int(i),
-		       component_errors[i * 4 + 0], component_errors[i * 4 + 1], component_errors[i * 4 + 2], sqrtf(component_errors[i * 4 + 3]));
+		printf("component %d: center %f %f %f, error %e\n", int(i), component_errors[i * 4 + 0], component_errors[i * 4 + 1], component_errors[i * 4 + 2], sqrtf(component_errors[i * 4 + 3]));
 #endif
 
 		component_errors[i] = component_errors[i * 4 + 3];
@@ -1851,7 +1819,6 @@ static size_t filter_triangles(unsigned int* destination, unsigned int* tritable
 }
 
 static float interpolate(float y, float x0, float y0, float x1, float y1, float x2, float y2) {
-
 	float num = (y1 - y) * (x1 - x2) * (x1 - x0) * (y2 - y0);
 	float den = (y2 - y) * (x1 - x2) * (y0 - y1) + (y0 - y) * (x1 - x0) * (y1 - y2);
 	return x1 + (den == 0.f ? 0.f : num / den);
@@ -1913,8 +1880,7 @@ size_t mesh_simplify_edge(unsigned int* destination, const unsigned int* indices
 	for (size_t i = 0; i < vertex_count; ++i)
 		kinds[vertex_kind[i]] += remap[i] == i;
 
-	printf("kinds: manifold %d, border %d, seam %d, complex %d, locked %d\n",
-	       int(kinds[MARS_VERTEX_TYPE_MANIFOLD]), int(kinds[MARS_VERTEX_TYPE_BORDER]), int(kinds[MARS_VERTEX_TYPE_SEAM]), int(kinds[MARS_VERTEX_TYPE_COMPLEX]), int(kinds[MARS_VERTEX_TYPE_LOCKED]));
+	printf("kinds: manifold %d, border %d, seam %d, complex %d, locked %d\n", int(kinds[MARS_VERTEX_TYPE_MANIFOLD]), int(kinds[MARS_VERTEX_TYPE_BORDER]), int(kinds[MARS_VERTEX_TYPE_SEAM]), int(kinds[MARS_VERTEX_TYPE_COMPLEX]), int(kinds[MARS_VERTEX_TYPE_LOCKED]));
 #endif
 
 	mars::vector3<float>* vertex_positions = allocator.allocate<mars::vector3<float>>(vertex_count);
@@ -1925,7 +1891,6 @@ size_t mesh_simplify_edge(unsigned int* destination, const unsigned int* indices
 	unsigned int attribute_remap[k_max_attributes];
 
 	if (attribute_count) {
-
 		size_t attributes_used = 0;
 		for (size_t i = 0; i < attribute_count; ++i)
 			if (attribute_weights[i] > 0)
@@ -2003,7 +1968,6 @@ size_t mesh_simplify_edge(unsigned int* destination, const unsigned int* indices
 	float error_limit = (target_error * target_error) / (error_scale * error_scale);
 
 	while (result_count > target_index_count) {
-
 		update_edge_adjacency(adjacency, result, result_count, vertex_count, remap);
 
 		size_t edge_collapse_count = pick_edge_collapses(edge_collapses, collapse_capacity, result, result_count, remap, vertex_kind, loop, loopback);
@@ -2178,10 +2142,7 @@ size_t mesh_simplify_sloppy(unsigned int* destination, const unsigned int* indic
 		size_t triangles = count_triangles(vertex_ids, indices, index_count);
 
 #if TRACE
-		printf("pass %d (%s): grid size %d, triangles %d, %s\n",
-		       pass, (pass == 0) ? "guess" : (pass <= k_interpolation_passes ? "lerp" : "binary"),
-		       grid_size, int(triangles),
-		       (triangles <= target_index_count / 3) ? "under" : "over");
+		printf("pass %d (%s): grid size %d, triangles %d, %s\n", pass, (pass == 0) ? "guess" : (pass <= k_interpolation_passes ? "lerp" : "binary"), grid_size, int(triangles), (triangles <= target_index_count / 3) ? "under" : "over");
 #endif
 
 		float tip = interpolate(float(size_t(target_index_count / 3)), float(min_grid), float(min_triangles), float(grid_size), float(triangles), float(max_grid), float(max_triangles));
@@ -2324,10 +2285,7 @@ size_t mesh_simplify_points(unsigned int* destination, const float* vertex_posit
 		size_t vertices = count_vertex_cells(table, table_size, vertex_ids, vertex_count);
 
 #if TRACE
-		printf("pass %d (%s): grid size %d, vertices %d, %s\n",
-		       pass, (pass == 0) ? "guess" : (pass <= k_interpolation_passes ? "lerp" : "binary"),
-		       grid_size, int(vertices),
-		       (vertices <= target_vertex_count) ? "under" : "over");
+		printf("pass %d (%s): grid size %d, vertices %d, %s\n", pass, (pass == 0) ? "guess" : (pass <= k_interpolation_passes ? "lerp" : "binary"), grid_size, int(vertices), (vertices <= target_vertex_count) ? "under" : "over");
 #endif
 
 		float tip = interpolate(float(target_vertex_count), float(min_grid), float(min_vertices), float(grid_size), float(vertices), float(max_grid), float(max_vertices));

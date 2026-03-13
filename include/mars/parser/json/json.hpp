@@ -11,7 +11,8 @@
 
 namespace mars::json {
 
-struct json_skip_anoation {};
+struct json_skip_anoation {
+};
 
 static constexpr json_skip_anoation skip = {};
 
@@ -129,7 +130,6 @@ struct json_type_parser_base {
 			}
 
 			if (!found) {
-
 				size_t object_count = 0;
 				bool string_count;
 				while (current != _json.end() && (object_count != 0 || string_count || (*current != ',' && *current != '}'))) {

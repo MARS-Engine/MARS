@@ -12,7 +12,6 @@
 #include <mars/graphics/functional/device.hpp>
 #include <mars/graphics/functional/render_pass.hpp>
 #include <mars/graphics/functional/shader.hpp>
-#include <mars/graphics/object/command_buffer.hpp>
 #include <mars/graphics/object/command_recording.hpp>
 #include <mars/graphics/object/pipeline.hpp>
 #include <mars/graphics/object/pipeline_setup_builder.hpp>
@@ -34,14 +33,14 @@ class mapped_buffer {
 	buffer* m_buf = nullptr;
 	device m_device = {};
 
-      public:
+  public:
 	mapped_buffer() = default;
 	mapped_buffer(T* ptr, buffer* buf, device dev)
-	    : m_ptr(ptr), m_buf(buf), m_device(dev) {}
+		: m_ptr(ptr), m_buf(buf), m_device(dev) {}
 	mapped_buffer(const mapped_buffer&) = delete;
 	mapped_buffer& operator=(const mapped_buffer&) = delete;
 	mapped_buffer(mapped_buffer&& o) noexcept
-	    : m_ptr(o.m_ptr), m_buf(o.m_buf), m_device(o.m_device) { o.m_ptr = nullptr; }
+		: m_ptr(o.m_ptr), m_buf(o.m_buf), m_device(o.m_device) { o.m_ptr = nullptr; }
 	mapped_buffer& operator=(mapped_buffer&& o) noexcept {
 		if (this != &o) {
 			unmap();
@@ -81,8 +80,7 @@ struct owned_descriptor_set {
 			if (!meta::has_annotation<graphics::uniform>(mem)) continue;
 			if (std::meta::is_same_type(std::meta::type_of(mem), ^^buffer)) continue;
 			auto mb_type = std::meta::substitute(^^mapped_buffer, {std::meta::type_of(mem)});
-			fields.push_back(std::meta::data_member_spec(mb_type,
-								     {.name = std::meta::identifier_of(mem)}));
+			fields.push_back(std::meta::data_member_spec(mb_type, {.name = std::meta::identifier_of(mem)}));
 		}
 		std::meta::define_aggregate(^^mapped_data, fields);
 	}
@@ -92,7 +90,7 @@ struct owned_descriptor_set {
 	owned_descriptor_set& operator=(const owned_descriptor_set&) = delete;
 
 	owned_descriptor_set(owned_descriptor_set&& o) noexcept
-	    : set(std::move(o.set)), owned_buffers(std::move(o.owned_buffers)), m_device(o.m_device) {}
+		: set(std::move(o.set)), owned_buffers(std::move(o.owned_buffers)), m_device(o.m_device) {}
 
 	~owned_descriptor_set() { destroy(); }
 
@@ -121,13 +119,15 @@ struct owned_descriptor_set {
 		constexpr auto ctx = std::meta::access_context::current();
 		size_t idx = 0;
 		template for (constexpr auto layout_mem : std::define_static_array(
-				  std::meta::nonstatic_data_members_of(^^LayoutT, ctx))) {
+						  std::meta::nonstatic_data_members_of(^^LayoutT, ctx)
+					  )) {
 			if constexpr (meta::has_annotation<graphics::uniform>(layout_mem) &&
-				      !std::meta::is_same_type(std::meta::type_of(layout_mem), ^^buffer)) {
+						  !std::meta::is_same_type(std::meta::type_of(layout_mem), ^^buffer)) {
 				using MT = typename[:std::meta::type_of(layout_mem):];
 				void* raw = mars::graphics::buffer_map(owned_buffers[idx], m_device, sizeof(MT), 0);
 				template for (constexpr auto data_mem : std::define_static_array(
-						  std::meta::nonstatic_data_members_of(^^mapped_data, ctx))) {
+								  std::meta::nonstatic_data_members_of(^^mapped_data, ctx)
+							  )) {
 					if constexpr (std::meta::identifier_of(data_mem) == std::meta::identifier_of(layout_mem))
 						result.[:data_mem:] = mapped_buffer<MT>(static_cast<MT*>(raw), &owned_buffers[idx], m_device);
 				}
@@ -162,17 +162,17 @@ struct owned_descriptor_set {
 
 template <typename T>
 class descriptor_factory {
-      private:
+  private:
 	device m_device;
 	descriptor m_descriptor;
 	std::variant<pipeline, compute_pipeline> m_pipeline;
 
-      public:
+  public:
 	descriptor_factory(const descriptor& _descriptor, const device& _device, const pipeline& _pipeline)
-	    : m_descriptor(_descriptor), m_device(_device), m_pipeline(_pipeline) {}
+		: m_descriptor(_descriptor), m_device(_device), m_pipeline(_pipeline) {}
 
 	descriptor_factory(const descriptor& _descriptor, const device& _device, const compute_pipeline& _pipeline)
-	    : m_descriptor(_descriptor), m_device(_device), m_pipeline(_pipeline) {}
+		: m_descriptor(_descriptor), m_device(_device), m_pipeline(_pipeline) {}
 
 	void destroy() {
 		mars::graphics::descriptor_destroy(m_descriptor, m_device);
@@ -194,13 +194,12 @@ class descriptor_factory {
 				constexpr size_t binding = meta::get_annotation<graphics::uniform>(mem).value().binding;
 
 				if constexpr (!std::is_same_v<MT, buffer>) {
-
 					constexpr size_t sz = sizeof(MT);
 					buffer auto_buf = mars::graphics::buffer_create(m_device, {
-												      .buffer_type = MARS_BUFFER_TYPE_UNIFORM,
-												      .buffer_property = MARS_BUFFER_PROPERTY_HOST_VISIBLE,
-												      .allocated_size = sz,
-												  });
+																				  .buffer_type = MARS_BUFFER_TYPE_UNIFORM,
+																				  .buffer_property = MARS_BUFFER_PROPERTY_HOST_VISIBLE,
+																				  .allocated_size = sz,
+																			  });
 					params.buffers.emplace_back(auto_buf, binding);
 					result.owned_buffers.push_back(auto_buf);
 				}
@@ -216,23 +215,23 @@ class descriptor_factory {
 			else
 				return mars::graphics::descriptor_set_create_compute(m_descriptor, m_device, pl, set_params);
 		},
-					m_pipeline);
+								m_pipeline);
 		return result;
 	}
 };
 
 template <typename T>
 class mesh_data {
-      private:
+  private:
 	std::vector<buffer> m_buffers;
 	buffer m_indice_buffer;
 	size_t m_index_count = 0;
 	device m_device;
 
-      public:
+  public:
 	mesh_data() = default;
 	mesh_data(const device& _device, const std::vector<buffer>& _buffers, const buffer& _indice, size_t _index_count)
-	    : m_buffers(_buffers), m_indice_buffer(_indice), m_index_count(_index_count), m_device(_device) {}
+		: m_buffers(_buffers), m_indice_buffer(_indice), m_index_count(_index_count), m_device(_device) {}
 
 	void upload(buffer& _buffer, const void* data, size_t size) {
 		void* mapped = mars::graphics::buffer_map(_buffer, m_device, size, 0);
@@ -266,12 +265,12 @@ class mesh_data {
 
 template <typename T>
 class pipeline_factory {
-      private:
+  private:
 	pipeline m_pipeline;
 	device m_device;
 	mars::descriptor_create_params descriptor_pool_params;
 
-      public:
+  public:
 	pipeline_factory(const device& _device, const shader& _shader, const render_pass& _render_pass) : m_device(_device) {
 		mars::graphics::object::pipeline_setup_builder setup;
 		setup.set_shader(_shader);

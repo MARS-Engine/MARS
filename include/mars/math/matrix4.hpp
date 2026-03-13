@@ -30,9 +30,9 @@ struct[[= mars::matrix(4, 4)]] matrix4 {
 
 	vector4<T> operator*(const vector4<T>& _value) const {
 		return _value[0] * columns[0] +
-		       _value[1] * columns[1] +
-		       _value[2] * columns[2] +
-		       _value[3] * columns[3];
+			   _value[1] * columns[1] +
+			   _value[2] * columns[2] +
+			   _value[3] * columns[3];
 	}
 
 	matrix4 operator*(const matrix4& _right) const {
@@ -40,10 +40,10 @@ struct[[= mars::matrix(4, 4)]] matrix4 {
 		for (int y = 0; y < 4; ++y) {
 			const vector4<T>& right_col = _right.columns[y];
 			result.columns[y] =
-			    right_col[0] * columns[0] +
-			    right_col[1] * columns[1] +
-			    right_col[2] * columns[2] +
-			    right_col[3] * columns[3];
+				right_col[0] * columns[0] +
+				right_col[1] * columns[1] +
+				right_col[2] * columns[2] +
+				right_col[3] * columns[3];
 		}
 		return result;
 	}

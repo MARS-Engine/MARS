@@ -9,12 +9,10 @@ class swapchain {
 	mars::swapchain m_swapchain{};
 	mars::device m_device{};
 
-      public:
+  public:
 	swapchain() = default;
 
-	static swapchain create(const mars::device& device,
-				const mars::window& window,
-				const mars::swapchain_create_params& params = {}) {
+	static swapchain create(const mars::device& device, const mars::window& window, const mars::swapchain_create_params& params = {}) {
 		swapchain out;
 		out.m_device = device;
 		out.m_swapchain = mars::graphics::swapchain_create(device, window, params);
@@ -30,7 +28,7 @@ class swapchain {
 	swapchain& operator=(const swapchain&) = delete;
 
 	swapchain(swapchain&& other) noexcept
-	    : m_swapchain(other.m_swapchain), m_device(other.m_device) {
+		: m_swapchain(other.m_swapchain), m_device(other.m_device) {
 		other.m_swapchain = {};
 	}
 

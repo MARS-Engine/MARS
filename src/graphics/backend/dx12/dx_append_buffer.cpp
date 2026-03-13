@@ -12,25 +12,25 @@ append_buffer_base dx_append_buffer_impl::create(const device& dev, size_t elem_
 	auto& buf_impl = dev.engine->get_impl<buffer_impl>();
 
 	data->data_buf = buf_impl.buffer_create(dev, {
-							 .buffer_type = MARS_BUFFER_TYPE_STRUCTURED | MARS_BUFFER_TYPE_UNORDERED_ACCESS,
-							 .buffer_property = MARS_BUFFER_PROPERTY_DEVICE_LOCAL,
-							 .allocated_size = elem_size * capacity,
-							 .stride = elem_size,
-						     });
+													 .buffer_type = MARS_BUFFER_TYPE_STRUCTURED | MARS_BUFFER_TYPE_UNORDERED_ACCESS,
+													 .buffer_property = MARS_BUFFER_PROPERTY_DEVICE_LOCAL,
+													 .allocated_size = elem_size * capacity,
+													 .stride = elem_size,
+												 });
 
 	data->counter_buf = buf_impl.buffer_create(dev, {
-							    .buffer_type = MARS_BUFFER_TYPE_UNORDERED_ACCESS,
-							    .buffer_property = MARS_BUFFER_PROPERTY_DEVICE_LOCAL,
-							    .allocated_size = sizeof(uint32_t),
-							    .stride = 0,
-							});
+														.buffer_type = MARS_BUFFER_TYPE_UNORDERED_ACCESS,
+														.buffer_property = MARS_BUFFER_PROPERTY_DEVICE_LOCAL,
+														.allocated_size = sizeof(uint32_t),
+														.stride = 0,
+													});
 
 	data->zero_buf = buf_impl.buffer_create(dev, {
-							 .buffer_type = MARS_BUFFER_TYPE_TRANSFER_SRC,
-							 .buffer_property = MARS_BUFFER_PROPERTY_HOST_VISIBLE,
-							 .allocated_size = sizeof(uint32_t),
-							 .stride = 0,
-						     });
+													 .buffer_type = MARS_BUFFER_TYPE_TRANSFER_SRC,
+													 .buffer_property = MARS_BUFFER_PROPERTY_HOST_VISIBLE,
+													 .allocated_size = sizeof(uint32_t),
+													 .stride = 0,
+												 });
 	{
 		auto* p = static_cast<uint32_t*>(buf_impl.buffer_map(data->zero_buf, dev, sizeof(uint32_t), 0));
 		if (p) *p = 0u;
@@ -44,11 +44,11 @@ append_buffer_base dx_append_buffer_impl::create(const device& dev, size_t elem_
 }
 
 void dx_append_buffer_impl::reset_counter(const append_buffer_base& ab, const command_buffer& cmd) {
-	auto data = dx_expect_backend_data(ab.data.get<dx_append_buffer_data>(), __func__, "append_buffer.data");
-	auto cb_data = dx_expect_backend_data(cmd.data.get<dx_command_buffer_data>(), __func__, "command_buffer.data");
+	auto data = ab.data.expect<dx_append_buffer_data>();
+	auto cb_data = cmd.data.expect<dx_command_buffer_data>();
 
-	auto ctr = dx_expect_backend_data(data->counter_buf.data.get<dx_buffer_data>(), __func__, "counter_buffer.data");
-	auto zero = dx_expect_backend_data(data->zero_buf.data.get<dx_buffer_data>(), __func__, "zero_buffer.data");
+	auto ctr = data->counter_buf.data.expect<dx_buffer_data>();
+	auto zero = data->zero_buf.data.expect<dx_buffer_data>();
 
 	if (ctr->dx12_state != D3D12_RESOURCE_STATE_COPY_DEST) {
 		D3D12_RESOURCE_BARRIER to_copy = {};
@@ -76,17 +76,17 @@ void dx_append_buffer_impl::reset_counter(const append_buffer_base& ab, const co
 }
 
 const buffer& dx_append_buffer_impl::get_counter_buffer(const append_buffer_base& ab) {
-	auto data = dx_expect_backend_data(ab.data.get<dx_append_buffer_data>(), __func__, "append_buffer.data");
+	auto data = ab.data.expect<dx_append_buffer_data>();
 	return data->counter_buf;
 }
 
 const buffer& dx_append_buffer_impl::get_data_buffer(const append_buffer_base& ab) {
-	auto data = dx_expect_backend_data(ab.data.get<dx_append_buffer_data>(), __func__, "append_buffer.data");
+	auto data = ab.data.expect<dx_append_buffer_data>();
 	return data->data_buf;
 }
 
 void dx_append_buffer_impl::destroy(append_buffer_base& ab, const device& dev) {
-	auto data = dx_expect_backend_data(ab.data.get<dx_append_buffer_data>(), __func__, "append_buffer.data");
+	auto data = ab.data.expect<dx_append_buffer_data>();
 	auto& buf_impl = dev.engine->get_impl<buffer_impl>();
 	buf_impl.buffer_destroy(data->data_buf, dev);
 	buf_impl.buffer_destroy(data->counter_buf, dev);

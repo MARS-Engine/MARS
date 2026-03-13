@@ -16,8 +16,9 @@ detail::raw_simplify_result detail::simplify_mesh_raw(const raw_simplify_input& 
 	if (input.vertex_stride == 0 || input.vertex_bytes.empty() || input.indices.empty() || input.indices.size() % 3 != 0) {
 		if (!input.vertex_bytes.empty())
 			passthrough.vertex_bytes.assign(
-			    input.vertex_bytes.begin(),
-			    input.vertex_bytes.end());
+				input.vertex_bytes.begin(),
+				input.vertex_bytes.end()
+			);
 		passthrough.indices.assign(input.indices.begin(), input.indices.end());
 		return passthrough;
 	}
@@ -31,8 +32,9 @@ detail::raw_simplify_result detail::simplify_mesh_raw(const raw_simplify_input& 
 	const size_t source_triangle_count = input.indices.size() / 3;
 	if (source_triangle_count <= input.target_triangle_count) {
 		passthrough.vertex_bytes.assign(
-		    input.vertex_bytes.begin(),
-		    input.vertex_bytes.end());
+			input.vertex_bytes.begin(),
+			input.vertex_bytes.end()
+		);
 		passthrough.indices.assign(input.indices.begin(), input.indices.end());
 		passthrough.reached_target = true;
 		return passthrough;
@@ -98,20 +100,21 @@ detail::raw_simplify_result detail::simplify_mesh_raw(const raw_simplify_input& 
 		float result_error = 0.0f;
 
 		const size_t simplified_index_count = mesh_simplify_with_update(
-		    pass_indices.data(),
-		    pass_indices.size(),
-		    pass_positions.data(),
-		    vertex_count,
-		    sizeof(float) * 3,
-		    pass_attributes.empty() ? nullptr : pass_attributes.data(),
-		    attribute_count ? sizeof(float) * attribute_count : 0,
-		    attribute_count ? attribute_weights.data() : nullptr,
-		    attribute_count,
-		    vertex_locks.empty() ? nullptr : vertex_locks.data(),
-		    input.target_triangle_count * 3,
-		    FLT_MAX,
-		    meshoptimizer_options,
-		    &result_error);
+			pass_indices.data(),
+			pass_indices.size(),
+			pass_positions.data(),
+			vertex_count,
+			sizeof(float) * 3,
+			pass_attributes.empty() ? nullptr : pass_attributes.data(),
+			attribute_count ? sizeof(float) * attribute_count : 0,
+			attribute_count ? attribute_weights.data() : nullptr,
+			attribute_count,
+			vertex_locks.empty() ? nullptr : vertex_locks.data(),
+			input.target_triangle_count * 3,
+			FLT_MAX,
+			meshoptimizer_options,
+			&result_error
+		);
 
 		detail::raw_simplify_result output;
 		output.vertex_stride = input.vertex_stride;
@@ -136,40 +139,41 @@ detail::raw_simplify_result detail::simplify_mesh_raw(const raw_simplify_input& 
 
 			detail::working_vertex vertex = working_vertices[i];
 			vertex.position = {
-			    pass_positions[i * 3 + 0],
-			    pass_positions[i * 3 + 1],
-			    pass_positions[i * 3 + 2],
+				pass_positions[i * 3 + 0],
+				pass_positions[i * 3 + 1],
+				pass_positions[i * 3 + 2],
 			};
 
 			size_t attribute_offset = i * attribute_count;
 			if (input.has_normal) {
 				vertex.normal = {
-				    pass_attributes[attribute_offset + 0],
-				    pass_attributes[attribute_offset + 1],
-				    pass_attributes[attribute_offset + 2],
+					pass_attributes[attribute_offset + 0],
+					pass_attributes[attribute_offset + 1],
+					pass_attributes[attribute_offset + 2],
 				};
 				attribute_offset += 3;
 			}
 			if (input.has_uv) {
 				vertex.uv = {
-				    pass_attributes[attribute_offset + 0],
-				    pass_attributes[attribute_offset + 1],
+					pass_attributes[attribute_offset + 0],
+					pass_attributes[attribute_offset + 1],
 				};
 				attribute_offset += 2;
 			}
 			if (input.has_tangent)
 				vertex.tangent = {
-				    pass_attributes[attribute_offset + 0],
-				    pass_attributes[attribute_offset + 1],
-				    pass_attributes[attribute_offset + 2],
-				    pass_attributes[attribute_offset + 3],
+					pass_attributes[attribute_offset + 0],
+					pass_attributes[attribute_offset + 1],
+					pass_attributes[attribute_offset + 2],
+					pass_attributes[attribute_offset + 3],
 				};
 
 			detail::renormalize_vertex(vertex, input);
 			std::memcpy(
-			    output.vertex_bytes.data() + static_cast<size_t>(remap[i]) * input.vertex_stride,
-			    vertex.bytes.data(),
-			    input.vertex_stride);
+				output.vertex_bytes.data() + static_cast<size_t>(remap[i]) * input.vertex_stride,
+				vertex.bytes.data(),
+				input.vertex_stride
+			);
 		}
 
 		output.indices.reserve(pass_indices.size());
@@ -179,9 +183,9 @@ detail::raw_simplify_result detail::simplify_mesh_raw(const raw_simplify_input& 
 	};
 
 	const unsigned int base_meshoptimizer_options =
-	    mesh_simplify_sparse_flag |
-	    mesh_simplify_error_absolute_flag |
-	    mesh_simplify_regularize_flag;
+		mesh_simplify_sparse_flag |
+		mesh_simplify_error_absolute_flag |
+		mesh_simplify_regularize_flag;
 
 	detail::raw_simplify_result result = run_meshoptimizer(base_meshoptimizer_options, false);
 	if (!result.reached_target && input.allow_permissive_retry)

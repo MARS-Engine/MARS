@@ -38,8 +38,8 @@ window dx_window_impl::dx_window_create(graphics_engine& _engine, const window_p
 	int pixel_height = 0;
 	SDL_GetWindowSizeInPixels(result.sdl_window, &pixel_width, &pixel_height);
 	result.size = {
-	    static_cast<size_t>((std::max)(pixel_width, 1)),
-	    static_cast<size_t>((std::max)(pixel_height, 1)),
+		static_cast<size_t>((std::max)(pixel_width, 1)),
+		static_cast<size_t>((std::max)(pixel_height, 1)),
 	};
 
 	__internal::window_handle_map[result.sdl_window] = g_main_hwnd;

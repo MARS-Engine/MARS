@@ -157,7 +157,6 @@ static void build_cluster_adjacency(cluster_adjacency& adjacency, const unsigned
 }
 
 static void heap_push(group_merge_candidate* heap, size_t size, group_merge_candidate item) {
-
 	heap[size++] = item;
 
 	size_t current_index = size - 1;
@@ -179,7 +178,6 @@ static group_merge_candidate heap_pop(group_merge_candidate* heap, size_t size) 
 
 	size_t current_index = 0;
 	while (current_index * 2 + 1 < size) {
-
 		size_t child_index = current_index * 2 + 1;
 		child_index += (child_index + 1 < size && heap[child_index + 1].priority < heap[child_index].priority);
 
@@ -309,7 +307,6 @@ static void merge_leaf(cluster_partition_group* groups, unsigned int* order, siz
 		}
 
 		if (best_group != -1) {
-
 			unsigned int tail_group = best_group;
 			while (groups[tail_group].next >= 0)
 				tail_group = groups[tail_group].next;

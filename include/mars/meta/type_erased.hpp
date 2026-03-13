@@ -14,20 +14,25 @@ inline static log_channel type_erasure_channel("mars/meta/type_erasure");
 }
 
 struct type_erased_ptr {
-      private:
-	struct empty {};
+  private:
+	struct empty {
+	};
 
 	void* data = nullptr;
 
 	[[msvc::no_unique_address]]
 	std::conditional_t<environment::is_shipping, empty, void (*)(const std::string_view&)> id;
 
-	template <typename T>
-	static void internal_error(const std::string_view& _value) {
-		logger::assert_(detail::type_erasure_channel, "attempted to get type {} but {} is stored", _value, std::meta::display_string_of(^^T));
+	static void internal_error(const std::string_view& requested, const std::string_view& stored) {
+		logger::assert_(detail::type_erasure_channel, "attempted to get type {} but {} is stored", requested, stored);
 	}
 
-      public:
+	template <typename T>
+	static void internal_error(const std::string_view& requested) {
+		internal_error(requested, std::meta::display_string_of(^^T));
+	}
+
+  public:
 	type_erased_ptr() {
 		if (!environment::is_shipping)
 			id = nullptr;
@@ -57,8 +62,26 @@ struct type_erased_ptr {
 		return static_cast<T*>(data);
 	}
 
+	template <typename T>
+	T* expect() const {
+		if (!environment::is_shipping) {
+			if (data == nullptr)
+				internal_error(std::meta::display_string_of(^^T), "<null>");
+			if (id != nullptr && id != &internal_error<T>)
+				id(std::meta::display_string_of(^^T));
+		}
+		return static_cast<T*>(data);
+	}
+
 	template <>
 	inline void* get<void>() const {
+		return data;
+	}
+
+	template <>
+	inline void* expect<void>() const {
+		if (!environment::is_shipping && data == nullptr)
+			internal_error(std::meta::display_string_of(^^void), "<null>");
 		return data;
 	}
 

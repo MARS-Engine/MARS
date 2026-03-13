@@ -73,7 +73,7 @@ inline void window_process_events(window& _window, EventHook&& _event_hook) {
 		_event_hook(event);
 
 		if (event.type == SDL_EVENT_WINDOW_RESIZED ||
-		    event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
+			event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
 			SDL_Window* sdl_win = SDL_GetWindowFromID(event.window.windowID);
 			if (sdl_win == _window.sdl_window) {
 				int pixel_width = 0;

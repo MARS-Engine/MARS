@@ -4,9 +4,10 @@
 
 namespace mars::graphics::dx {
 static const dx_root_param_entry* find_root_entry(
-    const std::vector<dx_root_param_entry>& _layout,
-    size_t _binding,
-    mars_pipeline_descriptor_type _type) {
+	const std::vector<dx_root_param_entry>& _layout,
+	size_t _binding,
+	mars_pipeline_descriptor_type _type
+) {
 	for (const auto& entry : _layout)
 		if (entry.binding == _binding && entry.type == _type)
 			return &entry;
@@ -14,16 +15,17 @@ static const dx_root_param_entry* find_root_entry(
 }
 
 static descriptor_set create_set_impl(
-    const descriptor& _descriptor,
-    const device& _device,
-    const std::vector<dx_root_param_entry>& _layout,
-    const std::vector<descriptor_set_create_params>& _params) {
+	const descriptor& _descriptor,
+	const device& _device,
+	const std::vector<dx_root_param_entry>& _layout,
+	const std::vector<descriptor_set_create_params>& _params
+) {
 	auto set_data = new dx_descriptor_set_data();
 	set_data->root_layout = &_layout;
 
 	for (const auto& param_set : _params) {
 		for (const auto& [buf, binding] : param_set.buffers) {
-			auto buf_data = dx_expect_backend_data(buf.data.get<dx_buffer_data>(), __func__, "buffer.data");
+			auto buf_data = buf.data.expect<dx_buffer_data>();
 			auto cbv_entry = find_root_entry(_layout, binding, MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 			if (cbv_entry)
 				set_data->cbv_bindings.push_back({cbv_entry->root_index, buf_data->resource->GetGPUVirtualAddress()});
@@ -45,32 +47,32 @@ descriptor dx_descriptor_impl::dx_descriptor_create(const device& _device, const
 }
 
 descriptor_set dx_descriptor_impl::dx_descriptor_set_create(const descriptor& _descriptor, const device& _device, const pipeline& _pipeline, const std::vector<descriptor_set_create_params>& _params) {
-	auto pipeline_data = dx_expect_backend_data(_pipeline.data.get<dx_pipeline_data>(), __func__, "pipeline.data");
+	auto pipeline_data = _pipeline.data.expect<dx_pipeline_data>();
 	return create_set_impl(_descriptor, _device, pipeline_data->root_layout, _params);
 }
 
 descriptor_set dx_descriptor_impl::dx_descriptor_set_create_compute(const descriptor& _descriptor, const device& _device, const compute_pipeline& _pipeline, const std::vector<descriptor_set_create_params>& _params) {
-	auto pipeline_data = dx_expect_backend_data(_pipeline.data.get<dx_compute_pipeline_data>(), __func__, "compute_pipeline.data");
+	auto pipeline_data = _pipeline.data.expect<dx_compute_pipeline_data>();
 	return create_set_impl(_descriptor, _device, pipeline_data->root_layout, _params);
 }
 
 void dx_descriptor_impl::dx_descriptor_set_bind(const descriptor_set& _descriptor_set, const command_buffer& _command_buffer, const pipeline& _pipeline, size_t _current_frame) {
-	auto set_data = dx_expect_backend_data(_descriptor_set.data.get<dx_descriptor_set_data>(), __func__, "descriptor_set.data");
-	auto cb_data = dx_expect_backend_data(_command_buffer.data.get<dx_command_buffer_data>(), __func__, "command_buffer.data");
+	auto set_data = _descriptor_set.data.expect<dx_descriptor_set_data>();
+	auto cb_data = _command_buffer.data.expect<dx_command_buffer_data>();
 	for (auto& [root_index, gpu_addr] : set_data->cbv_bindings)
 		cb_data->cmd_list->SetGraphicsRootConstantBufferView((UINT)root_index, gpu_addr);
 }
 
 void dx_descriptor_impl::dx_descriptor_set_bind_compute(const descriptor_set& _descriptor_set, const command_buffer& _command_buffer, const compute_pipeline& _pipeline, size_t _current_frame) {
-	auto set_data = dx_expect_backend_data(_descriptor_set.data.get<dx_descriptor_set_data>(), __func__, "descriptor_set.data");
-	auto cb_data = dx_expect_backend_data(_command_buffer.data.get<dx_command_buffer_data>(), __func__, "command_buffer.data");
+	auto set_data = _descriptor_set.data.expect<dx_descriptor_set_data>();
+	auto cb_data = _command_buffer.data.expect<dx_command_buffer_data>();
 	for (auto& [root_index, gpu_addr] : set_data->cbv_bindings)
 		cb_data->cmd_list->SetComputeRootConstantBufferView((UINT)root_index, gpu_addr);
 }
 
 void dx_descriptor_impl::dx_descriptor_set_update_cbv(descriptor_set& _descriptor_set, size_t _binding, const buffer& _buffer) {
-	auto set_data = dx_expect_backend_data(_descriptor_set.data.get<dx_descriptor_set_data>(), __func__, "descriptor_set.data");
-	auto buf_data = dx_expect_backend_data(_buffer.data.get<dx_buffer_data>(), __func__, "buffer.data");
+	auto set_data = _descriptor_set.data.expect<dx_descriptor_set_data>();
+	auto buf_data = _buffer.data.expect<dx_buffer_data>();
 	if (!set_data->root_layout) return;
 
 	auto cbv_entry = find_root_entry(*set_data->root_layout, _binding, MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
@@ -88,7 +90,7 @@ void dx_descriptor_impl::dx_descriptor_set_update_cbv(descriptor_set& _descripto
 }
 
 void dx_descriptor_impl::dx_descriptor_destroy(descriptor& _descriptor, const device& _device) {
-	auto data = dx_expect_backend_data(_descriptor.data.get<dx_descriptor_data>(), __func__, "descriptor.data");
+	auto data = _descriptor.data.expect<dx_descriptor_data>();
 	delete data;
 	_descriptor = {};
 }

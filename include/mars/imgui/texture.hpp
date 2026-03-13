@@ -13,10 +13,10 @@ struct texture_event {
 
 template <>
 struct struct_editor<graphics::texture> : public event<texture_event>, public struct_editor_base<graphics::texture> {
-      private:
+  private:
 	texture_browser icon_browser;
 
-      public:
+  public:
 	graphics::texture& get_texture() { return *ref; }
 
 	struct_editor<graphics::texture>();
@@ -27,10 +27,10 @@ struct struct_editor<graphics::texture> : public event<texture_event>, public st
 
 template <>
 struct struct_editor<const graphics::texture> : public event<texture_event>, public struct_editor_base<const graphics::texture> {
-      private:
+  private:
 	texture_browser icon_browser;
 
-      public:
+  public:
 	const graphics::texture& get_texture() const { return *ref; }
 
 	struct_editor<const graphics::texture>();

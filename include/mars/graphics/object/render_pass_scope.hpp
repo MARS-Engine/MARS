@@ -11,12 +11,9 @@ class render_pass_scope {
 	const mars::render_pass* m_rp = nullptr;
 	const mars::command_buffer* m_cmd = nullptr;
 
-      public:
-	render_pass_scope(const mars::render_pass& rp,
-			  const command_buffer_recording& rec,
-			  const mars::framebuffer& fb,
-			  const mars::render_pass_bind_param& params)
-	    : m_rp(&rp), m_cmd(&rec.get()) {
+  public:
+	render_pass_scope(const mars::render_pass& rp, const command_buffer_recording& rec, const mars::framebuffer& fb, const mars::render_pass_bind_param& params)
+		: m_rp(&rp), m_cmd(&rec.get()) {
 		mars::graphics::render_pass_bind(rp, rec, fb, params);
 	}
 

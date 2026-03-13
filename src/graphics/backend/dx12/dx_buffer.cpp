@@ -22,7 +22,7 @@ static D3D12_RESOURCE_STATES mars_buffer_state_to_dx12(mars_buffer_state state) 
 }
 
 buffer dx_buffer_impl::dx_buffer_create(const device& _device, const buffer_create_params& _params) {
-	auto device_data = dx_expect_backend_data(_device.data.get<dx_device_data>(), __func__, "device.data");
+	auto device_data = _device.data.expect<dx_device_data>();
 	auto data = new dx_buffer_data();
 	data->size = _params.allocated_size;
 
@@ -51,8 +51,7 @@ buffer dx_buffer_impl::dx_buffer_create(const device& _device, const buffer_crea
 	buf_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	buf_desc.Flags = is_uav ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
-	device_data->device->CreateCommittedResource(&heap_props, D3D12_HEAP_FLAG_NONE,
-						     &buf_desc, initial_state, nullptr, IID_PPV_ARGS(&data->resource));
+	device_data->device->CreateCommittedResource(&heap_props, D3D12_HEAP_FLAG_NONE, &buf_desc, initial_state, nullptr, IID_PPV_ARGS(&data->resource));
 
 	if (is_uav && data->resource) {
 		const UINT slot = dx_allocate_bindless_uav_range(device_data, 1);
@@ -66,13 +65,11 @@ buffer dx_buffer_impl::dx_buffer_create(const device& _device, const buffer_crea
 		uav_desc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
 		uav_desc.Buffer.FirstElement = 0;
 		if (is_structured && _params.stride > 0) {
-
 			uav_desc.Format = DXGI_FORMAT_UNKNOWN;
 			uav_desc.Buffer.StructureByteStride = static_cast<UINT>(_params.stride);
 			uav_desc.Buffer.NumElements = static_cast<UINT>(_params.allocated_size / _params.stride);
 			uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 		} else {
-
 			uav_desc.Format = DXGI_FORMAT_R32_TYPELESS;
 			uav_desc.Buffer.NumElements = static_cast<UINT>(_params.allocated_size / 4);
 			uav_desc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
@@ -120,14 +117,14 @@ buffer dx_buffer_impl::dx_buffer_create(const device& _device, const buffer_crea
 }
 
 void dx_buffer_impl::dx_buffer_bind(buffer& _buffer, const command_buffer& _command_buffer) {
-	auto data = dx_expect_backend_data(_buffer.data.get<dx_buffer_data>(), __func__, "buffer.data");
-	auto cb_data = dx_expect_backend_data(_command_buffer.data.get<dx_command_buffer_data>(), __func__, "command_buffer.data");
+	auto data = _buffer.data.expect<dx_buffer_data>();
+	auto cb_data = _command_buffer.data.expect<dx_command_buffer_data>();
 	cb_data->cmd_list->IASetVertexBuffers(0, 1, &data->vb_view);
 }
 
 void dx_buffer_impl::dx_buffer_bind_index(buffer& _buffer, const command_buffer& _command_buffer) {
-	auto data = dx_expect_backend_data(_buffer.data.get<dx_buffer_data>(), __func__, "buffer.data");
-	auto cb_data = dx_expect_backend_data(_command_buffer.data.get<dx_command_buffer_data>(), __func__, "command_buffer.data");
+	auto data = _buffer.data.expect<dx_buffer_data>();
+	auto cb_data = _command_buffer.data.expect<dx_command_buffer_data>();
 	D3D12_INDEX_BUFFER_VIEW ib_view = {};
 	ib_view.BufferLocation = data->resource->GetGPUVirtualAddress();
 	ib_view.SizeInBytes = (UINT)data->size;
@@ -136,15 +133,15 @@ void dx_buffer_impl::dx_buffer_bind_index(buffer& _buffer, const command_buffer&
 }
 
 void dx_buffer_impl::dx_buffer_copy(buffer& _buffer, buffer& _src_buffer, const command_buffer& _command_buffer, size_t _offset) {
-	auto dst = dx_expect_backend_data(_buffer.data.get<dx_buffer_data>(), __func__, "buffer.data");
-	auto src = dx_expect_backend_data(_src_buffer.data.get<dx_buffer_data>(), __func__, "src_buffer.data");
-	auto cb = dx_expect_backend_data(_command_buffer.data.get<dx_command_buffer_data>(), __func__, "command_buffer.data");
+	auto dst = _buffer.data.expect<dx_buffer_data>();
+	auto src = _src_buffer.data.expect<dx_buffer_data>();
+	auto cb = _command_buffer.data.expect<dx_command_buffer_data>();
 	cb->cmd_list->CopyBufferRegion(dst->resource.Get(), _offset, src->resource.Get(), 0, src->size);
 }
 
 void dx_buffer_impl::dx_buffer_transition(const command_buffer& _command_buffer, const buffer& _buffer, mars_buffer_state _state) {
-	auto cb_data = dx_expect_backend_data(_command_buffer.data.get<dx_command_buffer_data>(), __func__, "command_buffer.data");
-	auto data = dx_expect_backend_data(_buffer.data.get<dx_buffer_data>(), __func__, "buffer.data");
+	auto cb_data = _command_buffer.data.expect<dx_command_buffer_data>();
+	auto data = _buffer.data.expect<dx_buffer_data>();
 
 	const D3D12_RESOURCE_STATES target_state = mars_buffer_state_to_dx12(_state);
 	if (data->dx12_state == target_state)
@@ -161,7 +158,7 @@ void dx_buffer_impl::dx_buffer_transition(const command_buffer& _command_buffer,
 }
 
 void* dx_buffer_impl::dx_buffer_map(buffer& _buffer, const device& _device, size_t _size, size_t _offset) {
-	auto data = dx_expect_backend_data(_buffer.data.get<dx_buffer_data>(), __func__, "buffer.data");
+	auto data = _buffer.data.expect<dx_buffer_data>();
 	void* mapped = nullptr;
 	D3D12_RANGE read_range = {0, 0};
 	data->resource->Map(0, &read_range, &mapped);
@@ -169,13 +166,13 @@ void* dx_buffer_impl::dx_buffer_map(buffer& _buffer, const device& _device, size
 }
 
 void dx_buffer_impl::dx_buffer_unmap(buffer& _buffer, const device& _device) {
-	auto data = dx_expect_backend_data(_buffer.data.get<dx_buffer_data>(), __func__, "buffer.data");
+	auto data = _buffer.data.expect<dx_buffer_data>();
 	data->resource->Unmap(0, nullptr);
 }
 
 void dx_buffer_impl::dx_buffer_destroy(buffer& _buffer, const device& _device) {
-	auto data = dx_expect_backend_data(_buffer.data.get<dx_buffer_data>(), __func__, "buffer.data");
-	auto* device_data = dx_expect_backend_data(_device.data.get<dx_device_data>(), __func__, "device.data");
+	auto data = _buffer.data.expect<dx_buffer_data>();
+	auto* device_data = _device.data.expect<dx_device_data>();
 	dx_release_bindless_uav_range(device_data, data->uav_bindless_idx, data->uav_bindless_idx == UINT32_MAX ? 0u : 1u);
 	dx_release_bindless_srv_slot(device_data, data->srv_bindless_idx);
 	delete data;
@@ -183,12 +180,12 @@ void dx_buffer_impl::dx_buffer_destroy(buffer& _buffer, const device& _device) {
 }
 
 uint32_t dx_buffer_impl::dx_buffer_get_uav_index(const buffer& _buffer) {
-	auto data = dx_expect_backend_data(_buffer.data.get<dx_buffer_data>(), __func__, "buffer.data");
+	auto data = _buffer.data.expect<dx_buffer_data>();
 	return static_cast<uint32_t>(data->uav_bindless_idx);
 }
 
 uint32_t dx_buffer_impl::dx_buffer_get_srv_index(const buffer& _buffer) {
-	auto data = dx_expect_backend_data(_buffer.data.get<dx_buffer_data>(), __func__, "buffer.data");
+	auto data = _buffer.data.expect<dx_buffer_data>();
 	return static_cast<uint32_t>(data->srv_bindless_idx);
 }
 } // namespace mars::graphics::dx

@@ -7,7 +7,7 @@ namespace mars::graphics::dx {
 static log_channel rb_channel("dx12");
 
 readback_buffer dx_readback_buffer_impl::create(const device& dev, size_t slot_size, uint32_t num_slots) {
-	auto dev_data = dx_expect_backend_data(dev.data.get<dx_device_data>(), __func__, "device.data");
+	auto dev_data = dev.data.expect<dx_device_data>();
 	auto data = new dx_readback_buffer_data();
 
 	data->slot_size = slot_size;
@@ -29,33 +29,29 @@ readback_buffer dx_readback_buffer_impl::create(const device& dev, size_t slot_s
 	res_desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	res_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	HRESULT hr = dev_data->device->CreateCommittedResource(
-	    &heap_props,
-	    D3D12_HEAP_FLAG_NONE,
-	    &res_desc,
-	    D3D12_RESOURCE_STATE_COPY_DEST,
-	    nullptr,
-	    IID_PPV_ARGS(&data->readback_resource));
-	logger::error_if(FAILED(hr), rb_channel, "readback CreateCommittedResource failed (hr={:#x})", (unsigned long)hr);
+	HRESULT hr = dx_expect<&ID3D12Device::CreateCommittedResource>(
+		dev_data->device.Get(),
+		&heap_props,
+		D3D12_HEAP_FLAG_NONE,
+		&res_desc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&data->readback_resource)
+	);
 
 	D3D12_RANGE read_range = {0, total_size};
-	hr = data->readback_resource->Map(0, &read_range, reinterpret_cast<void**>(&data->mapped_ptr));
-	logger::error_if(FAILED(hr), rb_channel, "readback Map failed (hr={:#x})", (unsigned long)hr);
+	hr = dx_expect<&ID3D12Resource::Map>(data->readback_resource.Get(), 0, &read_range, reinterpret_cast<void**>(&data->mapped_ptr));
 
-	hr = dev_data->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&data->allocator));
-	logger::error_if(FAILED(hr), rb_channel, "readback CreateCommandAllocator failed (hr={:#x})", (unsigned long)hr);
+	hr = dx_expect<&ID3D12Device::CreateCommandAllocator>(dev_data->device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&data->allocator));
 
-	hr = dev_data->device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-						 data->allocator.Get(), nullptr, IID_PPV_ARGS(&data->cmd_list));
-	logger::error_if(FAILED(hr), rb_channel, "readback CreateCommandList failed (hr={:#x})", (unsigned long)hr);
+	hr = dx_expect<&ID3D12Device::CreateCommandList>(dev_data->device.Get(), 0, D3D12_COMMAND_LIST_TYPE_DIRECT, data->allocator.Get(), nullptr, IID_PPV_ARGS(&data->cmd_list));
 
-	hr = dev_data->device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&data->fence));
-	logger::error_if(FAILED(hr), rb_channel, "readback CreateFence failed (hr={:#x})", (unsigned long)hr);
+	hr = dx_expect<&ID3D12Device::CreateFence>(dev_data->device.Get(), 0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&data->fence));
 
 	data->wait_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 	logger::error_if(!data->wait_event, rb_channel, "readback CreateEvent failed");
 
-	data->direct_queue = dx_expect_backend_data(dx_get_queue(dev_data, MARS_COMMAND_QUEUE_DIRECT), __func__, "device.direct_queue_data")->cmd_queue.Get();
+	data->direct_queue = dx_get_queue(dev_data, MARS_COMMAND_QUEUE_DIRECT)->cmd_queue.Get();
 
 	readback_buffer rb;
 	rb.engine = dev.engine;
@@ -64,8 +60,8 @@ readback_buffer dx_readback_buffer_impl::create(const device& dev, size_t slot_s
 }
 
 readback_ticket dx_readback_buffer_impl::schedule(readback_buffer& rb, const buffer& src, size_t src_offset, size_t size) {
-	auto data = dx_expect_backend_data(rb.data.get<dx_readback_buffer_data>(), __func__, "readback_buffer.data");
-	auto src_data = dx_expect_backend_data(src.data.get<dx_buffer_data>(), __func__, "buffer.data");
+	auto data = rb.data.expect<dx_readback_buffer_data>();
+	auto src_data = src.data.expect<dx_buffer_data>();
 
 	if (data->in_flight.size() >= static_cast<size_t>(data->num_slots)) {
 		auto& oldest = data->in_flight.front();
@@ -82,11 +78,12 @@ readback_ticket dx_readback_buffer_impl::schedule(readback_buffer& rb, const buf
 	const UINT64 dst_offset = static_cast<UINT64>(slot) * static_cast<UINT64>(data->slot_size);
 
 	data->cmd_list->CopyBufferRegion(
-	    data->readback_resource.Get(),
-	    dst_offset,
-	    src_data->resource.Get(),
-	    static_cast<UINT64>(src_offset),
-	    static_cast<UINT64>(size));
+		data->readback_resource.Get(),
+		dst_offset,
+		src_data->resource.Get(),
+		static_cast<UINT64>(src_offset),
+		static_cast<UINT64>(size)
+	);
 
 	data->pending_work = true;
 
@@ -98,7 +95,7 @@ readback_ticket dx_readback_buffer_impl::schedule(readback_buffer& rb, const buf
 }
 
 uint64_t dx_readback_buffer_impl::flush(readback_buffer& rb) {
-	auto data = dx_expect_backend_data(rb.data.get<dx_readback_buffer_data>(), __func__, "readback_buffer.data");
+	auto data = rb.data.expect<dx_readback_buffer_data>();
 	if (!data->pending_work)
 		return 0;
 
@@ -128,7 +125,7 @@ uint64_t dx_readback_buffer_impl::flush(readback_buffer& rb) {
 }
 
 bool dx_readback_buffer_impl::try_read(const readback_buffer& rb, const readback_ticket& ticket, const void** out_ptr) {
-	auto data = dx_expect_backend_data(rb.data.get<dx_readback_buffer_data>(), __func__, "readback_buffer.data");
+	auto data = rb.data.expect<dx_readback_buffer_data>();
 	if (data->fence->GetCompletedValue() < ticket.fence_value)
 		return false;
 	*out_ptr = data->mapped_ptr + static_cast<size_t>(ticket.slot_index) * data->slot_size;
@@ -136,7 +133,7 @@ bool dx_readback_buffer_impl::try_read(const readback_buffer& rb, const readback
 }
 
 void dx_readback_buffer_impl::release_slot(readback_buffer& rb, const readback_ticket& ticket) {
-	auto data = dx_expect_backend_data(rb.data.get<dx_readback_buffer_data>(), __func__, "readback_buffer.data");
+	auto data = rb.data.expect<dx_readback_buffer_data>();
 	while (!data->in_flight.empty())
 		if (data->fence->GetCompletedValue() >= data->in_flight.front().fence_value)
 			data->in_flight.pop_front();
@@ -146,7 +143,7 @@ void dx_readback_buffer_impl::release_slot(readback_buffer& rb, const readback_t
 }
 
 void dx_readback_buffer_impl::destroy(readback_buffer& rb) {
-	auto data = dx_expect_backend_data(rb.data.get<dx_readback_buffer_data>(), __func__, "readback_buffer.data");
+	auto data = rb.data.expect<dx_readback_buffer_data>();
 
 	if (data->pending_work)
 		flush(rb);

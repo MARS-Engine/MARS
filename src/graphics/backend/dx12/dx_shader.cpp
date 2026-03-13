@@ -21,14 +21,11 @@ static std::string read_file(const std::string_view& path) {
 	return buf.str();
 }
 
-static HRESULT compile_shader_dxc(
-    IDxcCompiler3* compiler, IDxcUtils* utils, IDxcIncludeHandler* handler,
-    const std::string& source, const wchar_t* entry, const wchar_t* profile,
-    ID3DBlob** out_blob) {
+static HRESULT compile_shader_dxc(IDxcCompiler3* compiler, IDxcUtils* utils, IDxcIncludeHandler* handler, const std::string& source, const wchar_t* entry, const wchar_t* profile, ID3DBlob** out_blob) {
 	DxcBuffer src_buf;
 	src_buf.Ptr = source.c_str();
 	src_buf.Size = source.length();
-	src_buf.Encoding = DXC_CP_ACP;
+	src_buf.Encoding = DXC_CP_UTF8;
 
 	std::vector<LPCWSTR> args = {L"-E", entry, L"-T", profile, L"-Zi", L"-Qembed_debug", L"-Od"};
 
@@ -79,16 +76,13 @@ shader dx_shader_impl::dx_shader_create(const device& _device, const std::vector
 
 		HRESULT compile_hr = S_OK;
 		if (mod.type == MARS_SHADER_TYPE_VERTEX) {
-			compile_hr = compile_shader_dxc(dxc_compiler.Get(), dxc_utils.Get(), dxc_handler.Get(),
-							source, L"VSMain", L"vs_6_6", &data->vertex_shader);
+			compile_hr = compile_shader_dxc(dxc_compiler.Get(), dxc_utils.Get(), dxc_handler.Get(), source, L"VSMain", L"vs_6_6", &data->vertex_shader);
 			data->vertex_shader_path = mod.path;
 		} else if (mod.type == MARS_SHADER_TYPE_FRAGMENT) {
-			compile_hr = compile_shader_dxc(dxc_compiler.Get(), dxc_utils.Get(), dxc_handler.Get(),
-							source, L"PSMain", L"ps_6_6", &data->pixel_shader);
+			compile_hr = compile_shader_dxc(dxc_compiler.Get(), dxc_utils.Get(), dxc_handler.Get(), source, L"PSMain", L"ps_6_6", &data->pixel_shader);
 			data->pixel_shader_path = mod.path;
 		} else if (mod.type == MARS_SHADER_TYPE_COMPUTE) {
-			compile_hr = compile_shader_dxc(dxc_compiler.Get(), dxc_utils.Get(), dxc_handler.Get(),
-							source, L"CSMain", L"cs_6_6", &data->compute_shader);
+			compile_hr = compile_shader_dxc(dxc_compiler.Get(), dxc_utils.Get(), dxc_handler.Get(), source, L"CSMain", L"cs_6_6", &data->compute_shader);
 			data->compute_shader_path = mod.path;
 		}
 
@@ -103,7 +97,7 @@ shader dx_shader_impl::dx_shader_create(const device& _device, const std::vector
 }
 
 void dx_shader_impl::dx_shader_destroy(shader& _shader, const device& _device) {
-	auto data = dx_expect_backend_data(_shader.data.get<dx_shader_data>(), __func__, "shader.data");
+	auto data = _shader.data.expect<dx_shader_data>();
 	delete data;
 	_shader = {};
 }

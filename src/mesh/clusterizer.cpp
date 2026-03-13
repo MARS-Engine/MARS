@@ -123,7 +123,6 @@ static void build_triangle_adjacency_sparse(triangle_adjacency& adjacency, const
 }
 
 static void clear_used(short* used, size_t vertex_count, const unsigned int* indices, size_t index_count) {
-
 	if (vertex_count <= index_count)
 		memset(used, -1, vertex_count * sizeof(short));
 	else
@@ -136,14 +135,14 @@ static void clear_used(short* used, size_t vertex_count, const unsigned int* ind
 static void compute_bounding_sphere(float result[4], const float* points, size_t count, size_t points_stride, const float* radii, size_t radii_stride, size_t axis_count) {
 	static const float k_axes[7][3] = {
 
-	    {1, 0, 0},
-	    {0, 1, 0},
-	    {0, 0, 1},
+		{1, 0, 0},
+		{0, 1, 0},
+		{0, 0, 1},
 
-	    {0.57735026f, 0.57735026f, 0.57735026f},
-	    {-0.57735026f, 0.57735026f, 0.57735026f},
-	    {0.57735026f, -0.57735026f, 0.57735026f},
-	    {0.57735026f, 0.57735026f, -0.57735026f},
+		{0.57735026f, 0.57735026f, 0.57735026f},
+		{-0.57735026f, 0.57735026f, 0.57735026f},
+		{0.57735026f, -0.57735026f, 0.57735026f},
+		{0.57735026f, 0.57735026f, -0.57735026f},
 	};
 
 	assert(count > 0);
@@ -446,7 +445,6 @@ static size_t append_seed_triangles(unsigned int* seeds, const mesh_meshlet& mes
 		float best_neighbor_score = sqrtf(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
 
 		for (size_t j = 0; j < k_meshlet_add_seeds; ++j) {
-
 			if (best_neighbor_live_triangle_count < best_live_triangle_counts[j] || (best_neighbor_live_triangle_count == best_live_triangle_counts[j] && best_neighbor_score <= best_seed_scores[j])) {
 				best_seeds[j] = best_neighbor_triangle;
 				best_live_triangle_counts[j] = best_neighbor_live_triangle_count;
@@ -592,7 +590,6 @@ static void kdtree_nearest(kd_tree_node* nodes, unsigned int node_index, const f
 		return;
 
 	if (node.split_axis == 3) {
-
 		bool inactive = true;
 
 		for (unsigned int i = 0; i < node.child_offset; ++i) {
@@ -619,7 +616,6 @@ static void kdtree_nearest(kd_tree_node* nodes, unsigned int node_index, const f
 		if (inactive)
 			nodes[node_index].child_offset = 0;
 	} else {
-
 		float split_delta = query_position[node.split_axis] - node.split_position;
 		unsigned int first_child_offset = (split_delta <= 0) ? 0 : node.child_offset;
 		unsigned int second_child_offset = first_child_offset ^ node.child_offset;
@@ -685,7 +681,6 @@ static float box_merge(simd_bvh_bounds& bounds, const bvh_bounds& other_bounds) 
 #endif
 
 inline unsigned int radix_float(unsigned int v) {
-
 	unsigned int mask = (int(v) >> 31) | 0x80000000;
 	return v ^ mask;
 }
@@ -761,7 +756,6 @@ static void bvh_prepare(bvh_bounds* triangle_bounds, float* centroids, const uns
 }
 
 static size_t bvh_count_vertices(const unsigned int* order, size_t count, short* used, const unsigned int* indices, unsigned int* out = NULL) {
-
 	size_t used_vertices = 0;
 	for (size_t i = 0; i < count; ++i) {
 		unsigned int index = order[i];
@@ -785,7 +779,6 @@ static size_t bvh_count_vertices(const unsigned int* order, size_t count, short*
 }
 
 static void bvh_pack_leaf(unsigned char* boundary, size_t count) {
-
 	assert(count > 0);
 
 	boundary[0] = 1;
@@ -810,7 +803,6 @@ static void bvh_pack_tail(unsigned char* boundary, const unsigned int* order, si
 }
 
 static bool bvh_divisible(size_t count, size_t min, size_t max) {
-
 	return min * 2 <= max ? count >= min : count % min <= (count / min) * (max - min);
 }
 
@@ -904,7 +896,6 @@ static void bvh_split(const bvh_bounds* triangle_bounds, unsigned int* orderx, u
 		bvh_compute_area(areas, triangle_bounds, axes[k], count);
 
 		if (count <= max_triangles) {
-
 			vertices = reinterpret_cast<unsigned int*>(areas + 2 * count);
 			bvh_count_vertices(axes[k], count, used, indices, vertices);
 		}
@@ -1336,7 +1327,6 @@ mesh_bounds mesh_compute_cluster_bounds(const unsigned int* indices, size_t inde
 	float maxt = 0;
 
 	for (size_t i = 0; i < triangles; ++i) {
-
 		float cx = center[0] - corners[i][0][0];
 		float cy = center[1] - corners[i][0][1];
 		float cz = center[2] - corners[i][0][2];

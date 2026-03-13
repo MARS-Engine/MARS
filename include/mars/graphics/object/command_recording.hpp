@@ -16,12 +16,11 @@ class command_buffer_recording {
 	bool m_submitted = false;
 	bool m_has_event = false;
 
-      public:
+  public:
 	command_buffer_recording() = default;
 
-	command_buffer_recording(mars::command_buffer& cmd, const mars::device& dev,
-				 std::string_view name = {})
-	    : m_cmd(&cmd), m_device(&dev) {
+	command_buffer_recording(mars::command_buffer& cmd, const mars::device& dev, std::string_view name = {})
+		: m_cmd(&cmd), m_device(&dev) {
 		mars::graphics::command_buffer_reset(cmd);
 		mars::graphics::command_buffer_record(cmd);
 		if (!name.empty()) {
@@ -30,11 +29,8 @@ class command_buffer_recording {
 		}
 	}
 
-	command_buffer_recording(mars::graphics::object::command_pool& pool,
-				 const mars::device& dev,
-				 std::string_view name = {},
-				 size_t buffer_index = 0)
-	    : command_buffer_recording(pool.buffer(buffer_index), dev, name) {}
+	command_buffer_recording(mars::graphics::object::command_pool& pool, const mars::device& dev, std::string_view name = {}, size_t buffer_index = 0)
+		: command_buffer_recording(pool.buffer(buffer_index), dev, name) {}
 
 	~command_buffer_recording() {
 		if (!m_submitted && m_cmd)
@@ -45,7 +41,7 @@ class command_buffer_recording {
 	command_buffer_recording& operator=(const command_buffer_recording&) = delete;
 
 	command_buffer_recording(command_buffer_recording&& o) noexcept
-	    : m_cmd(o.m_cmd), m_device(o.m_device), m_submitted(o.m_submitted), m_has_event(o.m_has_event) { o.m_cmd = nullptr; }
+		: m_cmd(o.m_cmd), m_device(o.m_device), m_submitted(o.m_submitted), m_has_event(o.m_has_event) { o.m_cmd = nullptr; }
 
 	command_buffer_recording& operator=(command_buffer_recording&& o) noexcept {
 		if (this != &o) {

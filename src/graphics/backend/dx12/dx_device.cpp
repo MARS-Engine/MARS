@@ -17,30 +17,26 @@ device dx_device_impl::dx_device_create(graphics_engine& _engine) {
 	if (SUCCEEDED(hr)) {
 		debug_controller->EnableDebugLayer();
 		logger::log(dx12_channel, "debug layer enabled");
-	} else {
+	} 
+	else
 		logger::warning(dx12_channel, "debug layer not available (hr={:#x})", (unsigned long)hr);
-	}
 
-	hr = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&data->factory));
-	logger::error_if(FAILED(hr), dx12_channel, "CreateDXGIFactory2 failed (hr={:#x})", (unsigned long)hr);
+	hr = dx_expect<CreateDXGIFactory2>(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&data->factory));
 
-	hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&data->device));
-	logger::error_if(FAILED(hr), dx12_channel, "D3D12CreateDevice failed (hr={:#x})", (unsigned long)hr);
+	hr = dx_expect<D3D12CreateDevice>(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&data->device));
 
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC heap_desc = {};
 		heap_desc.NumDescriptors = dx_device_data::BINDLESS_TOTAL;
 		heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		hr = data->device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&data->bindless_heap));
-		logger::error_if(FAILED(hr), dx12_channel, "global bindless heap creation failed (hr={:#x})", (unsigned long)hr);
+		hr = dx_expect<&ID3D12Device::CreateDescriptorHeap>(data->device.Get(), &heap_desc, IID_PPV_ARGS(&data->bindless_heap));
 		data->bindless_descriptor_size = data->device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		logger::log(dx12_channel, "global bindless heap created ({} slots)", dx_device_data::BINDLESS_TOTAL);
 	}
 
 	Microsoft::WRL::ComPtr<ID3D12InfoQueue> info_queue;
 	if (SUCCEEDED(data->device.As(&info_queue))) {
-
 		info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, FALSE);
 		info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, FALSE);
 		logger::log(dx12_channel, "info queue configured (no break on error/corruption)");
@@ -86,9 +82,9 @@ static void print_debug_messages(ID3D12Device* device) {
 }
 
 void dx_device_impl::dx_device_submit(const device& _device, const command_buffer& _command_buffer) {
-	auto device_data = dx_expect_backend_data(_device.data.get<dx_device_data>(), __func__, "device.data");
-	auto cq_data = dx_expect_backend_data(device_data->command_queue_data.get<dx_command_queue_data>(), __func__, "device.command_queue_data");
-	auto cb_data = dx_expect_backend_data(_command_buffer.data.get<dx_command_buffer_data>(), __func__, "command_buffer.data");
+	auto device_data = _device.data.expect<dx_device_data>();
+	auto cq_data = device_data->command_queue_data.expect<dx_command_queue_data>();
+	auto cb_data = _command_buffer.data.expect<dx_command_buffer_data>();
 
 	ID3D12CommandList* lists[] = {cb_data->cmd_list.Get()};
 	cq_data->cmd_queue->ExecuteCommandLists(1, lists);
@@ -98,8 +94,8 @@ void dx_device_impl::dx_device_submit(const device& _device, const command_buffe
 }
 
 void dx_device_impl::dx_device_flush(const device& _device) {
-	auto device_data = dx_expect_backend_data(_device.data.get<dx_device_data>(), __func__, "device.data");
-	auto cq_data = dx_expect_backend_data(device_data->command_queue_data.get<dx_command_queue_data>(), __func__, "device.command_queue_data");
+	auto device_data = _device.data.expect<dx_device_data>();
+	auto cq_data = device_data->command_queue_data.expect<dx_command_queue_data>();
 
 	const UINT64 val = ++cq_data->fence_value;
 	cq_data->cmd_queue->Signal(cq_data->fence.Get(), val);
@@ -112,8 +108,12 @@ void dx_device_impl::dx_device_flush(const device& _device) {
 	print_debug_messages(device_data->device.Get());
 }
 
+bool dx_device_impl::dx_device_supports_feature(const device&, device_feature) {
+	return false;
+}
+
 void dx_device_impl::dx_device_destroy(device& _device) {
-	auto data = dx_expect_backend_data(_device.data.get<dx_device_data>(), __func__, "device.data");
+	auto data = _device.data.expect<dx_device_data>();
 	delete data;
 	_device = {};
 }

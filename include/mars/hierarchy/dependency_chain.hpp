@@ -14,11 +14,11 @@ struct dependency_entry {
 
 template <typename T>
 class dependency_chain {
-      private:
+  private:
 	std::vector<dependency_entry<T>> m_entries;
 	bool m_has_garbage = false;
 
-      public:
+  public:
 	dependency_chain() = default;
 
 	auto begin() const { return m_entries.begin(); }
@@ -40,7 +40,9 @@ class dependency_chain {
 	}
 
 	[[nodiscard]]
-	bool has_garbage() const { return m_has_garbage; }
+	bool has_garbage() const {
+		return m_has_garbage;
+	}
 
 	void mark_garbage(T* _ptr) {
 		for (size_t i = 0; i < m_entries.size(); i++) {

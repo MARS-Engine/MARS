@@ -40,9 +40,9 @@ void store_attribute(std::byte* data, size_t offset, const type& value) {
 
 inline mars::vector3<uint32_t> make_position_key(const mars::vector3<float>& position) {
 	return {
-	    std::bit_cast<uint32_t>(position.x),
-	    std::bit_cast<uint32_t>(position.y),
-	    std::bit_cast<uint32_t>(position.z),
+		std::bit_cast<uint32_t>(position.x),
+		std::bit_cast<uint32_t>(position.y),
+		std::bit_cast<uint32_t>(position.z),
 	};
 }
 

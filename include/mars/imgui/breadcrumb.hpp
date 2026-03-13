@@ -39,7 +39,7 @@ struct breadcrumb : public event<breadcrumb_event> {
 			crumbs.pop_back();
 	}
 
-      public:
+  public:
 	void set_path(const std::string& _new_location) {
 		location = _new_location;
 		update_crumbs();
@@ -53,9 +53,9 @@ struct breadcrumb : public event<breadcrumb_event> {
 
 			if (ImGui::Button(crumbs[i].c_str())) {
 				set_path(std::accumulate(std::next(crumbs.begin()), crumbs.begin() + i + 1, crumbs[0], [](std::string a, const std::string& b) {
-						 return std::move(a) + '/' + b;
-					 }) +
-					 "/");
+							 return std::move(a) + '/' + b;
+						 }) +
+						 "/");
 				broadcast<&breadcrumb_event::on_location_selected>(*this, location);
 				return;
 			}

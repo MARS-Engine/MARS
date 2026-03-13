@@ -12,7 +12,7 @@ namespace mars::graphics::object {
 class indirect_executor {
 	mars::indirect_executor m_ex{};
 
-      public:
+  public:
 	indirect_executor() = default;
 
 	static indirect_executor create(const mars::device& dev, mars_command_signature_type type) {
@@ -33,13 +33,11 @@ class indirect_executor {
 		return obj;
 	}
 
-	void record_dispatch(const mars::command_buffer& cmd, const mars::buffer& arg_buf,
-			     uint32_t max_count, const mars::buffer* count_buf = nullptr) const {
+	void record_dispatch(const mars::command_buffer& cmd, const mars::buffer& arg_buf, uint32_t max_count, const mars::buffer* count_buf = nullptr) const {
 		mars::graphics::indirect_executor_record_dispatch(m_ex, cmd, arg_buf, max_count, count_buf);
 	}
 
-	void record_draw_indexed(const mars::command_buffer& cmd, const mars::buffer& arg_buf,
-				 uint32_t max_count, const mars::buffer* count_buf = nullptr) const {
+	void record_draw_indexed(const mars::command_buffer& cmd, const mars::buffer& arg_buf, uint32_t max_count, const mars::buffer* count_buf = nullptr) const {
 		mars::graphics::indirect_executor_record_draw_indexed(m_ex, cmd, arg_buf, max_count, count_buf);
 	}
 

@@ -23,19 +23,22 @@ inline bool image_button(ImTextureID image_texture, const ImVec2& image_size, co
 
 	float spacing = ImGui::GetStyle().ItemInnerSpacing.y;
 	ImVec2 total_size = {
-	    std::max(image_size.x, text_size.x),
-	    image_size.y + spacing + text_size.y};
+		std::max(image_size.x, text_size.x),
+		image_size.y + spacing + text_size.y
+	};
 
 	ImGui::InvisibleButton(label, total_size);
 	bool pressed = ImGui::IsItemClicked();
 
 	ImVec2 image_pos = {
-	    cursor_pos.x + (total_size.x - image_size.x) * 0.5f,
-	    cursor_pos.y};
+		cursor_pos.x + (total_size.x - image_size.x) * 0.5f,
+		cursor_pos.y
+	};
 
 	ImVec2 text_pos = {
-	    cursor_pos.x + (total_size.x - text_size.x) * 0.5f,
-	    cursor_pos.y + image_size.y + spacing};
+		cursor_pos.x + (total_size.x - text_size.x) * 0.5f,
+		cursor_pos.y + image_size.y + spacing
+	};
 
 	draw_list->AddImage(image_texture, image_pos, ImVec2(image_pos.x + image_size.x, image_pos.y + image_size.y));
 	draw_list->AddText(text_pos, ImGui::GetColorU32(ImGuiCol_Text), label);
@@ -51,7 +54,7 @@ struct texture_browser_event {
 };
 
 class texture_browser : public event<texture_browser_event> {
-      private:
+  private:
 	breadcrumb path_breadcrumb;
 	std::vector<texture_browser_entry> entries;
 	std::string base_location;
@@ -60,7 +63,6 @@ class texture_browser : public event<texture_browser_event> {
 	std::string clicked;
 
 	inline void process_location() {
-
 		for (texture_browser_entry& entry : entries)
 			graphics::texture_destroy(entry.texture);
 		entries.clear();
@@ -90,7 +92,7 @@ class texture_browser : public event<texture_browser_event> {
 		_browser.process_location();
 	}
 
-      public:
+  public:
 	inline texture_browser(const std::string& _location, const std::string& _format = "") : location(_location), format(_format), path_breadcrumb(_location) {
 		path_breadcrumb.listen<&breadcrumb_event::on_location_changed, &texture_browser::on_breadcrumb_changed>(*this);
 		process_location();

@@ -1,22 +1,34 @@
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <mars/imgui/backend_bridge.hpp>
 
 #include <mars/graphics/backend/command_pool.hpp>
 #include <mars/graphics/backend/device.hpp>
 #include <mars/graphics/backend/dx12/dx_backend.hpp>
+#include <mars/graphics/backend/swapchain.hpp>
+#include <mars/graphics/backend/vk/vk_backend.hpp>
 #include <mars/graphics/functional/window.hpp>
 
 #include "../graphics/backend/dx12/dx_bindless_allocator.hpp"
 #include "../graphics/backend/dx12/dx_internal.hpp"
+#include "../graphics/backend/vk/vk_internal.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_dx12.h>
 #include <imgui_impl_sdl3.h>
+#include <imgui_impl_vulkan.h>
 
+#include <algorithm>
 #include <stdexcept>
 #include <vector>
 
 namespace mars::imgui {
 namespace {
+enum class backend_kind {
+	none,
+	dx12,
+	vulkan,
+};
 
 struct descriptor_allocator {
 	ID3D12DescriptorHeap* heap = nullptr;
@@ -54,15 +66,22 @@ struct descriptor_allocator {
 };
 
 struct backend_state {
+	backend_kind kind = backend_kind::none;
 	bool initialized = false;
 	const mars::device* device = nullptr;
-	descriptor_allocator descriptors;
+	const mars::swapchain* swapchain = nullptr;
+	descriptor_allocator dx_descriptors;
+	VkDescriptorPool vk_descriptor_pool = VK_NULL_HANDLE;
 };
 
 backend_state g_state;
 
 bool is_dx12_backend(const mars::device& device) {
-	return device.engine == mars::graphics::directx_12_t::get_functions();
+	return device.engine == mars::graphics::directx12_t::get_functions();
+}
+
+bool is_vulkan_backend(const mars::device& device) {
+	return device.engine == mars::graphics::vulkan_t::get_functions();
 }
 
 graphics::dx::dx_device_data* require_dx_device_data(const mars::device& device) {
@@ -81,20 +100,37 @@ graphics::dx::dx_command_buffer_data* require_dx_command_buffer_data(const mars:
 	return dx_cmd;
 }
 
+graphics::vk::vk_device_data* require_vk_device_data(const mars::device& device) {
+	if (!is_vulkan_backend(device))
+		throw std::runtime_error("mars::imgui: unsupported graphics backend");
+	auto* vk_device = device.data.get<graphics::vk::vk_device_data>();
+	if (!vk_device)
+		throw std::runtime_error("mars::imgui: missing Vulkan device data");
+	return vk_device;
+}
+
+graphics::vk::vk_command_buffer_data* require_vk_command_buffer_data(const mars::command_buffer& command_buffer) {
+	auto* vk_cmd = command_buffer.data.get<graphics::vk::vk_command_buffer_data>();
+	if (!vk_cmd)
+		throw std::runtime_error("mars::imgui: command buffer is not backed by Vulkan data");
+	return vk_cmd;
+}
+
+graphics::vk::vk_swapchain_data* require_vk_swapchain_data(const mars::swapchain& swapchain) {
+	auto* vk_swapchain = swapchain.data.get<graphics::vk::vk_swapchain_data>();
+	if (!vk_swapchain)
+		throw std::runtime_error("mars::imgui: swapchain is not backed by Vulkan data");
+	return vk_swapchain;
+}
 } // namespace
 
 bool backend_supported(const mars::device& device) {
-	return is_dx12_backend(device);
+	return is_dx12_backend(device) || is_vulkan_backend(device);
 }
 
-void initialize_backend(const mars::window& window, const mars::device& device, size_t frames_in_flight) {
+void initialize_backend(const mars::window& window, const mars::device& device, const mars::swapchain& swapchain, size_t frames_in_flight) {
 	if (g_state.initialized)
 		shutdown_backend();
-
-	auto* dx_device_data = require_dx_device_data(device);
-	auto* dx_queue_data = dx_device_data->command_queue_data.get<graphics::dx::dx_command_queue_data>();
-	if (!dx_queue_data)
-		throw std::runtime_error("mars::imgui: missing DX12 direct queue data");
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -105,32 +141,84 @@ void initialize_backend(const mars::window& window, const mars::device& device, 
 	io.Fonts->AddFontDefault();
 	ImGui::StyleColorsDark();
 
-	g_state.descriptors.create(dx_device_data, 8);
+	if (is_dx12_backend(device)) {
+		auto* dx_device_data = require_dx_device_data(device);
+		auto* dx_queue_data = dx_device_data->command_queue_data.get<graphics::dx::dx_command_queue_data>();
+		if (!dx_queue_data)
+			throw std::runtime_error("mars::imgui: missing DX12 direct queue data");
 
-	ImGui_ImplSDL3_InitForD3D(window.sdl_window);
+		g_state.dx_descriptors.create(dx_device_data, 8);
+		ImGui_ImplSDL3_InitForD3D(window.sdl_window);
 
-	ImGui_ImplDX12_InitInfo init = {};
-	init.Device = dx_device_data->device.Get();
-	init.CommandQueue = dx_queue_data->cmd_queue.Get();
-	init.NumFramesInFlight = static_cast<UINT>(frames_in_flight);
-	init.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-	init.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-	init.SrvDescriptorHeap = g_state.descriptors.heap;
-	init.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* cpu, D3D12_GPU_DESCRIPTOR_HANDLE* gpu) {
-		auto* state = static_cast<backend_state*>(info->UserData);
-		state->descriptors.alloc(cpu, gpu);
-	};
-	init.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE cpu, D3D12_GPU_DESCRIPTOR_HANDLE gpu) {
-		auto* state = static_cast<backend_state*>(info->UserData);
-		state->descriptors.free(cpu, gpu);
-	};
-	init.UserData = &g_state;
+		ImGui_ImplDX12_InitInfo init = {};
+		init.Device = dx_device_data->device.Get();
+		init.CommandQueue = dx_queue_data->cmd_queue.Get();
+		init.NumFramesInFlight = static_cast<UINT>(frames_in_flight);
+		init.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		init.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+		init.SrvDescriptorHeap = g_state.dx_descriptors.heap;
+		init.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* cpu, D3D12_GPU_DESCRIPTOR_HANDLE* gpu) {
+			auto* state = static_cast<backend_state*>(info->UserData);
+			state->dx_descriptors.alloc(cpu, gpu);
+		};
+		init.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE cpu, D3D12_GPU_DESCRIPTOR_HANDLE gpu) {
+			auto* state = static_cast<backend_state*>(info->UserData);
+			state->dx_descriptors.free(cpu, gpu);
+		};
+		init.UserData = &g_state;
 
-	if (!ImGui_ImplDX12_Init(&init))
-		throw std::runtime_error("mars::imgui: ImGui DX12 backend initialization failed");
+		if (!ImGui_ImplDX12_Init(&init))
+			throw std::runtime_error("mars::imgui: ImGui DX12 backend initialization failed");
+
+		g_state.kind = backend_kind::dx12;
+	} else if (is_vulkan_backend(device)) {
+		auto* vk_device_data = require_vk_device_data(device);
+		auto* vk_swapchain_data = require_vk_swapchain_data(swapchain);
+
+		ImGui_ImplSDL3_InitForVulkan(window.sdl_window);
+
+		VkDescriptorPoolSize pool_size = {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 128u};
+		VkDescriptorPoolCreateInfo pool_info = {};
+		pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		pool_info.maxSets = 128u;
+		pool_info.poolSizeCount = 1u;
+		pool_info.pPoolSizes = &pool_size;
+		if (vkCreateDescriptorPool(vk_device_data->device, &pool_info, nullptr, &g_state.vk_descriptor_pool) != VK_SUCCESS)
+			throw std::runtime_error("mars::imgui: failed to create Vulkan descriptor pool");
+
+		VkFormat color_format = vk_swapchain_data->format;
+		VkPipelineRenderingCreateInfo rendering_info = {};
+		rendering_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+		rendering_info.colorAttachmentCount = 1u;
+		rendering_info.pColorAttachmentFormats = &color_format;
+
+		ImGui_ImplVulkan_InitInfo init = {};
+		init.ApiVersion = VK_API_VERSION_1_3;
+		init.Instance = vk_device_data->instance;
+		init.PhysicalDevice = vk_device_data->physical_device;
+		init.Device = vk_device_data->device;
+		init.QueueFamily = vk_device_data->direct_queue.family_index;
+		init.Queue = vk_device_data->direct_queue.queue;
+		init.DescriptorPool = g_state.vk_descriptor_pool;
+		init.MinImageCount = static_cast<uint32_t>((std::max)(swapchain.swapchain_size, size_t{2}));
+		init.ImageCount = static_cast<uint32_t>(swapchain.swapchain_size);
+		init.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+		init.UseDynamicRendering = true;
+		init.PipelineRenderingCreateInfo = rendering_info;
+		init.MinAllocationSize = 1024 * 1024;
+
+		if (!ImGui_ImplVulkan_Init(&init))
+			throw std::runtime_error("mars::imgui: ImGui Vulkan backend initialization failed");
+
+		g_state.kind = backend_kind::vulkan;
+	} else {
+		throw std::runtime_error("mars::imgui: unsupported graphics backend");
+	}
 
 	g_state.initialized = true;
 	g_state.device = &device;
+	g_state.swapchain = &swapchain;
 }
 
 void process_sdl_event(const SDL_Event& event) {
@@ -141,7 +229,18 @@ void process_sdl_event(const SDL_Event& event) {
 void new_frame() {
 	if (!g_state.initialized)
 		return;
-	ImGui_ImplDX12_NewFrame();
+
+	switch (g_state.kind) {
+	case backend_kind::dx12:
+		ImGui_ImplDX12_NewFrame();
+		break;
+	case backend_kind::vulkan:
+		ImGui_ImplVulkan_NewFrame();
+		break;
+	case backend_kind::none:
+		return;
+	}
+
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
 }
@@ -149,21 +248,43 @@ void new_frame() {
 void render_draw_data(const mars::command_buffer& command_buffer) {
 	if (!g_state.initialized)
 		return;
-	auto* dx_cmd = require_dx_command_buffer_data(command_buffer);
-	if (!g_state.descriptors.heap)
-		throw std::runtime_error("mars::imgui: missing shader-visible descriptor heap");
-	ID3D12DescriptorHeap* heaps[] = {g_state.descriptors.heap};
-	dx_cmd->cmd_list->SetDescriptorHeaps(1, heaps);
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dx_cmd->cmd_list.Get());
+
+	switch (g_state.kind) {
+	case backend_kind::dx12: {
+		auto* dx_cmd = require_dx_command_buffer_data(command_buffer);
+		if (!g_state.dx_descriptors.heap)
+			throw std::runtime_error("mars::imgui: missing shader-visible descriptor heap");
+		ID3D12DescriptorHeap* heaps[] = {g_state.dx_descriptors.heap};
+		dx_cmd->cmd_list->SetDescriptorHeaps(1, heaps);
+		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dx_cmd->cmd_list.Get());
+		break;
+	}
+	case backend_kind::vulkan: {
+		auto* vk_cmd = require_vk_command_buffer_data(command_buffer);
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), vk_cmd->command_buffer);
+		break;
+	}
+	case backend_kind::none:
+		break;
+	}
 }
 
 void shutdown_backend() {
 	if (!g_state.initialized)
 		return;
-	ImGui_ImplDX12_Shutdown();
+
+	if (g_state.kind == backend_kind::dx12)
+		ImGui_ImplDX12_Shutdown();
+	else if (g_state.kind == backend_kind::vulkan) {
+		ImGui_ImplVulkan_Shutdown();
+		if (g_state.vk_descriptor_pool != VK_NULL_HANDLE) {
+			auto* device_data = require_vk_device_data(*g_state.device);
+			vkDestroyDescriptorPool(device_data->device, g_state.vk_descriptor_pool, nullptr);
+		}
+	}
+
 	ImGui_ImplSDL3_Shutdown();
 	ImGui::DestroyContext();
 	g_state = {};
 }
-
 } // namespace mars::imgui

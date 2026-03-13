@@ -7,7 +7,7 @@ namespace mars {
 template <typename R, typename... Args>
 	requires((std::is_reference_v<Args> || std::is_pointer_v<Args>) && ...)
 struct type_erased_fn {
-      public:
+  public:
 	R (*m_ptr)(Args...);
 
 	constexpr void clear() {

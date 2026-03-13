@@ -11,7 +11,7 @@ class upload_ring {
 	mars::upload_ring ring_{};
 	const mars::device* dev_ = nullptr;
 
-      public:
+  public:
 	upload_ring() = default;
 
 	static upload_ring create(const mars::device& dev, size_t capacity = 64 * 1024 * 1024) {

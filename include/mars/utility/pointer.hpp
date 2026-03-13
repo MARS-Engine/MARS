@@ -5,17 +5,19 @@
 namespace mars {
 template <typename T>
 class pointer {
-      private:
+  private:
 	uintptr_t m_ptr = 0;
 
 	T* get_unmarked_ptr() const { return reinterpret_cast<T*>(m_ptr & ~1); }
 
-      public:
+  public:
 	pointer() = default;
 	pointer(T* _ptr) : m_ptr(reinterpret_cast<uintptr_t>(_ptr)) {}
 
 	[[nodiscard]]
-	bool is_marked() const { return (m_ptr & 1) == true; }
+	bool is_marked() const {
+		return (m_ptr & 1) == true;
+	}
 	void mark() { m_ptr |= 1; }
 
 	T* get() { return get_unmarked_ptr(); }

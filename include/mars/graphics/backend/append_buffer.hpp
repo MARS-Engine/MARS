@@ -15,7 +15,6 @@ struct append_buffer_base {
 };
 
 struct append_buffer_impl {
-
 	append_buffer_base (*append_buffer_create)(const device& dev, size_t elem_size, uint32_t capacity) = nullptr;
 	void (*append_buffer_reset_counter)(const append_buffer_base& ab, const command_buffer& cmd) = nullptr;
 	const buffer& (*append_buffer_get_counter_buffer)(const append_buffer_base& ab) = nullptr;

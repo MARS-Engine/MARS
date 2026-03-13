@@ -17,6 +17,10 @@ inline void device_flush(const device& _device) {
 	return _device.engine->get_impl<device_impl>().device_flush(_device);
 }
 
+inline bool device_supports_feature(const device& _device, device_feature feature) {
+	return _device.engine->get_impl<device_impl>().device_supports_feature(_device, feature);
+}
+
 inline void device_destroy(device& _device) {
 	return _device.engine->get_impl<device_impl>().device_destroy(_device);
 }

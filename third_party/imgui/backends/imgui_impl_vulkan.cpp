@@ -797,19 +797,24 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureData* tex) {
 
         // Copy to Image:
         {
-            VkBufferMemoryBarrier upload_barrier[1] = {};
-            upload_barrier[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-            upload_barrier[0].srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-            upload_barrier[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            VkBufferMemoryBarrier2 upload_barrier[1] = {};
+            upload_barrier[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+            upload_barrier[0].srcStageMask = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_HOST_BIT;
+            upload_barrier[0].srcAccessMask = VK_ACCESS_2_HOST_WRITE_BIT;
+            upload_barrier[0].dstStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+            upload_barrier[0].dstAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT;
             upload_barrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
             upload_barrier[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
             upload_barrier[0].buffer = upload_buffer;
             upload_barrier[0].offset = 0;
             upload_barrier[0].size = upload_size;
 
-            VkImageMemoryBarrier copy_barrier[1] = {};
-            copy_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            copy_barrier[0].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            VkImageMemoryBarrier2 copy_barrier[1] = {};
+            copy_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+            copy_barrier[0].srcStageMask = VK_PIPELINE_STAGE_2_NONE;
+            copy_barrier[0].srcAccessMask = VK_ACCESS_2_NONE;
+            copy_barrier[0].dstStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+            copy_barrier[0].dstAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
             copy_barrier[0].oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             copy_barrier[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             copy_barrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -818,7 +823,14 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureData* tex) {
             copy_barrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             copy_barrier[0].subresourceRange.levelCount = 1;
             copy_barrier[0].subresourceRange.layerCount = 1;
-            vkCmdPipelineBarrier(bd->TexCommandBuffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 1, upload_barrier, 1, copy_barrier);
+
+            VkDependencyInfo copy_dependency = {};
+            copy_dependency.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+            copy_dependency.bufferMemoryBarrierCount = 1;
+            copy_dependency.pBufferMemoryBarriers = upload_barrier;
+            copy_dependency.imageMemoryBarrierCount = 1;
+            copy_dependency.pImageMemoryBarriers = copy_barrier;
+            vkCmdPipelineBarrier2(bd->TexCommandBuffer, &copy_dependency);
 
             VkBufferImageCopy region = {};
             region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -830,10 +842,12 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureData* tex) {
             region.imageOffset.y = upload_y;
             vkCmdCopyBufferToImage(bd->TexCommandBuffer, upload_buffer, backend_tex->Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-            VkImageMemoryBarrier use_barrier[1] = {};
-            use_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            use_barrier[0].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            use_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            VkImageMemoryBarrier2 use_barrier[1] = {};
+            use_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+            use_barrier[0].srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+            use_barrier[0].srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+            use_barrier[0].dstStageMask = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT;
+            use_barrier[0].dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT;
             use_barrier[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             use_barrier[0].newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             use_barrier[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -842,7 +856,12 @@ void ImGui_ImplVulkan_UpdateTexture(ImTextureData* tex) {
             use_barrier[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             use_barrier[0].subresourceRange.levelCount = 1;
             use_barrier[0].subresourceRange.layerCount = 1;
-            vkCmdPipelineBarrier(bd->TexCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, use_barrier);
+
+            VkDependencyInfo use_dependency = {};
+            use_dependency.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+            use_dependency.imageMemoryBarrierCount = 1;
+            use_dependency.pImageMemoryBarriers = use_barrier;
+            vkCmdPipelineBarrier2(bd->TexCommandBuffer, &use_dependency);
         }
 
         // End command buffer
@@ -1739,8 +1758,12 @@ void ImGui_ImplVulkanH_CreateOrResizeWindow(VkInstance instance, VkPhysicalDevic
 
     // Transition the images to the correct layout for rendering
     for (uint32_t i = 0; i < wd->ImageCount; i++) {
-        VkImageMemoryBarrier barrier = {};
-        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        VkImageMemoryBarrier2 barrier = {};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+        barrier.srcStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT;
+        barrier.srcAccessMask = VK_ACCESS_2_NONE;
+        barrier.dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+        barrier.dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
         barrier.image = wd->Frames[i].Backbuffer;
         barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -1749,7 +1772,12 @@ void ImGui_ImplVulkanH_CreateOrResizeWindow(VkInstance instance, VkPhysicalDevic
         barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         barrier.subresourceRange.levelCount = 1;
         barrier.subresourceRange.layerCount = 1;
-        vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+        VkDependencyInfo dependency_info = {};
+        dependency_info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+        dependency_info.imageMemoryBarrierCount = 1;
+        dependency_info.pImageMemoryBarriers = &barrier;
+        vkCmdPipelineBarrier2(command_buffer, &dependency_info);
     }
 
     err = vkEndCommandBuffer(command_buffer);

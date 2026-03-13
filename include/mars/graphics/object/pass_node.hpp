@@ -14,16 +14,16 @@ namespace mars {
 
 template <typename LayoutT, typename ShaderT, typename PassDescT>
 class raster_pass_node {
-      public:
+  public:
 	using layout_type = LayoutT;
 	using tag_type = PassDescT;
 	static constexpr bool is_compute = false;
 
 	raster_pass_node(const device& dev, const render_pass& rp)
-	    : m_device(dev),
-	      m_shader(dev),
-	      m_factory(dev, static_cast<const mars::shader&>(m_shader), rp),
-	      m_render_pass(rp) {}
+		: m_device(dev),
+		  m_shader(dev),
+		  m_factory(dev, static_cast<const mars::shader&>(m_shader), rp),
+		  m_render_pass(rp) {}
 
 	~raster_pass_node() { destroy(); }
 
@@ -58,7 +58,7 @@ class raster_pass_node {
 		m_device = {};
 	}
 
-      private:
+  private:
 	device m_device;
 	mars::graphics::object::shader<ShaderT> m_shader;
 	pipeline_factory<LayoutT> m_factory;
@@ -68,15 +68,15 @@ class raster_pass_node {
 
 template <typename LayoutT, typename ShaderT>
 class compute_pass_node {
-      public:
+  public:
 	using layout_type = LayoutT;
 	using tag_type = LayoutT;
 	static constexpr bool is_compute = true;
 
 	explicit compute_pass_node(const device& dev)
-	    : m_device(dev),
-	      m_shader(dev),
-	      m_factory(dev, static_cast<const mars::shader&>(m_shader)) {}
+		: m_device(dev),
+		  m_shader(dev),
+		  m_factory(dev, static_cast<const mars::shader&>(m_shader)) {}
 
 	~compute_pass_node() { destroy(); }
 
@@ -105,7 +105,7 @@ class compute_pass_node {
 		m_device = {};
 	}
 
-      private:
+  private:
 	device m_device;
 	mars::graphics::object::shader<ShaderT> m_shader;
 	compute_pipeline_factory<LayoutT> m_factory;

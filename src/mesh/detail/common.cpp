@@ -49,8 +49,9 @@ std::vector<working_vertex> make_working_vertices(const raw_simplify_input& inpu
 }
 
 std::vector<uint8_t> build_vertex_flags(
-    const raw_simplify_input& input,
-    const std::vector<working_vertex>& vertices) {
+	const raw_simplify_input& input,
+	const std::vector<working_vertex>& vertices
+) {
 	std::vector<uint8_t> flags(vertices.size(), 0u);
 	std::unordered_map<mars::vector3<uint32_t>, uint32_t> representative_vertices;
 	representative_vertices.reserve(vertices.size());
@@ -62,8 +63,8 @@ std::vector<uint8_t> build_vertex_flags(
 		auto [it, inserted] = representative_vertices.emplace(make_position_key(vertices[i].position), i);
 		if (!inserted) {
 			if ((input.has_uv && uv_seam(vertices[it->second], vertices[i])) ||
-			    (input.has_normal && normal_seam(vertices[it->second], vertices[i])) ||
-			    (input.has_tangent && tangent_handedness_seam(vertices[it->second], vertices[i]))) {
+				(input.has_normal && normal_seam(vertices[it->second], vertices[i])) ||
+				(input.has_tangent && tangent_handedness_seam(vertices[it->second], vertices[i]))) {
 				flags[i] |= vertex_flag_protect;
 				flags[it->second] |= vertex_flag_protect;
 			}

@@ -30,29 +30,30 @@ struct simplify_result {
 
 template <typename vertex_type>
 simplify_result<vertex_type> simplify_mesh(
-    std::span<const vertex_type> vertices,
-    std::span<const uint32_t> indices,
-    const simplify_settings& settings) {
+	std::span<const vertex_type> vertices,
+	std::span<const uint32_t> indices,
+	const simplify_settings& settings
+) {
 	detail::vertex_layout<vertex_type>::validate();
 
 	const detail::raw_simplify_input input = {
-	    .vertex_bytes = std::as_bytes(vertices),
-	    .vertex_stride = sizeof(vertex_type),
-	    .indices = indices,
-	    .target_triangle_count = settings.target_triangle_count,
-	    .position_offset = detail::vertex_layout<vertex_type>::position_offset(),
-	    .position_has_w = detail::vertex_layout<vertex_type>::has_vec4_position,
-	    .has_normal = detail::vertex_layout<vertex_type>::has_normal,
-	    .normal_offset = detail::vertex_layout<vertex_type>::normal_offset(),
-	    .has_uv = detail::vertex_layout<vertex_type>::has_uv,
-	    .uv_offset = detail::vertex_layout<vertex_type>::uv_offset(),
-	    .has_tangent = detail::vertex_layout<vertex_type>::has_tangent,
-	    .tangent_offset = detail::vertex_layout<vertex_type>::tangent_offset(),
-	    .locked_mask = settings.locked_mask,
-	    .normal_weight = settings.normal_weight,
-	    .uv_weight = settings.uv_weight,
-	    .regularization_weight = settings.regularization_weight,
-	    .allow_permissive_retry = settings.allow_permissive_retry,
+		.vertex_bytes = std::as_bytes(vertices),
+		.vertex_stride = sizeof(vertex_type),
+		.indices = indices,
+		.target_triangle_count = settings.target_triangle_count,
+		.position_offset = detail::vertex_layout<vertex_type>::position_offset(),
+		.position_has_w = detail::vertex_layout<vertex_type>::has_vec4_position,
+		.has_normal = detail::vertex_layout<vertex_type>::has_normal,
+		.normal_offset = detail::vertex_layout<vertex_type>::normal_offset(),
+		.has_uv = detail::vertex_layout<vertex_type>::has_uv,
+		.uv_offset = detail::vertex_layout<vertex_type>::uv_offset(),
+		.has_tangent = detail::vertex_layout<vertex_type>::has_tangent,
+		.tangent_offset = detail::vertex_layout<vertex_type>::tangent_offset(),
+		.locked_mask = settings.locked_mask,
+		.normal_weight = settings.normal_weight,
+		.uv_weight = settings.uv_weight,
+		.regularization_weight = settings.regularization_weight,
+		.allow_permissive_retry = settings.allow_permissive_retry,
 	};
 
 	const detail::raw_simplify_result raw = detail::simplify_mesh_raw(input);

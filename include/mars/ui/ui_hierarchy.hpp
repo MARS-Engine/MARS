@@ -17,12 +17,12 @@ namespace mars {
 namespace ui {
 
 class ui_hierarchy {
-      private:
+  private:
 	dependency_chain<widget_flex> widget_chain;
 
 	sparse_vector<widget_flex, 64> widget_data;
 
-      public:
+  public:
 	auto begin() const { return widget_chain.begin(); }
 	auto end() const { return widget_chain.end(); }
 
@@ -58,11 +58,11 @@ class ui_hierarchy {
 			flex_entry.entry->apply_render_changes(render_rect);
 
 			_data[i] = mars::ui_instance_data{
-			    .position = {render_rect.xy() + parents.top().offset, 100.0f - i * 0.01f},
-			    .size = render_rect.zw(),
-			    .uv_rect = {},
-			    .color = flex_entry.entry->colour,
-			    .radius = {10.0f},
+				.position = {render_rect.xy() + parents.top().offset, 100.0f - i * 0.01f},
+				.size = render_rect.zw(),
+				.uv_rect = {},
+				.color = flex_entry.entry->colour,
+				.radius = {10.0f},
 			};
 
 			flex_entry.entry->apply_offset(*parents.top().ptr->entry, parents.top().offset, render_rect);

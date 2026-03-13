@@ -86,7 +86,6 @@ static DXGI_FORMAT mars_format_to_dxgi(mars_format_type fmt) {
 
 static D3D12_SHADER_VISIBILITY stage_to_visibility(mars_pipeline_stage stage) {
 	switch (stage) {
-
 	case MARS_PIPELINE_STAGE_VERTEX:
 	case MARS_PIPELINE_STAGE_FRAGMENT:
 	case MARS_PIPELINE_STAGE_COMPUTE:
@@ -96,9 +95,9 @@ static D3D12_SHADER_VISIBILITY stage_to_visibility(mars_pipeline_stage stage) {
 }
 
 pipeline dx_pipeline_impl::dx_pipeline_create(const device& _device, const render_pass& _render_pass, const pipeline_setup& _setup) {
-	auto device_data = dx_expect_backend_data(_device.data.get<dx_device_data>(), __func__, "device.data");
-	auto shader_data = dx_expect_backend_data(_setup.pipeline_shader.data.get<dx_shader_data>(), __func__, "pipeline_shader.data");
-	auto rp_data = dx_expect_backend_data(_render_pass.data.get<dx_render_pass_data>(), __func__, "render_pass.data");
+	auto device_data = _device.data.expect<dx_device_data>();
+	auto shader_data = _setup.pipeline_shader.data.expect<dx_shader_data>();
+	auto rp_data = _render_pass.data.expect<dx_render_pass_data>();
 	auto data = new dx_pipeline_data();
 
 	if (!shader_data->vertex_shader || !shader_data->pixel_shader) {
@@ -110,12 +109,13 @@ pipeline dx_pipeline_impl::dx_pipeline_create(const device& _device, const rende
 	}
 
 	const bool root_signature_ok = dx_build_root_signature(
-	    device_data->device.Get(),
-	    _setup,
-	    data,
-	    D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-		D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED,
-	    "graphics");
+		device_data->device.Get(),
+		_setup,
+		data,
+		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+			D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED,
+		"graphics"
+	);
 	if (!root_signature_ok || !data->root_signature) {
 		logger::error(dx12_channel, "Graphics pipeline creation failed: root signature creation failed");
 		pipeline result;
@@ -197,7 +197,7 @@ pipeline dx_pipeline_impl::dx_pipeline_create(const device& _device, const rende
 		pso_desc.DepthStencilState.DepthEnable = _setup.depth_test_enable ? TRUE : FALSE;
 	if (_setup.has_depth_write_override)
 		pso_desc.DepthStencilState.DepthWriteMask =
-		    _setup.depth_write_enable ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+			_setup.depth_write_enable ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 	if (_setup.has_depth_compare_override)
 		pso_desc.DepthStencilState.DepthFunc = mars_compare_op_to_dx12(_setup.depth_compare);
 	if (_setup.has_alpha_blend_override && _setup.alpha_blend_enable) {
@@ -222,20 +222,10 @@ pipeline dx_pipeline_impl::dx_pipeline_create(const device& _device, const rende
 	pso_desc.CachedPSO.CachedBlobSizeInBytes = 0;
 	pso_desc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-	HRESULT hr = device_data->device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&data->pipeline_state));
-	logger::error_if(FAILED(hr), dx12_channel, "CreateGraphicsPipelineState failed (hr={:#x})", (unsigned long)hr);
+	HRESULT hr = dx_expect<&ID3D12Device::CreateGraphicsPipelineState>(device_data->device.Get(), &pso_desc, IID_PPV_ARGS(&data->pipeline_state));
 	if (FAILED(hr)) {
 		dump_dx12_info_queue(device_data->device.Get());
-		logger::error(dx12_channel,
-			      "PSO diagnostics: rootSig={} VS={} ({}) PS={} ({}) RTVFormat={} DSVFormat={} NumRT={}",
-			      (void*)data->root_signature.Get(),
-			      (void*)shader_data->vertex_shader.Get(),
-			      shader_data->vertex_shader_path,
-			      (void*)shader_data->pixel_shader.Get(),
-			      shader_data->pixel_shader_path,
-			      (int)pso_desc.RTVFormats[0],
-			      (int)pso_desc.DSVFormat,
-			      (unsigned)pso_desc.NumRenderTargets);
+		logger::error(dx12_channel, "PSO diagnostics: rootSig={} VS={} ({}) PS={} ({}) RTVFormat={} DSVFormat={} NumRT={}", (void*)data->root_signature.Get(), (void*)shader_data->vertex_shader.Get(), shader_data->vertex_shader_path, (void*)shader_data->pixel_shader.Get(), shader_data->pixel_shader_path, (int)pso_desc.RTVFormats[0], (int)pso_desc.DSVFormat, (unsigned)pso_desc.NumRenderTargets);
 	}
 
 	pipeline result;
@@ -245,8 +235,8 @@ pipeline dx_pipeline_impl::dx_pipeline_create(const device& _device, const rende
 }
 
 void dx_pipeline_impl::dx_pipeline_bind(const pipeline& _pipeline, const command_buffer& _command_buffer, const pipeline_bind_params& _params) {
-	auto pipeline_data = dx_expect_backend_data(_pipeline.data.get<dx_pipeline_data>(), __func__, "pipeline.data");
-	auto cb_data = dx_expect_backend_data(_command_buffer.data.get<dx_command_buffer_data>(), __func__, "command_buffer.data");
+	auto pipeline_data = _pipeline.data.expect<dx_pipeline_data>();
+	auto cb_data = _command_buffer.data.expect<dx_command_buffer_data>();
 	if (!pipeline_data->root_signature || !pipeline_data->pipeline_state) {
 		logger::error(dx12_channel, "Attempted to bind invalid graphics pipeline");
 		return;
@@ -266,7 +256,7 @@ void dx_pipeline_impl::dx_pipeline_bind(const pipeline& _pipeline, const command
 }
 
 void dx_pipeline_impl::dx_pipeline_destroy(pipeline& _pipeline, const device& _device) {
-	auto data = dx_expect_backend_data(_pipeline.data.get<dx_pipeline_data>(), __func__, "pipeline.data");
+	auto data = _pipeline.data.expect<dx_pipeline_data>();
 	delete data;
 	_pipeline = {};
 }

@@ -15,10 +15,7 @@ inline uint32_t texture_get_uav_base(const mars::texture& texture) {
 	return texture.engine->get_impl<mars::texture_impl>().texture_get_uav_base(texture);
 }
 
-inline void texture_transition(const mars::command_buffer& command_buffer,
-			       mars::texture& texture,
-			       mars_texture_state before,
-			       mars_texture_state after) {
+inline void texture_transition(const mars::command_buffer& command_buffer, mars::texture& texture, mars_texture_state before, mars_texture_state after) {
 	texture.engine->get_impl<mars::texture_impl>().texture_transition(command_buffer, texture, before, after);
 }
 
@@ -29,10 +26,10 @@ class mapped_texture {
 	mars::texture* m_tex = nullptr;
 	mars::device m_device = {};
 
-      public:
+  public:
 	mapped_texture() = default;
 	mapped_texture(mars::texture& tex, const mars::device& dev)
-	    : m_tex(&tex), m_device(dev) {
+		: m_tex(&tex), m_device(dev) {
 		m_raw = mars::graphics::texture_map(tex, dev);
 		m_layout = mars::graphics::texture_get_upload_layout(tex, dev);
 		m_data = static_cast<uint8_t*>(m_raw) + m_layout.offset;
@@ -43,7 +40,7 @@ class mapped_texture {
 	mapped_texture& operator=(const mapped_texture&) = delete;
 
 	mapped_texture(mapped_texture&& o) noexcept
-	    : m_raw(o.m_raw), m_data(o.m_data), m_layout(o.m_layout), m_tex(o.m_tex), m_device(o.m_device) { o.m_raw = nullptr; }
+		: m_raw(o.m_raw), m_data(o.m_data), m_layout(o.m_layout), m_tex(o.m_tex), m_device(o.m_device) { o.m_raw = nullptr; }
 
 	mapped_texture& operator=(mapped_texture&& o) noexcept {
 		if (this != &o) {
@@ -71,7 +68,7 @@ class mapped_texture {
 };
 
 class texture {
-      public:
+  public:
 	mars::texture_create_params params;
 
 	texture() = default;
@@ -79,7 +76,7 @@ class texture {
 	explicit texture(const mars::texture_create_params& p) : params(p) {}
 
 	texture(const mars::device& device, const mars::texture_create_params& p)
-	    : params(p) { create(device); }
+		: params(p) { create(device); }
 
 	void create(const mars::device& device) {
 		_device = device;
@@ -121,9 +118,7 @@ class texture {
 				std::memcpy(mapped, src, layout.row_count * layout.row_size);
 			else
 				for (size_t y = 0; y < layout.row_count; ++y)
-					std::memcpy(mapped + y * layout.row_pitch,
-						    src + y * layout.row_size,
-						    layout.row_size);
+					std::memcpy(mapped + y * layout.row_pitch, src + y * layout.row_size, layout.row_size);
 			mars::graphics::texture_unmap(_texture, _device);
 		}
 	}
@@ -166,12 +161,11 @@ class texture {
 		mars::graphics::texture_copy(_texture, dummy, rec.get(), 0);
 	}
 
-	void transition(command_buffer_recording& rec,
-			mars_texture_state before, mars_texture_state after) {
+	void transition(command_buffer_recording& rec, mars_texture_state before, mars_texture_state after) {
 		mars::graphics::object::texture_transition(rec.get(), _texture, before, after);
 	}
 
-      private:
+  private:
 	mars::texture _texture = {};
 	mars::device _device = {};
 };

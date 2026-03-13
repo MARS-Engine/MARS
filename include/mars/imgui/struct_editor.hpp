@@ -69,12 +69,13 @@ bool render_scalar_input(const char* label, T& value, const char* format = nullp
 	static_assert(is_supported_scalar_v<T>);
 	using scalar_t = std::remove_cvref_t<T>;
 	return ImGui::InputScalar(
-	    label,
-	    imgui_scalar_traits<scalar_t>::type,
-	    &value,
-	    nullptr,
-	    nullptr,
-	    format ? format : imgui_scalar_traits<scalar_t>::default_format);
+		label,
+		imgui_scalar_traits<scalar_t>::type,
+		&value,
+		nullptr,
+		nullptr,
+		format ? format : imgui_scalar_traits<scalar_t>::default_format
+	);
 }
 
 template <typename T>
@@ -84,12 +85,13 @@ bool render_scalar_slider(const char* label, T& value, const slider_annotation<T
 	scalar_t min = annotation.min;
 	scalar_t max = annotation.max;
 	const bool changed = ImGui::SliderScalar(
-	    label,
-	    imgui_scalar_traits<scalar_t>::type,
-	    &value,
-	    &min,
-	    &max,
-	    annotation.format ? annotation.format : imgui_scalar_traits<scalar_t>::default_format);
+		label,
+		imgui_scalar_traits<scalar_t>::type,
+		&value,
+		&min,
+		&max,
+		annotation.format ? annotation.format : imgui_scalar_traits<scalar_t>::default_format
+	);
 	if (annotation.callback)
 		annotation.callback(value);
 	return changed;
@@ -102,13 +104,14 @@ bool render_scalar_drag(const char* label, T& value, const drag_annotation<T>& a
 	scalar_t min = annotation.min;
 	scalar_t max = annotation.max;
 	const bool changed = ImGui::DragScalar(
-	    label,
-	    imgui_scalar_traits<scalar_t>::type,
-	    &value,
-	    annotation.speed,
-	    &min,
-	    &max,
-	    annotation.format ? annotation.format : imgui_scalar_traits<scalar_t>::default_format);
+		label,
+		imgui_scalar_traits<scalar_t>::type,
+		&value,
+		annotation.speed,
+		&min,
+		&max,
+		annotation.format ? annotation.format : imgui_scalar_traits<scalar_t>::default_format
+	);
 	if (annotation.callback)
 		annotation.callback(value);
 	return changed;
@@ -139,16 +142,16 @@ bool render_leaf(const char* label, T& value, bool disabled) {
 
 template <typename T>
 struct struct_editor_base {
-      protected:
+  protected:
 	T* ref;
 
-      public:
+  public:
 	struct_editor_base()
-	    : ref(nullptr) {
+		: ref(nullptr) {
 	}
 
 	explicit struct_editor_base(T& value)
-	    : ref(&value) {
+		: ref(&value) {
 	}
 
 	void set_ref(T& value) { ref = &value; }
@@ -156,10 +159,10 @@ struct struct_editor_base {
 
 template <typename T>
 struct struct_editor : public struct_editor_base<T> {
-      public:
+  public:
 	using struct_editor_base<T>::struct_editor_base;
 
-      public:
+  public:
 	bool render_contents() {
 		if (!this->ref)
 			return false;
@@ -223,7 +226,7 @@ struct struct_editor : public struct_editor_base<T> {
 		return changed;
 	}
 
-      public:
+  public:
 	bool render(const std::string_view& label) {
 		const std::string text(label);
 		if constexpr (std::is_class_v<T>) {
@@ -311,12 +314,13 @@ struct struct_editor<std::string> : public struct_editor_base<std::string> {
 
 		if (this->ref)
 			return ImGui::InputText(
-			    label.data(),
-			    this->ref->data(),
-			    this->ref->size() + 1u,
-			    ImGuiInputTextFlags_CallbackResize,
-			    input_text_callback,
-			    this->ref);
+				label.data(),
+				this->ref->data(),
+				this->ref->size() + 1u,
+				ImGuiInputTextFlags_CallbackResize,
+				input_text_callback,
+				this->ref
+			);
 		return false;
 	}
 };

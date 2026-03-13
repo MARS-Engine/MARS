@@ -27,6 +27,18 @@ inline void* buffer_map(buffer& _buffer, const device& _device, size_t _size, si
 	return _buffer.engine->get_impl<buffer_impl>().buffer_map(_buffer, _device, _size, _offset);
 }
 
+inline uint32_t buffer_get_uav_index(const buffer& _buffer) {
+	return _buffer.engine->get_impl<buffer_impl>().buffer_get_uav_index(_buffer);
+}
+
+inline uint32_t buffer_get_srv_index(const buffer& _buffer) {
+	return _buffer.engine->get_impl<buffer_impl>().buffer_get_srv_index(_buffer);
+}
+
+inline void buffer_transition(const command_buffer& _command_buffer, const buffer& _buffer, mars_buffer_state _state) {
+	return _buffer.engine->get_impl<buffer_impl>().buffer_transition(_command_buffer, _buffer, _state);
+}
+
 inline void buffer_unmap(buffer& _buffer, const device& _device) {
 	return _buffer.engine->get_impl<buffer_impl>().buffer_unmap(_buffer, _device);
 }

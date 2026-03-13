@@ -1,0 +1,23 @@
+target_sources(
+    mars
+    PRIVATE
+        vk_append_buffer.cpp
+        vk_backend.cpp
+        vk_buffer.cpp
+        vk_command_pool.cpp
+        vk_command_queue.cpp
+        vk_compute_pipeline.cpp
+        vk_descriptor.cpp
+        vk_device.cpp
+        vk_framebuffer.cpp
+        vk_indirect_executor.cpp
+        vk_pipeline.cpp
+        vk_readback_buffer.cpp
+        vk_render_pass.cpp
+        vk_shader.cpp
+        vk_swapchain.cpp
+        vk_texture.cpp
+        vk_timeline_fence.cpp
+        vk_upload_ring.cpp
+        vk_window.cpp
+)

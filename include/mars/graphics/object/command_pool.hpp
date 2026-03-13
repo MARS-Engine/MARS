@@ -11,7 +11,7 @@ class command_pool {
 	std::vector<command_buffer> m_buffers;
 	mars::device m_device{};
 
-      public:
+  public:
 	command_pool() = default;
 
 	static command_pool create(const mars::device& device, size_t command_buffer_count = 0) {
@@ -26,7 +26,7 @@ class command_pool {
 	command_pool& operator=(const command_pool&) = delete;
 
 	command_pool(command_pool&& other) noexcept
-	    : m_pool(other.m_pool), m_buffers(std::move(other.m_buffers)), m_device(other.m_device) {
+		: m_pool(other.m_pool), m_buffers(std::move(other.m_buffers)), m_device(other.m_device) {
 		other.m_pool = {};
 	}
 

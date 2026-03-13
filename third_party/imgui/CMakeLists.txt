@@ -11,6 +11,7 @@ target_sources(
 
 if(WIN32)
     target_sources(mars PRIVATE backends/imgui_impl_dx12.cpp)
+    target_sources(mars PRIVATE backends/imgui_impl_vulkan.cpp)
 endif()
 
 target_include_directories(mars PRIVATE . ./backends)

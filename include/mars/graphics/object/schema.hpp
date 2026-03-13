@@ -31,7 +31,8 @@ struct push_constants_type {
 	mars_pipeline_stage stage;
 };
 
-struct writes_uav {};
+struct writes_uav {
+};
 
 template <typename ProducerTag>
 struct reads_from {
@@ -52,7 +53,8 @@ struct rp_size {
 	size_t height = 0;
 };
 
-struct rp_uses_swapchain {};
+struct rp_uses_swapchain {
+};
 
 struct rp_clear_color {
 	vector4<float> color = {0.0f, 0.0f, 0.0f, 1.0f};

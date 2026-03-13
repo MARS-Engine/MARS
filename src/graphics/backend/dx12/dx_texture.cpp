@@ -24,7 +24,7 @@ static DXGI_FORMAT mars_format_to_dxgi_tex(mars_format_type fmt) {
 }
 
 texture dx_texture_impl::dx_texture_create(const device& _device, const texture_create_params& _params) {
-	auto device_data = dx_expect_backend_data(_device.data.get<dx_device_data>(), __func__, "device.data");
+	auto device_data = _device.data.expect<dx_device_data>();
 	auto data = new dx_texture_data();
 	data->format = mars_format_to_dxgi_tex(_params.format);
 	data->texture_type = _params.texture_type;
@@ -50,14 +50,13 @@ texture dx_texture_impl::dx_texture_create(const device& _device, const texture_
 	D3D12_HEAP_PROPERTIES default_heap = {};
 	default_heap.Type = D3D12_HEAP_TYPE_DEFAULT;
 
-	D3D12_RESOURCE_STATES initial_state = ((_params.usage & MARS_TEXTURE_USAGE_TRANSFER_DST) == MARS_TEXTURE_USAGE_TRANSFER_DST)
-						  ? D3D12_RESOURCE_STATE_COPY_DEST
-						  : D3D12_RESOURCE_STATE_COMMON;
+	D3D12_RESOURCE_STATES initial_state = ((_params.usage & MARS_TEXTURE_USAGE_TRANSFER_DST) == MARS_TEXTURE_USAGE_TRANSFER_DST) ? D3D12_RESOURCE_STATE_COPY_DEST : D3D12_RESOURCE_STATE_COMMON;
+	data->dx12_state = initial_state;
 
 	D3D12_CLEAR_VALUE rt_clear_value = {};
 	D3D12_CLEAR_VALUE* p_clear_value = nullptr;
 	if ((tex_desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) &&
-	    !(tex_desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)) {
+		!(tex_desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)) {
 		rt_clear_value.Format = data->format;
 		rt_clear_value.Color[0] = _params.clear_color.x;
 		rt_clear_value.Color[1] = _params.clear_color.y;
@@ -66,8 +65,7 @@ texture dx_texture_impl::dx_texture_create(const device& _device, const texture_
 		p_clear_value = &rt_clear_value;
 	}
 
-	device_data->device->CreateCommittedResource(&default_heap, D3D12_HEAP_FLAG_NONE,
-						     &tex_desc, initial_state, p_clear_value, IID_PPV_ARGS(&data->resource));
+	device_data->device->CreateCommittedResource(&default_heap, D3D12_HEAP_FLAG_NONE, &tex_desc, initial_state, p_clear_value, IID_PPV_ARGS(&data->resource));
 
 	if ((_params.usage & MARS_TEXTURE_USAGE_TRANSFER_DST) == MARS_TEXTURE_USAGE_TRANSFER_DST) {
 		D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
@@ -89,8 +87,7 @@ texture dx_texture_impl::dx_texture_create(const device& _device, const texture_
 		D3D12_HEAP_PROPERTIES upload_heap = {};
 		upload_heap.Type = D3D12_HEAP_TYPE_UPLOAD;
 
-		device_data->device->CreateCommittedResource(&upload_heap, D3D12_HEAP_FLAG_NONE,
-							     &upload_desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&data->upload_resource));
+		device_data->device->CreateCommittedResource(&upload_heap, D3D12_HEAP_FLAG_NONE, &upload_desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&data->upload_resource));
 	}
 
 	assert(device_data->bindless_heap && "global bindless heap must be created before any texture");
@@ -121,13 +118,14 @@ texture dx_texture_impl::dx_texture_create(const device& _device, const texture_
 		srv_desc.Texture2D.MipLevels = (UINT)std::max<size_t>(1, data->mip_levels);
 		srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
 	}
+	
 	device_data->device->CreateShaderResourceView(data->resource.Get(), &srv_desc, srv_cpu);
 
 	UINT uav_base = UINT32_MAX;
 	if ((_params.usage & MARS_TEXTURE_USAGE_STORAGE) == MARS_TEXTURE_USAGE_STORAGE) {
 		const UINT total_slices = (data->texture_type == MARS_TEXTURE_TYPE_CUBE)
-					      ? 6u * (UINT)data->array_size
-					      : (UINT)data->array_size;
+									  ? 6u * (UINT)data->array_size
+									  : (UINT)data->array_size;
 		const UINT total_uav_descriptors = (UINT)data->mip_levels * total_slices;
 		uav_base = dx_allocate_bindless_uav_range(device_data, total_uav_descriptors);
 		data->uav_bindless_base = uav_base;
@@ -182,21 +180,27 @@ static D3D12_RESOURCE_STATES texture_state_to_dx12(mars_texture_state state) {
 }
 
 void dx_texture_impl::dx_texture_transition(const command_buffer& _command_buffer, texture& _texture, mars_texture_state _before, mars_texture_state _after) {
-	auto cb_data = dx_expect_backend_data(_command_buffer.data.get<dx_command_buffer_data>(), __func__, "command_buffer.data");
-	auto tex_data = dx_expect_backend_data(_texture.data.get<dx_texture_data>(), __func__, "texture.data");
+	auto cb_data = _command_buffer.data.expect<dx_command_buffer_data>();
+	auto tex_data = _texture.data.expect<dx_texture_data>();
+	(void)_before;
+
+	const D3D12_RESOURCE_STATES after_state = texture_state_to_dx12(_after);
+	if (tex_data->dx12_state == after_state)
+		return;
 
 	D3D12_RESOURCE_BARRIER barrier = {};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Transition.pResource = tex_data->resource.Get();
-	barrier.Transition.StateBefore = texture_state_to_dx12(_before);
-	barrier.Transition.StateAfter = texture_state_to_dx12(_after);
+	barrier.Transition.StateBefore = tex_data->dx12_state;
+	barrier.Transition.StateAfter = after_state;
 	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	cb_data->cmd_list->ResourceBarrier(1, &barrier);
+	tex_data->dx12_state = after_state;
 }
 
 void dx_texture_impl::dx_texture_copy(texture& _texture, buffer& _src_buffer, const command_buffer& _command_buffer, size_t _offset) {
-	auto tex_data = dx_expect_backend_data(_texture.data.get<dx_texture_data>(), __func__, "texture.data");
-	auto cb_data = dx_expect_backend_data(_command_buffer.data.get<dx_command_buffer_data>(), __func__, "command_buffer.data");
+	auto tex_data = _texture.data.expect<dx_texture_data>();
+	auto cb_data = _command_buffer.data.expect<dx_command_buffer_data>();
 	if (!tex_data->upload_resource)
 		return;
 
@@ -225,7 +229,7 @@ void dx_texture_impl::dx_texture_copy(texture& _texture, buffer& _src_buffer, co
 }
 
 void* dx_texture_impl::dx_texture_map(texture& _texture, const device& _device) {
-	auto data = dx_expect_backend_data(_texture.data.get<dx_texture_data>(), __func__, "texture.data");
+	auto data = _texture.data.expect<dx_texture_data>();
 	if (!data->upload_resource)
 		return nullptr;
 	void* mapped_data = nullptr;
@@ -236,15 +240,15 @@ void* dx_texture_impl::dx_texture_map(texture& _texture, const device& _device) 
 }
 
 void dx_texture_impl::dx_texture_unmap(texture& _texture, const device& _device) {
-	auto data = dx_expect_backend_data(_texture.data.get<dx_texture_data>(), __func__, "texture.data");
+	auto data = _texture.data.expect<dx_texture_data>();
 	if (!data->upload_resource)
 		return;
 	data->upload_resource->Unmap(0, nullptr);
 }
 
 texture_upload_layout dx_texture_impl::dx_texture_get_upload_layout(texture& _texture, const device& _device) {
-	auto tex_data = dx_expect_backend_data(_texture.data.get<dx_texture_data>(), __func__, "texture.data");
-	auto device_data = dx_expect_backend_data(_device.data.get<dx_device_data>(), __func__, "device.data");
+	auto tex_data = _texture.data.expect<dx_texture_data>();
+	auto device_data = _device.data.expect<dx_device_data>();
 
 	texture_upload_layout layout = {};
 	if (!tex_data->upload_resource)
@@ -265,18 +269,18 @@ texture_upload_layout dx_texture_impl::dx_texture_get_upload_layout(texture& _te
 }
 
 uint32_t dx_texture_impl::dx_texture_get_srv_index(const texture& _texture) {
-	auto data = dx_expect_backend_data(_texture.data.get<dx_texture_data>(), __func__, "texture.data");
+	auto data = _texture.data.expect<dx_texture_data>();
 	return data->srv_bindless_idx;
 }
 
 uint32_t dx_texture_impl::dx_texture_get_uav_base(const texture& _texture) {
-	auto data = dx_expect_backend_data(_texture.data.get<dx_texture_data>(), __func__, "texture.data");
+	auto data = _texture.data.expect<dx_texture_data>();
 	return data->uav_bindless_base;
 }
 
 void dx_texture_impl::dx_texture_destroy(texture& _texture, const device& _device) {
-	auto data = dx_expect_backend_data(_texture.data.get<dx_texture_data>(), __func__, "texture.data");
-	auto* device_data = dx_expect_backend_data(_device.data.get<dx_device_data>(), __func__, "device.data");
+	auto data = _texture.data.expect<dx_texture_data>();
+	auto* device_data = _device.data.expect<dx_device_data>();
 	dx_release_bindless_srv_slot(device_data, data->srv_bindless_idx);
 	dx_release_bindless_uav_range(device_data, data->uav_bindless_base, data->uav_descriptor_count);
 	delete data;

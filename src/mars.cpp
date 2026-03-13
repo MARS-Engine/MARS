@@ -1,1 +1,2 @@
-namespace mars {}
+namespace mars {
+}

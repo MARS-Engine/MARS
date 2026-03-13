@@ -32,15 +32,18 @@ struct event_storage {
 				continue;
 
 			result.push_back(
-			    std::meta::substitute(
-				^^helper,
-				std::meta::parameters_of(mem) | std::views::transform(std::meta::type_of) | std::ranges::to<std::vector>()));
+				std::meta::substitute(
+					^^helper,
+					std::meta::parameters_of(mem) | std::views::transform(std::meta::type_of) | std::ranges::to<std::vector>()
+				)
+			);
 		}
 
 		// define storage as struct { std::vector<helper<Args...>>, repeat for each function in T }
 		std::meta::define_aggregate(^^storage, std::views::transform(result, [](auto t) {
 			return std::meta::data_member_spec(
-			    std::meta::substitute(^^std::vector, {*std::views::single(t).data()}));
+				std::meta::substitute(^^std::vector, {*std::views::single(t).data()})
+			);
 		}));
 	}
 
@@ -88,7 +91,7 @@ struct event : public event_storage<T> {
 		return false;
 	}
 
-      public:
+  public:
 	template <auto MemberPtr, auto F, typename C>
 		requires(std::is_same_v<T, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_parent>)
 	bool is_bound(C& _object) {

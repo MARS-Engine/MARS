@@ -14,9 +14,9 @@ inline const log_channel& array_stack_heap_allocator_channel() {
 
 template <size_t capacity>
 class array_stack_heap_allocator {
-      public:
+  public:
 	array_stack_heap_allocator()
-	    : blocks(), count(0) {
+		: blocks(), count(0) {
 	}
 
 	~array_stack_heap_allocator() {
@@ -40,7 +40,7 @@ class array_stack_heap_allocator {
 		count--;
 	}
 
-      private:
+  private:
 	void* blocks[capacity];
 	size_t count;
 };

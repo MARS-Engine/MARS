@@ -8,7 +8,8 @@ struct struct_editor_annotation {
 	bool skip = false;
 };
 
-struct readonly_annotation {};
+struct readonly_annotation {
+};
 
 struct group_annotation {
 	const char* label = nullptr;
@@ -41,38 +42,40 @@ inline consteval readonly_annotation readonly() {
 
 inline consteval group_annotation group(const char* label, bool default_open = true) {
 	return {
-	    .label = std::define_static_string(label),
-	    .default_open = default_open,
+		.label = std::define_static_string(label),
+		.default_open = default_open,
 	};
 }
 
 template <typename T>
 consteval slider_annotation<T> slider(
-    T min,
-    T max,
-    widget_callback_t<T> callback = nullptr,
-    const char* format = nullptr) {
+	T min,
+	T max,
+	widget_callback_t<T> callback = nullptr,
+	const char* format = nullptr
+) {
 	return {
-	    .min = min,
-	    .max = max,
-	    .format = format,
-	    .callback = callback,
+		.min = min,
+		.max = max,
+		.format = format,
+		.callback = callback,
 	};
 }
 
 template <typename T>
 consteval drag_annotation<T> drag(
-    float speed,
-    T min,
-    T max,
-    widget_callback_t<T> callback = nullptr,
-    const char* format = nullptr) {
+	float speed,
+	T min,
+	T max,
+	widget_callback_t<T> callback = nullptr,
+	const char* format = nullptr
+) {
 	return {
-	    .speed = speed,
-	    .min = min,
-	    .max = max,
-	    .format = format,
-	    .callback = callback,
+		.speed = speed,
+		.min = min,
+		.max = max,
+		.format = format,
+		.callback = callback,
 	};
 }
 

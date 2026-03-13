@@ -14,12 +14,7 @@ inline log_channel& dx_root_signature_channel() {
 }
 
 template <typename SetupT, typename PipelineDataT>
-inline bool dx_build_root_signature(
-    ID3D12Device* device,
-    const SetupT& setup,
-    PipelineDataT* out_data,
-    D3D12_ROOT_SIGNATURE_FLAGS flags,
-    const char* label) {
+inline bool dx_build_root_signature(ID3D12Device* device, const SetupT& setup, PipelineDataT* out_data, D3D12_ROOT_SIGNATURE_FLAGS flags, const char* label) {
 	std::vector<D3D12_ROOT_PARAMETER1> root_params;
 
 	for (const auto& desc : setup.descriptors) {
@@ -75,27 +70,13 @@ inline bool dx_build_root_signature(
 
 	Microsoft::WRL::ComPtr<ID3DBlob> signature;
 	Microsoft::WRL::ComPtr<ID3DBlob> error;
-	if (FAILED(D3D12SerializeVersionedRootSignature(&versioned_desc, &signature, &error))) {
+	if (FAILED(dx_expect<D3D12SerializeVersionedRootSignature>(&versioned_desc, &signature, &error))) {
 		if (error)
-			logger::error(
-			    dx_root_signature_channel(),
-			    "{} root signature serialization failed: {}",
-			    label,
-			    static_cast<const char*>(error->GetBufferPointer()));
+			logger::error(dx_root_signature_channel(), "{} root signature serialization failed: {}", label, static_cast<const char*>(error->GetBufferPointer()));
 		return false;
 	}
 
-	const HRESULT hr = device->CreateRootSignature(
-	    0,
-	    signature->GetBufferPointer(),
-	    signature->GetBufferSize(),
-	    IID_PPV_ARGS(&out_data->root_signature));
-	logger::error_if(
-	    FAILED(hr),
-	    dx_root_signature_channel(),
-	    "CreateRootSignature ({}) failed (hr={:#x})",
-	    label,
-	    static_cast<unsigned long>(hr));
+	const HRESULT hr = dx_expect<&ID3D12Device::CreateRootSignature>(device, 0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&out_data->root_signature));
 	return SUCCEEDED(hr);
 }
 

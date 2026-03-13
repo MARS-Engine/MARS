@@ -7,35 +7,23 @@
 
 namespace mars::graphics::object {
 
-inline uint32_t buffer_get_uav_index(const mars::buffer& buffer) {
-	return buffer.engine->get_impl<mars::buffer_impl>().buffer_get_uav_index(buffer);
-}
-
-inline uint32_t buffer_get_srv_index(const mars::buffer& buffer) {
-	return buffer.engine->get_impl<mars::buffer_impl>().buffer_get_srv_index(buffer);
-}
-
-inline void buffer_transition(const mars::command_buffer& command_buffer, const mars::buffer& buffer, mars_buffer_state state) {
-	buffer.engine->get_impl<mars::buffer_impl>().buffer_transition(command_buffer, buffer, state);
-}
-
 template <typename T>
 class buffer {
 	mars::buffer m_buffer = {};
 	mars::device m_device = {};
 	size_t m_count = 0;
 
-      public:
+  public:
 	buffer() = default;
 
 	buffer(const mars::device& dev, uint32_t buffer_type, uint32_t buffer_property, size_t count = 1)
-	    : m_device(dev), m_count(count) {
+		: m_device(dev), m_count(count) {
 		m_buffer = mars::graphics::buffer_create(dev, {
-								  .buffer_type = buffer_type,
-								  .buffer_property = buffer_property,
-								  .allocated_size = sizeof(T) * count,
-								  .stride = sizeof(T),
-							      });
+														  .buffer_type = buffer_type,
+														  .buffer_property = buffer_property,
+														  .allocated_size = sizeof(T) * count,
+														  .stride = sizeof(T),
+													  });
 	}
 
 	~buffer() {
@@ -47,7 +35,7 @@ class buffer {
 	buffer& operator=(const buffer&) = delete;
 
 	buffer(buffer&& o) noexcept
-	    : m_buffer(o.m_buffer), m_device(o.m_device), m_count(o.m_count) { o.m_buffer = {}; }
+		: m_buffer(o.m_buffer), m_device(o.m_device), m_count(o.m_count) { o.m_buffer = {}; }
 
 	buffer& operator=(buffer&& o) noexcept {
 		if (this != &o) {
@@ -75,7 +63,8 @@ class buffer {
 
 	mars::mapped_buffer<T> map() {
 		T* p = static_cast<T*>(
-		    mars::graphics::buffer_map(m_buffer, m_device, sizeof(T) * m_count, 0));
+			mars::graphics::buffer_map(m_buffer, m_device, sizeof(T) * m_count, 0)
+		);
 		return mars::mapped_buffer<T>(p, &m_buffer, m_device);
 	}
 
@@ -86,10 +75,16 @@ class buffer {
 	mars::buffer& get() { return m_buffer; }
 	const mars::buffer& get() const { return m_buffer; }
 	void transition(const mars::command_buffer& command_buffer, mars_buffer_state state) const {
-		mars::graphics::object::buffer_transition(command_buffer, m_buffer, state);
+		mars::graphics::buffer_transition(command_buffer, m_buffer, state);
 	}
-	uint32_t get_uav_index() const { return mars::graphics::object::buffer_get_uav_index(m_buffer); }
-	uint32_t get_srv_index() const { return mars::graphics::object::buffer_get_srv_index(m_buffer); }
+	void bind(const mars::command_buffer& command_buffer) const {
+		mars::graphics::buffer_bind(const_cast<mars::buffer&>(m_buffer), command_buffer);
+	}
+	void bind_index(const mars::command_buffer& command_buffer) const {
+		mars::graphics::buffer_bind_index(const_cast<mars::buffer&>(m_buffer), command_buffer);
+	}
+	uint32_t get_uav_index() const { return mars::graphics::buffer_get_uav_index(m_buffer); }
+	uint32_t get_srv_index() const { return mars::graphics::buffer_get_srv_index(m_buffer); }
 };
 
 } // namespace mars::graphics::object

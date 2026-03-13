@@ -8,8 +8,9 @@ template <typename T>
 concept is_function_ptr = std::is_pointer_v<T> && std::is_function_v<std::remove_pointer_t<T>>;
 
 struct type_erased_fn {
-      private:
-	struct empty {};
+  private:
+	struct empty {
+	};
 
 	std::byte data[sizeof(void (*)())]{};
 
@@ -21,7 +22,7 @@ struct type_erased_fn {
 		logger::assert_(detail::type_erasure_channel, "attempted to get type {} but {} is stored", _value, std::meta::display_string_of(^^T));
 	}
 
-      public:
+  public:
 	type_erased_fn() {
 		if (!environment::is_shipping)
 			id = nullptr;

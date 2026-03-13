@@ -68,9 +68,10 @@ T dot(const vector3<T>& _left, const vector3<T>& _right) {
 template <typename T>
 vector3<T> cross(const vector3<T>& _left, const vector3<T>& _right) {
 	return vector3<T>(
-	    _left.y * _right.z - _right.y * _left.z,
-	    _left.z * _right.x - _right.z * _left.x,
-	    _left.x * _right.y - _right.x * _left.y);
+		_left.y * _right.z - _right.y * _left.z,
+		_left.z * _right.x - _right.z * _left.x,
+		_left.x * _right.y - _right.x * _left.y
+	);
 }
 
 template <typename T>

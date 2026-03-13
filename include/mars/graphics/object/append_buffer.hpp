@@ -3,6 +3,7 @@
 #include <mars/graphics/backend/append_buffer.hpp>
 #include <mars/graphics/backend/buffer.hpp>
 #include <mars/graphics/backend/command_pool.hpp>
+#include <mars/graphics/functional/buffer.hpp>
 #include <mars/graphics/backend/graphics_backend.hpp>
 
 #include <cstdint>
@@ -14,7 +15,7 @@ class append_buffer {
 	mars::append_buffer_base m_ab{};
 	const mars::device* m_dev = nullptr;
 
-      public:
+  public:
 	append_buffer() = default;
 
 	static append_buffer create(const mars::device& dev, uint32_t capacity) {
@@ -35,6 +36,19 @@ class append_buffer {
 	const mars::buffer& get_data() const {
 		return m_ab.engine->get_impl<append_buffer_impl>().append_buffer_get_data_buffer(m_ab);
 	}
+
+	void transition_data(const mars::command_buffer& command_buffer, mars_buffer_state state) const {
+		mars::graphics::buffer_transition(command_buffer, get_data(), state);
+	}
+
+	void transition_counter(const mars::command_buffer& command_buffer, mars_buffer_state state) const {
+		mars::graphics::buffer_transition(command_buffer, get_counter(), state);
+	}
+
+	uint32_t get_data_uav_index() const { return mars::graphics::buffer_get_uav_index(get_data()); }
+	uint32_t get_counter_uav_index() const { return mars::graphics::buffer_get_uav_index(get_counter()); }
+	uint32_t get_data_srv_index() const { return mars::graphics::buffer_get_srv_index(get_data()); }
+	uint32_t get_counter_srv_index() const { return mars::graphics::buffer_get_srv_index(get_counter()); }
 
 	void destroy() {
 		if (m_ab.engine && m_dev)

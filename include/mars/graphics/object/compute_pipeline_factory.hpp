@@ -11,12 +11,12 @@ namespace mars {
 
 template <typename T>
 class compute_pipeline_factory {
-      private:
+  private:
 	compute_pipeline m_pipeline;
 	device m_device;
 	descriptor_create_params m_pool_params;
 
-      public:
+  public:
 	compute_pipeline_factory(const device& _device, const shader& _shader) : m_device(_device) {
 		compute_pipeline_setup setup;
 		setup.pipeline_shader = _shader;
@@ -33,9 +33,8 @@ class compute_pipeline_factory {
 				constexpr bool is_uav = meta::has_annotation<graphics::writes_uav>(mem);
 				if constexpr (std::is_same_v<C, texture>) {
 					layout.descriptor_type = is_uav ? MARS_PIPELINE_DESCRIPTOR_TYPE_STORAGE_IMAGE
-									: MARS_PIPELINE_DESCRIPTOR_TYPE_IMAGE_SAMPLER;
-					++m_pool_params.descriptors_size[is_uav ? MARS_DESCRIPTOR_TYPE_STORAGE_IMAGE
-										: MARS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER];
+													: MARS_PIPELINE_DESCRIPTOR_TYPE_IMAGE_SAMPLER;
+					++m_pool_params.descriptors_size[is_uav ? MARS_DESCRIPTOR_TYPE_STORAGE_IMAGE : MARS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER];
 				} else {
 					layout.descriptor_type = MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 					++m_pool_params.descriptors_size[MARS_DESCRIPTOR_TYPE_UNIFORM_BUFFER];

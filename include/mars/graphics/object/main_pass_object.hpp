@@ -15,9 +15,9 @@ class main_pass_object {
 	mars::render_pass_builder<PassTag> m_pass_builder;
 	swapchain_framebuffer_set<PassTag> m_framebuffers;
 
-      public:
+  public:
 	main_pass_object(const device& dev, const object::swapchain& sc)
-	    : m_device(dev), m_pass_builder(dev, sc.format()), m_framebuffers(swapchain_framebuffer_set<PassTag>::create(dev, sc, m_pass_builder.get())) {}
+		: m_device(dev), m_pass_builder(dev, sc.format()), m_framebuffers(swapchain_framebuffer_set<PassTag>::create(dev, sc, m_pass_builder.get())) {}
 
 	~main_pass_object() { destroy_all(); }
 
@@ -26,8 +26,7 @@ class main_pass_object {
 
 	const render_pass& render_pass() const { return m_pass_builder.get(); }
 
-	void recreate_framebuffers(const device& dev,
-				   const object::swapchain& sc) {
+	void recreate_framebuffers(const device& dev, const object::swapchain& sc) {
 		m_device = dev;
 		m_framebuffers.recreate(dev, sc, m_pass_builder.get());
 	}
@@ -42,9 +41,9 @@ class main_pass_object {
 
 	render_pass_bind_param default_bind_params(size_t image_index) const {
 		return {
-		    .image_index = image_index,
-		    .clear_color = pass_desc_traits<PassTag>::clear_color,
-		    .clear_depth = pass_desc_traits<PassTag>::clear_depth,
+			.image_index = image_index,
+			.clear_color = pass_desc_traits<PassTag>::clear_color,
+			.clear_depth = pass_desc_traits<PassTag>::clear_depth,
 		};
 	}
 

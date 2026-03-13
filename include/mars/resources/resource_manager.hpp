@@ -5,14 +5,14 @@
 namespace mars {
 
 struct resource_token {
-      private:
+  private:
 	size_t* m_counter;
 
 	explicit resource_token(size_t* _counter) : m_counter(_counter) {}
 
 	friend class resource_manager;
 
-      public:
+  public:
 	resource_token() = delete;
 	~resource_token() { m_counter--; }
 	resource_token(const resource_token&) = delete;
@@ -22,8 +22,8 @@ struct resource_token {
 };
 
 class resource_manager {
-      private:
-      public:
+  private:
+  public:
 	template <typename T>
 	resource_token load_resource(const std::string_view& _path) {
 		resource_token counter = resource_token(new size_t());

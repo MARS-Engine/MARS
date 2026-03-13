@@ -11,12 +11,18 @@
 
 namespace mars::mesh {
 
-struct position {};
-struct normal {};
-struct uv {};
-struct texcoord {};
-struct tangent {};
-struct ignore {};
+struct position {
+};
+struct normal {
+};
+struct uv {
+};
+struct texcoord {
+};
+struct tangent {
+};
+struct ignore {
+};
 
 namespace detail {
 

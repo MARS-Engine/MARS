@@ -7,7 +7,7 @@ namespace mars::graphics::object {
 
 template <typename T>
 class shader {
-      public:
+  public:
 	shader(const mars::device& device) : _device(device) {
 		_shader = mars::graphics::shader_create<T>(_device);
 	}
@@ -43,7 +43,7 @@ class shader {
 		return _shader;
 	}
 
-      private:
+  private:
 	mars::shader _shader;
 	mars::device _device;
 };

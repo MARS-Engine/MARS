@@ -26,10 +26,20 @@ inline mars::log_channel& dx12_log_channel() {
 	return channel;
 }
 
-template <typename T>
-inline T* dx_expect_backend_data(T* data, const char* function_name, const char* handle_name) {
-	mars::logger::assert_(data != nullptr, dx12_log_channel(), "{} called with null {}", function_name, handle_name);
-	return data;
+template <auto Function, typename... Args>
+inline HRESULT dx_expect(Args&&... args) {
+	return mars::logger::log_expect<Function>(dx12_log_channel(), [](HRESULT result) { return SUCCEEDED(result); }, std::forward<Args>(args)...);
+}
+
+template <auto FunctionMember, typename Object, typename... Args>
+	requires(std::is_member_function_pointer_v<decltype(FunctionMember)>)
+inline HRESULT dx_expect(Object&& object, Args&&... args) {
+	return mars::logger::log_expect<FunctionMember>(dx12_log_channel(), std::forward<Object>(object), [](HRESULT result) { return SUCCEEDED(result); }, std::forward<Args>(args)...);
+}
+
+template <typename Function, typename... Args>
+inline HRESULT dx_expect(Function&& function, Args&&... args) {
+	return mars::logger::log_expect(dx12_log_channel(), std::forward<Function>(function), [](HRESULT result) { return SUCCEEDED(result); }, std::forward<Args>(args)...);
 }
 
 struct dx_framebuffer_data;
@@ -131,11 +141,11 @@ struct dx_readback_buffer_data {
 inline dx_command_queue_data* dx_get_queue(dx_device_data* dev, mars_command_queue_type type) {
 	switch (type) {
 	case MARS_COMMAND_QUEUE_DIRECT:
-		return dev->command_queue_data.get<dx_command_queue_data>();
+		return dev->command_queue_data.expect<dx_command_queue_data>();
 	case MARS_COMMAND_QUEUE_COMPUTE:
-		return dev->compute_queue_data.get<dx_command_queue_data>();
+		return dev->compute_queue_data.expect<dx_command_queue_data>();
 	case MARS_COMMAND_QUEUE_COPY:
-		return dev->copy_queue_data.get<dx_command_queue_data>();
+		return dev->copy_queue_data.expect<dx_command_queue_data>();
 	}
 	return nullptr;
 }
@@ -216,6 +226,7 @@ struct dx_texture_data {
 	UINT srv_bindless_idx = UINT32_MAX;
 	UINT uav_bindless_base = UINT32_MAX;
 	UINT uav_descriptor_count = 0;
+	D3D12_RESOURCE_STATES dx12_state = D3D12_RESOURCE_STATE_COMMON;
 };
 
 struct dx_render_pass_data {
@@ -227,6 +238,7 @@ struct dx_render_pass_data {
 struct dx_framebuffer_data {
 	D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = {};
 	Microsoft::WRL::ComPtr<ID3D12Resource> render_target;
+	dx_texture_data* render_target_texture = nullptr;
 	D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle = {};
 	Microsoft::WRL::ComPtr<ID3D12Resource> depth_target;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsv_heap;
@@ -235,7 +247,8 @@ struct dx_framebuffer_data {
 	D3D12_RESOURCE_STATES before_render_state = D3D12_RESOURCE_STATE_COMMON;
 };
 
-struct dx_descriptor_data {};
+struct dx_descriptor_data {
+};
 
 struct dx_descriptor_set_data {
 	std::vector<std::pair<size_t, D3D12_GPU_VIRTUAL_ADDRESS>> cbv_bindings;

@@ -22,10 +22,10 @@ struct entity {
 
 template <typename T>
 struct entity_component_storage {
-      private:
+  private:
 	inline static mars::log_channel log_entity_channel = "game/entity_component_storage/";
 
-      public:
+  public:
 	std::vector<uint32_t> entities;
 	std::vector<T> data;
 	std::unordered_map<std::uint32_t, std::size_t> lookup;
@@ -78,7 +78,7 @@ struct entity_component_storage {
 };
 
 class engine {
-      private:
+  private:
 	struct entity_slot {
 		uint32_t generation;
 		bool alive;
@@ -108,7 +108,7 @@ class engine {
 		return {idx, entities[idx].generation};
 	}
 
-      public:
+  public:
 	~engine() {
 		for (auto& pair : m_components)
 			pair.second.deleter(pair.second.ptr);
@@ -130,9 +130,10 @@ class engine {
 
 			if (!m_components.contains(type_id))
 				m_components[type_id] = {
-				    new entity_component_storage<C>(),
-				    [](void* _ptr) { delete static_cast<entity_component_storage<C>*>(_ptr); },
-				    [](void* _ptr, const entity& _dead_entity) { static_cast<entity_component_storage<C>*>(_ptr)->remove(_dead_entity); }};
+					new entity_component_storage<C>(),
+					[](void* _ptr) { delete static_cast<entity_component_storage<C>*>(_ptr); },
+					[](void* _ptr, const entity& _dead_entity) { static_cast<entity_component_storage<C>*>(_ptr)->remove(_dead_entity); }
+				};
 
 			entity_component_storage<C>& component = *static_cast<entity_component_storage<C>*>(m_components[type_id].ptr);
 			component.emplace_back(new_entity, _entity.[:mem:]);

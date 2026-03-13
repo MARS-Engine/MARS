@@ -12,15 +12,14 @@ namespace mars {
 
 template <typename T>
 class render_pass_builder {
-      private:
+  private:
 	render_pass m_pass;
 	device m_device;
 	vector2<size_t> m_fixed_size = {};
 
-      public:
-	explicit render_pass_builder(const device& dev,
-				     mars_format_type fmt_override = MARS_FORMAT_UNDEFINED)
-	    : m_device(dev) {
+  public:
+	explicit render_pass_builder(const device& dev, mars_format_type fmt_override = MARS_FORMAT_UNDEFINED)
+		: m_device(dev) {
 		render_pass_create_params params;
 
 		if constexpr (meta::has_annotation<graphics::rp_color_attachment>(^^T)) {
@@ -28,7 +27,6 @@ class render_pass_builder {
 			params.format = (fmt_override != MARS_FORMAT_UNDEFINED) ? fmt_override : ca.format;
 			params.load_operation = ca.load_op;
 		} else {
-
 			params.format = fmt_override;
 		}
 

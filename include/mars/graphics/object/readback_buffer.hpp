@@ -11,7 +11,7 @@ namespace mars::graphics::object {
 class readback_buffer {
 	mars::readback_buffer m_rb{};
 
-      public:
+  public:
 	readback_buffer() = default;
 
 	static readback_buffer create(const mars::device& dev, size_t slot_size, uint32_t num_slots) {
