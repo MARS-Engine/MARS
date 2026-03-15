@@ -6,7 +6,7 @@
 #include <mars/graphics/backend/framebuffer.hpp>
 #include <mars/graphics/backend/pipeline.hpp>
 #include <mars/graphics/backend/render_pass.hpp>
-#include <mars/graphics/backend/texture.hpp>
+#include <mars/graphics/functional/texture.hpp>
 #include <mars/graphics/functional/buffer.hpp>
 #include <mars/graphics/functional/command_pool.hpp>
 #include <mars/graphics/functional/descriptor.hpp>
