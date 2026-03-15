@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Guarantee the best performance and result stability across runs
-#if defined(_WIN32) && defined(NDEBUG)
+#if defined(_WIN32)
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 #elif defined(__APPLE__) || defined(unix)

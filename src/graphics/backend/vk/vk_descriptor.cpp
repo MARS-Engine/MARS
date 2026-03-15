@@ -68,31 +68,41 @@ descriptor_set create_set_impl(
 	for (size_t set_index = 0u; set_index < set_count; ++set_index) {
 		const auto& params = _params.empty() ? descriptor_set_create_params{} : _params[set_index];
 		std::vector<VkDescriptorBufferInfo> buffer_infos;
-		std::vector<VkWriteDescriptorSet> writes;
-
+		std::vector<uint32_t> bindings_to_write;
+			
+		buffer_infos.reserve(params.buffers.size());
+		bindings_to_write.reserve(params.buffers.size());
+			
 		for (const auto& [buffer_handle, binding] : params.buffers) {
-			const auto binding_info = vk_find_binding_info(set_data->bindings, static_cast<uint32_t>(binding));
-			if (!binding_info.has_value() || binding_info->type != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-				continue;
-
-			buffer_infos.push_back({
-				.buffer = buffer_handle.data.expect<vk_buffer_data>()->buffer,
-				.offset = 0u,
-				.range = buffer_handle.data.expect<vk_buffer_data>()->size,
-			});
-
-			VkWriteDescriptorSet write = {};
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstSet = set_data->sets[set_index];
-			write.dstBinding = static_cast<uint32_t>(binding);
-			write.descriptorCount = 1u;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			write.pBufferInfo = &buffer_infos.back();
-			writes.push_back(write);
+		    const auto binding_info = vk_find_binding_info(set_data->bindings, static_cast<uint32_t>(binding));
+		    if (!binding_info.has_value() || binding_info->type != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+		        continue;
+		
+		    buffer_infos.push_back({
+		        .buffer = buffer_handle.data.expect<vk_buffer_data>()->buffer,
+		        .offset = 0u,
+		        .range = buffer_handle.data.expect<vk_buffer_data>()->size,
+		    });
+		
+		    bindings_to_write.push_back(static_cast<uint32_t>(binding));
 		}
-
+		
+		std::vector<VkWriteDescriptorSet> writes;
+		writes.reserve(buffer_infos.size());
+		
+		for (size_t i = 0; i < buffer_infos.size(); ++i) {
+		    VkWriteDescriptorSet write{};
+		    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		    write.dstSet = set_data->sets[set_index];
+		    write.dstBinding = bindings_to_write[i];
+		    write.descriptorCount = 1u;
+		    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		    write.pBufferInfo = &buffer_infos[i];
+		    writes.push_back(write);
+		}
+		
 		if (!writes.empty())
-			vkUpdateDescriptorSets(device_data->device, static_cast<uint32_t>(writes.size()), writes.data(), 0u, nullptr);
+		    vkUpdateDescriptorSets(device_data->device, static_cast<uint32_t>(writes.size()), writes.data(), 0u, nullptr);
 	}
 
 	return result;

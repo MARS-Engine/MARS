@@ -3,7 +3,6 @@
 #include <mars/graphics/backend/vk/vk_pipeline.hpp>
 
 #include <algorithm>
-#include <fstream>
 
 namespace mars::graphics::vk {
 namespace {
@@ -267,17 +266,6 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 			"gfx|" + shader_data->vertex.path + "|" + shader_data->fragment.path +
 			"|depth=" + std::to_string(static_cast<int>(depth_format));
 		set_object_name(device_data, reinterpret_cast<uint64_t>(data->pipeline), VK_OBJECT_TYPE_PIPELINE, pipeline_name);
-		std::ofstream("vk_pipeline_log.txt", std::ios::app)
-			<< std::hex
-			<< reinterpret_cast<uint64_t>(data->pipeline)
-			<< " "
-			<< shader_data->vertex.path
-			<< " "
-			<< shader_data->fragment.path
-			<< " depth="
-			<< std::dec
-			<< static_cast<int>(depth_format)
-			<< "\n";
 	}
 
 	pipeline result;

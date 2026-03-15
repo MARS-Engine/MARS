@@ -7,11 +7,11 @@ target_sources(
         imgui_tables.cpp
         imgui_widgets.cpp
         backends/imgui_impl_sdl3.cpp
+        backends/imgui_impl_vulkan.cpp
 )
 
 if(WIN32)
     target_sources(mars PRIVATE backends/imgui_impl_dx12.cpp)
-    target_sources(mars PRIVATE backends/imgui_impl_vulkan.cpp)
 endif()
 
 target_include_directories(mars PRIVATE . ./backends)

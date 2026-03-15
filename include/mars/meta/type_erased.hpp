@@ -20,7 +20,7 @@ struct type_erased_ptr {
 
 	void* data = nullptr;
 
-	[[msvc::no_unique_address]]
+	[[no_unique_address]]
 	std::conditional_t<environment::is_shipping, empty, void (*)(const std::string_view&)> id;
 
 	static void internal_error(const std::string_view& requested, const std::string_view& stored) {

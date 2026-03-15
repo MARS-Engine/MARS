@@ -16,14 +16,9 @@
 namespace mars::graphics::vk {
 namespace {
 
-VKAPI_ATTR VkBool32 VKAPI_CALL debug_messenger_callback(
-	VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-	VkDebugUtilsMessageTypeFlagsEXT,
-	const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
-	void*
-) {
+VKAPI_ATTR VkBool32 VKAPI_CALL debug_messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT* callback_data, void*) {
 	if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-		mars::logger::error(vk_log_channel(), "{}", callback_data->pMessage);
+		mars::logger::assert_(vk_log_channel(), "{}", callback_data->pMessage);
 	else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 		mars::logger::warning(vk_log_channel(), "{}", callback_data->pMessage);
 	else
@@ -100,17 +95,23 @@ bool query_required_features(vk_device_data* data, VkPhysicalDevice physical_dev
 	mutable_descriptor.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT;
 	mutable_descriptor.pNext = &dynamic_rendering_unused_attachments;
 
+	VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR dynamic_rendering_local_read = {};
+	dynamic_rendering_local_read.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES_KHR;
+	dynamic_rendering_local_read.pNext = &mutable_descriptor;
+
 	VkPhysicalDeviceDeviceGeneratedCommandsFeaturesEXT generated_commands = {};
 	generated_commands.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_FEATURES_EXT;
 
 	VkPhysicalDeviceMaintenance5Features maintenance5 = {};
 	maintenance5.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES;
+
 	if (require_generated_commands) {
-		generated_commands.pNext = &mutable_descriptor;
-		maintenance5.pNext = &generated_commands;
-	} else {
-		maintenance5.pNext = &mutable_descriptor;
-		data->device_generated_commands_properties = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_EXT};
+	    generated_commands.pNext = &dynamic_rendering_local_read;
+	    maintenance5.pNext = &generated_commands;
+	} 
+	else {
+	    maintenance5.pNext = &dynamic_rendering_local_read;
+	    data->device_generated_commands_properties = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_EXT};
 	}
 
 	VkPhysicalDeviceVulkan12Features features_12 = {};
@@ -220,6 +221,11 @@ bool query_required_features(vk_device_data* data, VkPhysicalDevice physical_dev
 	if (require_generated_commands && data->device_generated_commands_properties.maxIndirectSequenceCount == 0u) {
 		failure_reason = "device generated commands reports maxIndirectSequenceCount == 0";
 		return false;
+	}
+
+	if (!dynamic_rendering_local_read.dynamicRenderingLocalRead) {
+    	failure_reason = "dynamicRenderingLocalRead is required";
+    	return false;
 	}
 
 	return true;
@@ -411,9 +417,8 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 		for (Uint32 index = 0u; index < sdl_extension_count; ++index)
 			instance_extensions.push_back(sdl_extensions[index]);
 	}
-#ifndef NDEBUG
+
 	instance_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif
 
 	VkApplicationInfo app_info = {};
 	app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -429,13 +434,11 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 	instance_info.enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size());
 	instance_info.ppEnabledExtensionNames = instance_extensions.data();
 
-#ifndef NDEBUG
 	const char* validation_layer = "VK_LAYER_KHRONOS_validation";
 	if (validation_layer_available(validation_layer)) {
 		instance_info.enabledLayerCount = 1u;
 		instance_info.ppEnabledLayerNames = &validation_layer;
 	}
-#endif
 
 	vk_expect<vkCreateInstance>(&instance_info, nullptr, &data->instance);
 	data->debug_messenger = create_debug_messenger(data->instance);
@@ -446,6 +449,7 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 		VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME,
 		VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+		VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME,
 		VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME,
 		VK_KHR_MAINTENANCE_5_EXTENSION_NAME,
 	};
@@ -495,20 +499,25 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 	mutable_descriptor_features.mutableDescriptorType = VK_TRUE;
 	mutable_descriptor_features.pNext = &dynamic_rendering_unused_attachments;
 
+	VkPhysicalDeviceDynamicRenderingLocalReadFeaturesKHR dynamic_rendering_local_read_features = {};
+	dynamic_rendering_local_read_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES_KHR;
+	dynamic_rendering_local_read_features.dynamicRenderingLocalRead = VK_TRUE;
+	dynamic_rendering_local_read_features.pNext = &mutable_descriptor_features;
+
 	VkPhysicalDeviceDeviceGeneratedCommandsFeaturesEXT generated_commands_features = {};
 	generated_commands_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_FEATURES_EXT;
 
 	VkPhysicalDeviceMaintenance5Features maintenance5_features = {};
 	maintenance5_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES;
 	maintenance5_features.maintenance5 = VK_TRUE;
+
 	if (enable_generated_commands) {
 		generated_commands_features.deviceGeneratedCommands = VK_TRUE;
 		generated_commands_features.dynamicGeneratedPipelineLayout = VK_FALSE;
-		generated_commands_features.pNext = &mutable_descriptor_features;
+		generated_commands_features.pNext = &dynamic_rendering_local_read_features;
 		maintenance5_features.pNext = &generated_commands_features;
-	} else {
-		maintenance5_features.pNext = &mutable_descriptor_features;
-	}
+	} else
+		maintenance5_features.pNext = &dynamic_rendering_local_read_features;
 
 	VkPhysicalDeviceVulkan12Features features_12 = {};
 	features_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
@@ -554,12 +563,11 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 	device_info.enabledExtensionCount = static_cast<uint32_t>((enable_generated_commands ? device_extensions : base_device_extensions).size());
 	device_info.ppEnabledExtensionNames = (enable_generated_commands ? device_extensions : base_device_extensions).data();
 	device_info.pEnabledFeatures = &device_features;
-#ifndef NDEBUG
+
 	if (validation_layer_available(validation_layer)) {
 		device_info.enabledLayerCount = 1u;
 		device_info.ppEnabledLayerNames = &validation_layer;
 	}
-#endif
 
 	vk_expect<vkCreateDevice>(data->physical_device, &device_info, nullptr, &data->device);
 

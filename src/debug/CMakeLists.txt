@@ -1,1 +1,1 @@
-target_sources(mars PRIVATE ./logger.cpp)
+target_sources(mars PRIVATE ./logger.cpp ./crash_handler.cpp)

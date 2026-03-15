@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vector2.hpp"
+#include <cstddef>
 
 namespace mars {
 template <typename T>

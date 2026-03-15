@@ -2,17 +2,21 @@
 
 #include <mars/graphics/backend/vk/vk_shader.hpp>
 
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
-
 #include <unknwn.h>
-
 #include <objidl.h>
-
-#include <dxcapi.h>
 #include <wrl.h>
 #include <wrl/implements.h>
+using dxc_module_t = HMODULE;
+#else
+#include <dlfcn.h>
+using dxc_module_t = void*;
+#endif
+
+#include <dxcapi.h>
 
 #include <cctype>
 #include <filesystem>
@@ -22,7 +26,27 @@
 
 namespace mars::graphics::vk {
 namespace {
+
+#ifdef _WIN32
 using dxc_create_instance_proc = HRESULT(WINAPI*)(REFCLSID, REFIID, LPVOID*);
+#define DXC_PTR(T) Microsoft::WRL::ComPtr<T>
+#else
+using dxc_create_instance_proc = HRESULT(*)(REFCLSID, REFIID, LPVOID*);
+template<typename T>
+struct dxc_ptr {
+    T* p = nullptr;
+    ~dxc_ptr() { if (p) p->Release(); }
+    T** operator&() { return &p; }
+    T* Get() const { return p; }
+    T* operator->() const { return p; }
+    explicit operator bool() const { return p != nullptr; }
+    T* Detach() { T* t = p; p = nullptr; return t; }
+    dxc_ptr() = default;
+    dxc_ptr(const dxc_ptr&) = delete;
+    dxc_ptr& operator=(const dxc_ptr&) = delete;
+};
+#define DXC_PTR(T) dxc_ptr<T>
+#endif
 
 std::string read_file_binary(const std::filesystem::path& path) {
 	std::ifstream file(path, std::ios::binary);
@@ -44,6 +68,7 @@ std::wstring to_wstring(const std::filesystem::path& path) {
 }
 
 std::filesystem::path find_vulkan_sdk_dxc() {
+#ifdef _WIN32
 	std::vector<wchar_t> buffer(32768, L'\0');
 	const DWORD length = GetEnvironmentVariableW(L"VULKAN_SDK", buffer.data(), static_cast<DWORD>(buffer.size()));
 	if (length > 0 && length < buffer.size()) {
@@ -51,36 +76,56 @@ std::filesystem::path find_vulkan_sdk_dxc() {
 		if (std::filesystem::exists(candidate))
 			return candidate;
 	}
-
 	const std::filesystem::path fallback = LR"(C:\VulkanSDK\1.4.341.1\Bin\dxcompiler.dll)";
 	if (std::filesystem::exists(fallback))
 		return fallback;
-
+#else
+	if (const char* sdk = std::getenv("VULKAN_SDK")) {
+		const std::filesystem::path candidate = std::filesystem::path(sdk) / "lib" / "libdxcompiler.so";
+		if (std::filesystem::exists(candidate))
+			return candidate;
+	}
+	for (const char* p : {"/usr/lib/libdxcompiler.so", "/usr/local/lib/libdxcompiler.so"})
+		if (std::filesystem::exists(p))
+			return p;
+#endif
 	return {};
 }
 
-HMODULE load_dxc_module() {
-	static HMODULE module = []() -> HMODULE {
+dxc_module_t load_dxc_module() {
+	static dxc_module_t module = []() -> dxc_module_t {
 		if (const std::filesystem::path preferred = find_vulkan_sdk_dxc(); !preferred.empty()) {
+#ifdef _WIN32
 			if (HMODULE handle = LoadLibraryW(preferred.c_str()))
 				return handle;
+#else
+			if (void* handle = dlopen(preferred.c_str(), RTLD_LAZY))
+				return handle;
+#endif
 		}
-
+#ifdef _WIN32
 		if (HMODULE handle = GetModuleHandleW(L"dxcompiler.dll"))
 			return handle;
-
 		return LoadLibraryW(L"dxcompiler.dll");
+#else
+		return dlopen("libdxcompiler.so", RTLD_LAZY);
+#endif
 	}();
-
 	return module;
 }
 
 HRESULT vk_dxc_create_instance(REFCLSID clsid, REFIID iid, void** out_object) {
-	if (HMODULE module = load_dxc_module()) {
-		if (auto proc = reinterpret_cast<dxc_create_instance_proc>(GetProcAddress(module, "DxcCreateInstance")))
+	if (dxc_module_t module = load_dxc_module()) {
+		const auto proc = reinterpret_cast<dxc_create_instance_proc>(
+#ifdef _WIN32
+			GetProcAddress(module, "DxcCreateInstance")
+#else
+			dlsym(module, "DxcCreateInstance")
+#endif
+		);
+		if (proc)
 			return proc(clsid, iid, out_object);
 	}
-
 	return E_FAIL;
 }
 
@@ -393,6 +438,7 @@ void append_bindings(std::vector<std::wstring>& storage) {
 	}
 }
 
+#ifdef _WIN32
 class transformed_include_handler final : public Microsoft::WRL::RuntimeClass<
 											  Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
 											  IDxcIncludeHandler> {
@@ -407,7 +453,7 @@ class transformed_include_handler final : public Microsoft::WRL::RuntimeClass<
 		if (!include_source)
 			return E_POINTER;
 
-		Microsoft::WRL::ComPtr<IDxcBlob> blob;
+		DXC_PTR(IDxcBlob) blob;
 		const HRESULT load_hr = m_fallback->LoadSource(filename, &blob);
 		if (FAILED(load_hr) || !blob)
 			return load_hr;
@@ -416,7 +462,7 @@ class transformed_include_handler final : public Microsoft::WRL::RuntimeClass<
 		const std::string source(blob_bytes, blob->GetBufferSize());
 		const std::string transformed = transform_push_constant_cbuffers(source);
 
-		Microsoft::WRL::ComPtr<IDxcBlobEncoding> encoding_blob;
+		DXC_PTR(IDxcBlobEncoding) encoding_blob;
 		const HRESULT create_hr = m_utils->CreateBlob(
 			transformed.data(),
 			static_cast<UINT32>(transformed.size()),
@@ -431,9 +477,67 @@ class transformed_include_handler final : public Microsoft::WRL::RuntimeClass<
 	}
 
   private:
-	Microsoft::WRL::ComPtr<IDxcUtils> m_utils;
-	Microsoft::WRL::ComPtr<IDxcIncludeHandler> m_fallback;
+	DXC_PTR(IDxcUtils) m_utils;
+	DXC_PTR(IDxcIncludeHandler) m_fallback;
 };
+#else
+class transformed_include_handler final : public IDxcIncludeHandler {
+  public:
+	transformed_include_handler(IDxcUtils* utils, IDxcIncludeHandler* fallback)
+		: m_utils(utils), m_fallback(fallback), m_refs(1) {
+		if (m_utils) m_utils->AddRef();
+		if (m_fallback) m_fallback->AddRef();
+	}
+	~transformed_include_handler() {
+		if (m_utils) m_utils->Release();
+		if (m_fallback) m_fallback->Release();
+	}
+
+	ULONG STDMETHODCALLTYPE AddRef() override { return ++m_refs; }
+	ULONG STDMETHODCALLTYPE Release() override {
+		const ULONG r = --m_refs;
+		if (r == 0) delete this;
+		return r;
+	}
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, void** p) override {
+		if (p) *p = nullptr;
+		return E_NOINTERFACE;
+	}
+
+	HRESULT STDMETHODCALLTYPE LoadSource(LPCWSTR filename, IDxcBlob** include_source) override {
+		if (!include_source)
+			return E_POINTER;
+
+		IDxcBlob* blob_raw = nullptr;
+		const HRESULT load_hr = m_fallback->LoadSource(filename, &blob_raw);
+		if (FAILED(load_hr) || !blob_raw)
+			return load_hr;
+
+		const auto* blob_bytes = static_cast<const char*>(blob_raw->GetBufferPointer());
+		const std::string source(blob_bytes, blob_raw->GetBufferSize());
+		blob_raw->Release();
+		const std::string transformed = transform_push_constant_cbuffers(source);
+
+		IDxcBlobEncoding* encoding_blob = nullptr;
+		const HRESULT create_hr = m_utils->CreateBlob(
+			transformed.data(),
+			static_cast<UINT32>(transformed.size()),
+			DXC_CP_UTF8,
+			&encoding_blob
+		);
+		if (FAILED(create_hr))
+			return create_hr;
+
+		*include_source = encoding_blob;
+		return S_OK;
+	}
+
+  private:
+	IDxcUtils* m_utils;
+	IDxcIncludeHandler* m_fallback;
+	std::atomic<ULONG> m_refs;
+};
+#endif
 
 bool compile_module(
 	vk_device_data* device_data,
@@ -480,7 +584,7 @@ bool compile_module(
 	buffer.Size = transformed_source.size();
 	buffer.Encoding = DXC_CP_UTF8;
 
-	Microsoft::WRL::ComPtr<IDxcResult> result;
+	DXC_PTR(IDxcResult) result;
 	const HRESULT compile_hr = compiler->Compile(&buffer, args.data(), static_cast<UINT32>(args.size()), include_handler, IID_PPV_ARGS(&result));
 	if (FAILED(compile_hr)) {
 		mars::logger::error(vk_log_channel(), "DXC compile failed for {}", path.string());
@@ -490,7 +594,7 @@ bool compile_module(
 	HRESULT status = S_OK;
 	result->GetStatus(&status);
 
-	Microsoft::WRL::ComPtr<IDxcBlobUtf8> errors;
+	DXC_PTR(IDxcBlobUtf8) errors;
 	result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&errors), nullptr);
 	if (errors && errors->GetStringLength() > 0) {
 		if (FAILED(status))
@@ -501,7 +605,7 @@ bool compile_module(
 	if (FAILED(status))
 		return false;
 
-	Microsoft::WRL::ComPtr<IDxcBlob> blob;
+	DXC_PTR(IDxcBlob) blob;
 	result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&blob), nullptr);
 
 	VkShaderModuleCreateInfo module_info = {};
@@ -547,16 +651,14 @@ shader vk_shader_impl::vk_shader_create(const device& _device, const std::vector
 	auto* device_data = _device.data.expect<vk_device_data>();
 	auto* data = new vk_shader_data();
 
-	Microsoft::WRL::ComPtr<IDxcUtils> dxc_utils;
-	Microsoft::WRL::ComPtr<IDxcCompiler3> dxc_compiler;
-	Microsoft::WRL::ComPtr<IDxcIncludeHandler> default_include_handler;
-	Microsoft::WRL::ComPtr<IDxcIncludeHandler> transformed_handler;
+	DXC_PTR(IDxcUtils) dxc_utils;
+	DXC_PTR(IDxcCompiler3) dxc_compiler;
+	DXC_PTR(IDxcIncludeHandler) default_include_handler;
 	if (FAILED(vk_dxc_create_instance(CLSID_DxcUtils, IID_PPV_ARGS(&dxc_utils))) ||
 		FAILED(vk_dxc_create_instance(CLSID_DxcCompiler, IID_PPV_ARGS(&dxc_compiler))) ||
 		!dxc_utils ||
 		!dxc_compiler ||
-		FAILED(dxc_utils->CreateDefaultIncludeHandler(&default_include_handler)) ||
-		FAILED(Microsoft::WRL::MakeAndInitialize<transformed_include_handler>(&transformed_handler, dxc_utils.Get(), default_include_handler.Get()))) {
+		FAILED(dxc_utils->CreateDefaultIncludeHandler(&default_include_handler))) {
 		mars::logger::error(vk_log_channel(), "Failed to initialize DXC compiler interfaces");
 
 		shader result;
@@ -564,6 +666,21 @@ shader vk_shader_impl::vk_shader_create(const device& _device, const std::vector
 		result.data.store(data);
 		return result;
 	}
+
+#ifdef _WIN32
+	DXC_PTR(IDxcIncludeHandler) transformed_handler;
+	if (FAILED(Microsoft::WRL::MakeAndInitialize<transformed_include_handler>(
+			&transformed_handler, dxc_utils.Get(), default_include_handler.Get()))) {
+		mars::logger::error(vk_log_channel(), "Failed to initialize DXC include handler");
+		shader result;
+		result.engine = _device.engine;
+		result.data.store(data);
+		return result;
+	}
+#else
+	DXC_PTR(IDxcIncludeHandler) transformed_handler;
+	*(&transformed_handler) = new transformed_include_handler(dxc_utils.Get(), default_include_handler.Get());
+#endif
 
 	for (const auto& module : _shaders) {
 		const std::filesystem::path original_path(module.path);
