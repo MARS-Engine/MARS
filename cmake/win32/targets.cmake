@@ -34,7 +34,7 @@ function(mars_win32_configure_target target)
     )
 endfunction()
 
-function(mars_win32_configure_parcel target)
+function(mars_win32_configure target)
     if(MARS_DXCOMPILER_BIN AND MARS_DXIL_BIN)
         add_custom_command(TARGET "${target}" POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different

@@ -422,7 +422,7 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 
 	VkApplicationInfo app_info = {};
 	app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	app_info.pApplicationName = "parcel";
+	app_info.pApplicationName = "mars";
 	app_info.applicationVersion = VK_MAKE_API_VERSION(0, 0, 1, 0);
 	app_info.pEngineName = "mars";
 	app_info.engineVersion = VK_MAKE_API_VERSION(0, 0, 1, 0);

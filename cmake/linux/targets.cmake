@@ -28,7 +28,7 @@ function(mars_linux_configure_target target)
     target_link_libraries("${target}" PUBLIC SDL3::SDL3-shared DXC::dxcompiler)
 endfunction()
 
-function(mars_linux_configure_parcel target)
+function(mars_linux_configure target)
     add_custom_command(TARGET "${target}" POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:DXC::dxcompiler> "$<TARGET_FILE_DIR:${target}>"
@@ -46,14 +46,14 @@ function(mars_linux_configure_parcel target)
     endif()
 
     if(CUSTOM_CLANG_PATH)
-        set(_parcel_rpath "\$ORIGIN:${CUSTOM_CLANG_PATH}/lib:${CUSTOM_CLANG_PATH}/lib/x86_64-unknown-linux-gnu")
+        set(_mars_rpath "\$ORIGIN:${CUSTOM_CLANG_PATH}/lib:${CUSTOM_CLANG_PATH}/lib/x86_64-unknown-linux-gnu")
     else()
-        set(_parcel_rpath "\$ORIGIN")
+        set(_mars_rpath "\$ORIGIN")
     endif()
 
     set_target_properties("${target}"  PROPERTIES
-        BUILD_RPATH "${_parcel_rpath}"                        # look in executable dir and toolchain lib
-        INSTALL_RPATH "${_parcel_rpath}"                      # installed rpath
+        BUILD_RPATH "${_mars_rpath}"                        # look in executable dir and toolchain lib
+        INSTALL_RPATH "${_mars_rpath}"                      # installed rpath
         BUILD_WITH_INSTALL_RPATH TRUE
     )
     # linker rpath is provided via the BUILD_RPATH/INSTALL_RPATH properties above
