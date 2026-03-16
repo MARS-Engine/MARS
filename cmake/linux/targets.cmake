@@ -2,18 +2,18 @@ include_guard(GLOBAL)
 
 function(mars_linux_apply_libcxx target)
     if(CUSTOM_CLANG_PATH)
-        target_compile_options("${target}" PRIVATE -stdlib=libc++)
+        target_compile_options("${target}" PRIVATE )
     endif()
 endfunction()
 
 function(mars_linux_configure_target target)
     if(CUSTOM_CLANG_PATH)
-        # -stdlib=libc++ makes Clang automatically add its own libc++ include
+        #  makes Clang automatically add its own libc++ include
         # paths — no need to add them manually (doing so causes double-inclusion
         # and cxxabi.h conflicts).
-        target_compile_options("${target}" PUBLIC -stdlib=libc++)
+        target_compile_options("${target}" PUBLIC )
         target_link_options("${target}" PRIVATE
-            -stdlib=libc++
+            
             -L"${CUSTOM_CLANG_PATH}/lib"
         )
     endif()
@@ -21,14 +21,24 @@ function(mars_linux_configure_target target)
     target_compile_options(
         "${target}"
         PRIVATE
-            -freflection-latest
-            -fexperimental-library
+            -freflection
     )
 
     target_link_libraries("${target}" PUBLIC SDL3::SDL3-shared DXC::dxcompiler)
 endfunction()
 
 function(mars_linux_configure target)
+
+    add_custom_command(TARGET "${target}" POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:SDL3::SDL3-shared> "$<TARGET_FILE_DIR:${target}>"
+    )
+        
+    add_custom_command(TARGET "${target}" POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:SDL3::SDL3-shared> "$<TARGET_FILE_DIR:${target}>/libSDL3.so.0"
+    )
+
     add_custom_command(TARGET "${target}" POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:DXC::dxcompiler> "$<TARGET_FILE_DIR:${target}>"

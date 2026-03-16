@@ -10,8 +10,7 @@ function(mars_win32_configure_target target)
     target_compile_options(
         "${target}"
         PRIVATE
-            -freflection-latest
-            -fexperimental-library
+            -freflection
     )
 
     target_link_options(

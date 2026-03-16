@@ -1,6 +1,7 @@
 #pragma once
 
 #include "type_erased.hpp"
+#include  <cstring>
 
 namespace mars::meta {
 

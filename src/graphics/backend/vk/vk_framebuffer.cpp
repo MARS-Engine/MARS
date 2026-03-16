@@ -65,7 +65,7 @@ VkImageView create_color_view(vk_device_data* device_data, const vk_texture_data
 framebuffer vk_framebuffer_impl::vk_framebuffer_create(const device& _device, const framebuffer_create_params& _params) {
 	auto* device_data = _device.data.expect<vk_device_data>();
 	auto* texture_data = _params.view.data.expect<vk_texture_data>();
-	auto* render_pass_data = _params.render_pass.data.expect<vk_render_pass_data>();
+	auto* render_pass_data = _params.framebuffer_render_pass.data.expect<vk_render_pass_data>();
 
 	auto* data = new vk_framebuffer_data();
 	data->color_image = texture_data->image;

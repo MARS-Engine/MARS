@@ -23,28 +23,25 @@ struct event_storage {
 
 	struct storage;
 	consteval {
-		std::vector<std::meta::info> result = {};
+		std::vector<std::meta::info> member_specs;
 		auto ctx = std::meta::access_context::current();
-
-		// for each function in the type we extract the arguments and generate a meta::info helper with said arguments
+		
 		for (auto mem : std::meta::members_of(^^T, ctx)) {
 			if (!std::meta::is_function(mem) || std::meta::is_special_member_function(mem))
 				continue;
 
-			result.push_back(
-				std::meta::substitute(
-					^^helper,
-					std::meta::parameters_of(mem) | std::views::transform(std::meta::type_of) | std::ranges::to<std::vector>()
-				)
+			auto helper_type = std::meta::substitute(
+				^^helper,
+				std::meta::parameters_of(mem) | std::views::transform(std::meta::type_of) | std::ranges::to<std::vector>()
 			);
+
+			auto vector_type = std::meta::substitute(^^std::vector, {helper_type});
+			std::meta::data_member_options opts;
+			opts.name = std::meta::identifier_of(mem);
+			member_specs.push_back(std::meta::data_member_spec(vector_type, opts));
 		}
 
-		// define storage as struct { std::vector<helper<Args...>>, repeat for each function in T }
-		std::meta::define_aggregate(^^storage, std::views::transform(result, [](auto t) {
-			return std::meta::data_member_spec(
-				std::meta::substitute(^^std::vector, {*std::views::single(t).data()})
-			);
-		}));
+		std::meta::define_aggregate(^^storage, member_specs);
 	}
 
 	storage functions;

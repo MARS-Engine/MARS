@@ -21,7 +21,7 @@ struct framebuffer {
 
 struct framebuffer_create_params {
 	texture_view view;
-	render_pass render_pass;
+	render_pass framebuffer_render_pass;
 	vector2<size_t> size;
 };
 

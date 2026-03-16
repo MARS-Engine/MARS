@@ -24,7 +24,7 @@ class main_pass_object {
 	main_pass_object(const main_pass_object&) = delete;
 	main_pass_object& operator=(const main_pass_object&) = delete;
 
-	const render_pass& render_pass() const { return m_pass_builder.get(); }
+	const render_pass& get_render_pass() const { return m_pass_builder.get(); }
 
 	void recreate_framebuffers(const device& dev, const object::swapchain& sc) {
 		m_device = dev;

@@ -42,7 +42,7 @@ inline consteval readonly_annotation readonly() {
 
 inline consteval group_annotation group(const char* label, bool default_open = true) {
 	return {
-		.label = std::define_static_string(label),
+		.label = label,
 		.default_open = default_open,
 	};
 }

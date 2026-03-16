@@ -53,7 +53,9 @@ struct type_erased_ptr {
 
 	template <typename T>
 	T* get() const {
-		if (!environment::is_shipping) {
+		if constexpr (std::is_same_v<T, void>)
+			return data;
+		else if (!environment::is_shipping) {
 			if (id == nullptr || id == &internal_error<T>)
 				return static_cast<T*>(data);
 			id(std::meta::display_string_of(^^T));
@@ -64,7 +66,12 @@ struct type_erased_ptr {
 
 	template <typename T>
 	T* expect() const {
-		if (!environment::is_shipping) {
+		if constexpr (std::is_same_v<T, void>) {
+			if (!environment::is_shipping && data == nullptr)
+				internal_error(std::meta::display_string_of(^^void), "<null>");
+			return data;
+		}
+		else if (!environment::is_shipping) {
 			if (data == nullptr)
 				internal_error(std::meta::display_string_of(^^T), "<null>");
 			if (id != nullptr && id != &internal_error<T>)
@@ -72,19 +79,7 @@ struct type_erased_ptr {
 		}
 		return static_cast<T*>(data);
 	}
-
-	template <>
-	inline void* get<void>() const {
-		return data;
-	}
-
-	template <>
-	inline void* expect<void>() const {
-		if (!environment::is_shipping && data == nullptr)
-			internal_error(std::meta::display_string_of(^^void), "<null>");
-		return data;
-	}
-
+	
 	template <typename T>
 	type_erased_ptr& operator=(T* _ptr) {
 		store(_ptr);

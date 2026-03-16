@@ -118,11 +118,14 @@ decltype(auto) log_expect(const log_channel& _channel, std::string_view _functio
 			std::string call_info = std::format("{}(", _function_name);
 			size_t argument_index = 0u;
 
-			template for (constexpr std::meta::info r : {^^args...}) {
-				auto&& current_value = [:r:];
-				if (argument_index++ != 0u)
-					call_info += ", ";
-				call_info += std::format("{}={}", std::meta::display_string_of(std::meta::type_of(r)), mars::stringify(current_value));
+			template for (auto&& arg : {args...}) {
+			    if (argument_index++ != 0u)
+			        call_info += ", ";
+			
+			    using ArgType = decltype(arg);
+			    constexpr std::meta::info type_refl = ^^ArgType;
+			
+			    call_info += std::format("{}={}", std::meta::display_string_of(type_refl),  mars::stringify(arg));
 			}
 			call_info += ")";
 

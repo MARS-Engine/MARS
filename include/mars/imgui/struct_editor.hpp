@@ -180,7 +180,7 @@ struct struct_editor : public struct_editor_base<T> {
 				constexpr auto drag_anno = mars::meta::get_annotation<drag_annotation<member_t>>(mem);
 				constexpr auto group_anno = mars::meta::get_annotation<group_annotation>(mem);
 				constexpr bool is_readonly = mars::meta::has_annotation<readonly_annotation>(mem);
-				constexpr const char* member_name = [] {
+				constexpr const char* member_name = [=] {
 					constexpr auto display = mars::meta::get_annotation<mars::meta::display_annotation>(mem);
 					if constexpr (display.has_value())
 						return display->display_name;

@@ -21,7 +21,7 @@ struct shader_input_annotation {
 	mars_shader_type type;
 };
 
-inline static consteval shader_path_annotation shader(const char* _path) { return {std::define_static_string(_path)}; }
+inline static consteval shader_path_annotation shader(const char* _path) { return {_path}; }
 inline static consteval shader_input_annotation shader_input(mars_shader_type _type) { return {_type}; }
 } // namespace prop
 

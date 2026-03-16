@@ -111,7 +111,7 @@ constexpr std::string_view value_name() {
 template <typename T>
 consteval std::optional<T> get_annotation(std::meta::info _type) {
 	for (auto& annotation : std::meta::annotations_of(_type))
-		if (std::meta::is_same_type(^^T, std::meta::type_of(annotation)))
+		if (std::meta::is_same_type(^^T, std::meta::remove_cvref(std::meta::type_of(annotation))))
 			return {std::meta::extract<T>(annotation)};
 	return {};
 }
@@ -119,7 +119,7 @@ consteval std::optional<T> get_annotation(std::meta::info _type) {
 template <typename T>
 consteval bool has_annotation(std::meta::info _type) {
 	for (auto& annotation : std::meta::annotations_of(_type))
-		if (std::meta::is_same_type(^^T, std::meta::type_of(annotation)))
+		if (std::meta::is_same_type(^^T, std::meta::remove_cvref(std::meta::type_of(annotation))))
 			return true;
 	return false;
 }
@@ -137,6 +137,11 @@ consteval std::string_view display_name() {
 	return display_name(std::meta::reflect_constant(Reflected));
 }
 
+template <typename Reflected>
+consteval std::string_view display_name() {
+	return display_name(^^Reflected);
+}
+
 template <auto MemberPtr>
 consteval size_t get_member_position() {
 	return detail::member_index_impl<MemberPtr, typename member_pointer_info<decltype(MemberPtr)>::parent>();
@@ -152,8 +157,7 @@ consteval std::array<const char*, N> enum_values() {
 	return result;
 }
 
-inline static consteval display_annotation display(const char* _display_name) { return {std::define_static_string(_display_name)}; }
-inline static consteval display_annotation dispaly(const char* _display_name) { return display(_display_name); }
+inline static consteval display_annotation display(const char* _display_name) { return { _display_name }; }
 
 template <typename E, bool Enumerable = std::meta::is_enumerable_type(^^E)>
 	requires std::is_enum_v<E>
