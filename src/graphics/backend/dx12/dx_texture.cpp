@@ -4,29 +4,10 @@
 #include <mars/graphics/functional/device.hpp>
 
 namespace mars::graphics::dx {
-static DXGI_FORMAT mars_format_to_dxgi_tex(mars_format_type fmt) {
-	switch (fmt) {
-	case MARS_FORMAT_RGBA8_UNORM:
-		return DXGI_FORMAT_R8G8B8A8_UNORM;
-	case MARS_FORMAT_RGBA8_SRGB:
-		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	case MARS_FORMAT_BGRA8_SRGB:
-		return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-	case MARS_FORMAT_R32_SFLOAT:
-		return DXGI_FORMAT_R32_FLOAT;
-	case MARS_FORMAT_RGBA16_SFLOAT:
-		return DXGI_FORMAT_R16G16B16A16_FLOAT;
-	case MARS_FORMAT_RGBA32_SFLOAT:
-		return DXGI_FORMAT_R32G32B32A32_FLOAT;
-	default:
-		return DXGI_FORMAT_R8G8B8A8_UNORM;
-	}
-}
-
 texture dx_texture_impl::dx_texture_create(const device& _device, const texture_create_params& _params) {
 	auto device_data = _device.data.expect<dx_device_data>();
 	auto data = new dx_texture_data();
-	data->format = mars_format_to_dxgi_tex(_params.format);
+	data->format = dx_format_from_mars(_params.format);
 	data->texture_type = _params.texture_type;
 	data->mip_levels = _params.mip_levels;
 	data->array_size = _params.array_size;

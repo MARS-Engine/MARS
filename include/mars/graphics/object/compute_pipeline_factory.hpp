@@ -34,7 +34,7 @@ class compute_pipeline_factory {
 				if constexpr (std::is_same_v<C, texture>) {
 					layout.descriptor_type = is_uav ? MARS_PIPELINE_DESCRIPTOR_TYPE_STORAGE_IMAGE
 													: MARS_PIPELINE_DESCRIPTOR_TYPE_IMAGE_SAMPLER;
-					++m_pool_params.descriptors_size[is_uav ? MARS_DESCRIPTOR_TYPE_STORAGE_IMAGE : MARS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER];
+					++m_pool_params.descriptors_size[is_uav ? MARS_DESCRIPTOR_TYPE_STORAGE_IMAGE : MARS_DESCRIPTOR_TYPE_SAMPLED_IMAGE];
 				} else {
 					layout.descriptor_type = MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 					++m_pool_params.descriptors_size[MARS_DESCRIPTOR_TYPE_UNIFORM_BUFFER];

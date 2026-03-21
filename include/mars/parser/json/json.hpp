@@ -10,7 +10,6 @@
 #include <type_traits>
 
 namespace mars::json {
-
 struct json_skip_anoation {
 };
 
@@ -33,7 +32,7 @@ predict_value(unsigned char _value) {
 		return JSON_VALUE_TYPES_ARRAY;
 	if (_value == '"')
 		return JSON_VALUE_TYPES_STRING;
-	if (std::isdigit(_value))
+	if (std::isdigit(_value) || _value == '-')
 		return JSON_VALUE_TYPES_NUMBER;
 	if (std::tolower(_value) == 't' || std::tolower(_value) == 'f')
 		return JSON_VALUE_TYPES_BOOL;
@@ -71,9 +70,10 @@ struct json_type_parser_base {
 			if (*current != '"')
 				return _json.end();
 
-			std::string name = parse::extract_string(current, _json.end());
-
-			current += 2 + name.size();
+			std::string name;
+			current = parse::parse_quoted_string(current, _json.end(), name);
+			if (current == _json.end())
+				return _json.end();
 
 			current = parse::first_space<false>(current, _json.end());
 
@@ -131,9 +131,11 @@ struct json_type_parser_base {
 
 			if (!found) {
 				size_t object_count = 0;
-				bool string_count;
+				bool string_count = false;
 				while (current != _json.end() && (object_count != 0 || string_count || (*current != ',' && *current != '}'))) {
 					current = parse::first_special(current, _json.end());
+					if (current == _json.end())
+						break;
 					if (*current == '{')
 						object_count++;
 					if (*current == '"') {
@@ -203,6 +205,7 @@ struct json_type_parser<std::vector<T>> : public json_type_parser_base<std::vect
 			return _json.end();
 
 		current++;
+		_value.clear();
 
 		while (current != _json.end() && *current != ']') {
 			current = parse::first_space<false>(current, _json.end());
@@ -230,6 +233,11 @@ struct json_type_parser<std::vector<T>> : public json_type_parser_base<std::vect
 	}
 
 	inline static void stringify(std::vector<T>& _value, std::string& _out) {
+		if (_value.empty()) {
+			_out += "[]";
+			return;
+		}
+
 		_out += "[ ";
 
 		for (T& entry : _value) {
@@ -249,7 +257,7 @@ struct json_type_parser<unsigned int> : public json_type_parser_base<unsigned in
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
 		std::string_view::iterator end = parse::first_special(start, _json.end());
 
-		if (*end != ',' && *end != '}')
+		if (end != _json.end() && *end != ',' && *end != '}')
 			return _json.end();
 
 		std::string str(start, end);
@@ -257,7 +265,7 @@ struct json_type_parser<unsigned int> : public json_type_parser_base<unsigned in
 			if (!std::isdigit(c))
 				return _json.end();
 		_value = std::stoul(str);
-		return end++;
+		return end;
 	}
 
 	inline static void stringify(unsigned int& _value, std::string& _out) {
@@ -273,7 +281,7 @@ struct json_type_parser<size_t> : public json_type_parser_base<size_t> {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
 		std::string_view::iterator end = parse::first_special(start, _json.end());
 
-		if (*end != ',' && *end != '}')
+		if (end != _json.end() && *end != ',' && *end != '}')
 			return _json.end();
 
 		std::string str(start, end);
@@ -281,7 +289,7 @@ struct json_type_parser<size_t> : public json_type_parser_base<size_t> {
 			if (!std::isdigit(c))
 				return _json.end();
 		_value = std::stoull(str);
-		return end++;
+		return end;
 	}
 
 	inline static void stringify(size_t& _value, std::string& _out) {
@@ -300,7 +308,7 @@ struct json_type_parser<float> : public json_type_parser_base<float> {
 		while (end != _json.end() && (*end == '.' || *end == '-' || *end == '+'))
 			end = parse::first_special(end + 1, _json.end());
 
-		if (*end != ',' && *end != '}')
+		if (end != _json.end() && *end != ',' && *end != '}')
 			return _json.end();
 
 		std::string str(start, end);
@@ -308,7 +316,7 @@ struct json_type_parser<float> : public json_type_parser_base<float> {
 			if (!std::isdigit(c) && c != '.' && c != '-' && c != '+' && c != 'e' && c != 'E')
 				return _json.end();
 		_value = std::stof(str);
-		return end++;
+		return end;
 	}
 
 	inline static void stringify(float& _value, std::string& _out) {
@@ -322,15 +330,45 @@ template <>
 struct json_type_parser<std::string> : public json_type_parser_base<std::string> {
 	inline static std::string_view::iterator parse(const std::string_view& _json, std::string& _value) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
-		std::string str = parse::extract_string(start, _json.end());
-		if (str == "" && (*start != '"' || *(start + 1) != '"'))
+		std::string str;
+		std::string_view::iterator end = parse::parse_quoted_string(start, _json.end(), str);
+		if (end == _json.end())
 			return _json.end();
-		_value = str;
-		return start + str.size() + 2;
+		_value = std::move(str);
+		return end;
 	}
 
 	inline static void stringify(std::string& _value, std::string& _out) {
-		_out += '"' + _value + '"';
+		_out += '"';
+		for (char c : _value) {
+			switch (c) {
+			case '"':
+				_out += "\\\"";
+				break;
+			case '\\':
+				_out += "\\\\";
+				break;
+			case '\n':
+				_out += "\\n";
+				break;
+			case '\r':
+				_out += "\\r";
+				break;
+			case '\t':
+				_out += "\\t";
+				break;
+			case '\b':
+				_out += "\\b";
+				break;
+			case '\f':
+				_out += "\\f";
+				break;
+			default:
+				_out += c;
+				break;
+			}
+		}
+		_out += '"';
 	}
 
 	static constexpr bool string_support = true;
@@ -340,15 +378,18 @@ template <>
 struct json_type_parser<vector3<unsigned char>> : public json_type_parser_base<vector3<unsigned char>> {
 	inline static std::string_view::iterator parse(const std::string_view& _json, vector3<unsigned char>& _value) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
-		std::string str = parse::extract_string(start, _json.end());
-		if (str == "" && (*start != '"' || *(start + 1) != '"'))
+		std::string str;
+		std::string_view::iterator end = parse::parse_quoted_string(start, _json.end(), str);
+		if (end == _json.end())
+			return _json.end();
+		if (str.size() != 8 || !str.starts_with("0x"))
 			return _json.end();
 
-		_value.x = utils::hex_byte_to_char({start + 3, start + 5});
-		_value.y = utils::hex_byte_to_char({start + 5, start + 7});
-		_value.z = utils::hex_byte_to_char({start + 7, start + 9});
+		_value.x = utils::hex_byte_to_char({str.begin() + 2, str.begin() + 4});
+		_value.y = utils::hex_byte_to_char({str.begin() + 4, str.begin() + 6});
+		_value.z = utils::hex_byte_to_char({str.begin() + 6, str.begin() + 8});
 
-		return start + str.size() + 2;
+		return end;
 	}
 
 	inline static void stringify(vector3<unsigned char>& _value, std::string& _out) {
@@ -366,10 +407,10 @@ struct json_type_parser<bool> : public json_type_parser_base<bool> {
 		if (start == _json.end())
 			return _json.end();
 
-		if (std::string_view(start, start + sizeof("true") - 1) == "true") {
+		if ((start + sizeof("true") - 1) <= _json.end() && std::string_view(start, start + sizeof("true") - 1) == "true") {
 			_value = true;
 			return start + sizeof("true") - 1;
-		} else if (std::string_view(start, start + sizeof("false") - 1) == "false") {
+		} else if ((start + sizeof("false") - 1) <= _json.end() && std::string_view(start, start + sizeof("false") - 1) == "false") {
 			_value = false;
 			return start + sizeof("false") - 1;
 		}
@@ -389,11 +430,15 @@ template <typename T>
 struct json_type_parser<T> : public json_type_parser_base<T> {
 	inline static std::string_view::iterator parse(const std::string_view& _json, T& _value) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
-		std::string str = parse::extract_string(start, _json.end());
-		if (str == "" && (*start != '"' || *(start + 1) != '"'))
+		std::string str;
+		std::string_view::iterator end = parse::parse_quoted_string(start, _json.end(), str);
+		if (end == _json.end())
 			return _json.end();
-		_value = meta::string_to_enum<T>(str);
-		return start + str.size() + 2;
+		const std::optional<T> parsed = meta::try_string_to_enum<T>(str);
+		if (!parsed.has_value())
+			return _json.end();
+		_value = *parsed;
+		return end;
 	}
 
 	inline static void stringify(T& _value, std::string& _out) {

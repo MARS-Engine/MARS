@@ -42,6 +42,72 @@ inline HRESULT dx_expect(Function&& function, Args&&... args) {
 	return mars::logger::log_expect(dx12_log_channel(), std::forward<Function>(function), [](HRESULT result) { return SUCCEEDED(result); }, std::forward<Args>(args)...);
 }
 
+inline DXGI_FORMAT dx_format_from_mars(mars_format_type format) {
+	switch (format) {
+	case MARS_FORMAT_R8_UNORM:
+		return DXGI_FORMAT_R8_UNORM;
+	case MARS_FORMAT_RG8_UNORM:
+		return DXGI_FORMAT_R8G8_UNORM;
+	case MARS_FORMAT_RGBA8_UNORM:
+		return DXGI_FORMAT_R8G8B8A8_UNORM;
+	case MARS_FORMAT_RGBA8_SRGB:
+		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	case MARS_FORMAT_BGRA8_SRGB:
+		return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+	case MARS_FORMAT_R32_SFLOAT:
+		return DXGI_FORMAT_R32_FLOAT;
+	case MARS_FORMAT_RG32_SFLOAT:
+		return DXGI_FORMAT_R32G32_FLOAT;
+	case MARS_FORMAT_RGB32_SFLOAT:
+		return DXGI_FORMAT_R32G32B32_FLOAT;
+	case MARS_FORMAT_RGBA32_SFLOAT:
+		return DXGI_FORMAT_R32G32B32A32_FLOAT;
+	case MARS_FORMAT_R32_UINT:
+		return DXGI_FORMAT_R32_UINT;
+	case MARS_FORMAT_RG32_UINT:
+		return DXGI_FORMAT_R32G32_UINT;
+	case MARS_FORMAT_RGB32_UINT:
+		return DXGI_FORMAT_R32G32B32_UINT;
+	case MARS_FORMAT_RGBA32_UINT:
+		return DXGI_FORMAT_R32G32B32A32_UINT;
+	case MARS_FORMAT_RGBA16_SFLOAT:
+		return DXGI_FORMAT_R16G16B16A16_FLOAT;
+	case MARS_FORMAT_R32_TYPELESS:
+		return DXGI_FORMAT_R32_TYPELESS;
+	case MARS_FORMAT_UNDEFINED:
+	default:
+		return DXGI_FORMAT_UNKNOWN;
+	}
+}
+
+inline mars_format_type dx_resource_format_from_depth(mars_depth_format format) {
+	switch (format) {
+	case MARS_DEPTH_FORMAT_D32_SFLOAT:
+		return MARS_FORMAT_R32_TYPELESS;
+	case MARS_DEPTH_FORMAT_UNDEFINED:
+	default:
+		return MARS_FORMAT_UNDEFINED;
+	}
+}
+
+inline DXGI_FORMAT dx_depth_format_from_mars(mars_depth_format format) {
+	switch (format) {
+	case MARS_DEPTH_FORMAT_D32_SFLOAT:
+		return DXGI_FORMAT_D32_FLOAT;
+	case MARS_DEPTH_FORMAT_UNDEFINED:
+	default:
+		return DXGI_FORMAT_UNKNOWN;
+	}
+}
+
+inline DXGI_FORMAT dx_srv_format_from_depth(mars_depth_format format) {
+	switch (format) {
+	case MARS_DEPTH_FORMAT_D32_SFLOAT:
+	default:
+		return DXGI_FORMAT_R32_FLOAT;
+	}
+}
+
 struct dx_framebuffer_data;
 
 struct dx_device_data {
@@ -199,6 +265,7 @@ struct dx_command_buffer_data {
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> cmd_list;
 	dx_command_pool_data* pool = nullptr;
 	dx_framebuffer_data* last_bound_framebuffer = nullptr;
+	struct dx_depth_buffer_data* last_bound_depth_buffer = nullptr;
 	ID3D12DescriptorHeap* bindless_heap_raw = nullptr;
 };
 
@@ -231,17 +298,25 @@ struct dx_texture_data {
 
 struct dx_render_pass_data {
 	mars_format_type format;
-	mars_format_type depth_format = MARS_FORMAT_UNDEFINED;
+	mars_depth_format depth_format = MARS_DEPTH_FORMAT_UNDEFINED;
 	float depth_clear_value = 1.0f;
+};
+
+struct dx_depth_buffer_data {
+	Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsv_heap;
+	D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle = {};
+	DXGI_FORMAT resource_format = DXGI_FORMAT_UNKNOWN;
+	mars_depth_format depth_format = MARS_DEPTH_FORMAT_UNDEFINED;
+	UINT srv_bindless_idx = UINT32_MAX;
+	D3D12_RESOURCE_STATES dx12_state = D3D12_RESOURCE_STATE_COMMON;
+	bool sampled = true;
 };
 
 struct dx_framebuffer_data {
 	D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = {};
 	Microsoft::WRL::ComPtr<ID3D12Resource> render_target;
 	dx_texture_data* render_target_texture = nullptr;
-	D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle = {};
-	Microsoft::WRL::ComPtr<ID3D12Resource> depth_target;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsv_heap;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtv_heap;
 	bool is_swapchain = false;
 	D3D12_RESOURCE_STATES before_render_state = D3D12_RESOURCE_STATE_COMMON;
@@ -252,6 +327,8 @@ struct dx_descriptor_data {
 
 struct dx_descriptor_set_data {
 	std::vector<std::pair<size_t, D3D12_GPU_VIRTUAL_ADDRESS>> cbv_bindings;
+	std::vector<std::pair<size_t, D3D12_GPU_DESCRIPTOR_HANDLE>> srv_bindings;
+	std::vector<std::pair<size_t, D3D12_GPU_DESCRIPTOR_HANDLE>> uav_bindings;
 	const std::vector<dx_root_param_entry>* root_layout = nullptr;
 };
 

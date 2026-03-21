@@ -31,6 +31,30 @@ static D3D12_COMPARISON_FUNC mars_compare_op_to_dx12(mars_compare_op op) {
 	}
 }
 
+static D3D12_PRIMITIVE_TOPOLOGY_TYPE mars_topology_type_to_dx12(mars_pipeline_primitive_topology topology) {
+	switch (topology) {
+	case MARS_PIPELINE_PRIMITIVE_TOPOLOGY_LINE_LIST:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+	case MARS_PIPELINE_PRIMITIVE_TOPOLOGY_POINT_LIST:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	case MARS_PIPELINE_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+	default:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	}
+}
+
+static D3D_PRIMITIVE_TOPOLOGY mars_topology_to_dx12(mars_pipeline_primitive_topology topology) {
+	switch (topology) {
+	case MARS_PIPELINE_PRIMITIVE_TOPOLOGY_LINE_LIST:
+		return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+	case MARS_PIPELINE_PRIMITIVE_TOPOLOGY_POINT_LIST:
+		return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+	case MARS_PIPELINE_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+	default:
+		return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	}
+}
+
 static void dump_dx12_info_queue(ID3D12Device* device) {
 	Microsoft::WRL::ComPtr<ID3D12InfoQueue> info_queue;
 	if (FAILED(device->QueryInterface(IID_PPV_ARGS(&info_queue))))
@@ -51,37 +75,6 @@ static void dump_dx12_info_queue(ID3D12Device* device) {
 		free(msg);
 	}
 	info_queue->ClearStoredMessages();
-}
-
-static DXGI_FORMAT mars_format_to_dxgi(mars_format_type fmt) {
-	switch (fmt) {
-	case MARS_FORMAT_R32_SFLOAT:
-		return DXGI_FORMAT_R32_FLOAT;
-	case MARS_FORMAT_RG32_SFLOAT:
-		return DXGI_FORMAT_R32G32_FLOAT;
-	case MARS_FORMAT_RGB32_SFLOAT:
-		return DXGI_FORMAT_R32G32B32_FLOAT;
-	case MARS_FORMAT_RGBA32_SFLOAT:
-		return DXGI_FORMAT_R32G32B32A32_FLOAT;
-	case MARS_FORMAT_R32_UINT:
-		return DXGI_FORMAT_R32_UINT;
-	case MARS_FORMAT_RG32_UINT:
-		return DXGI_FORMAT_R32G32_UINT;
-	case MARS_FORMAT_RGB32_UINT:
-		return DXGI_FORMAT_R32G32B32_UINT;
-	case MARS_FORMAT_RGBA32_UINT:
-		return DXGI_FORMAT_R32G32B32A32_UINT;
-	case MARS_FORMAT_RGBA16_SFLOAT:
-		return DXGI_FORMAT_R16G16B16A16_FLOAT;
-	case MARS_FORMAT_RGBA8_UNORM:
-		return DXGI_FORMAT_R8G8B8A8_UNORM;
-	case MARS_FORMAT_RGBA8_SRGB:
-		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	case MARS_FORMAT_D32_SFLOAT:
-		return DXGI_FORMAT_D32_FLOAT;
-	default:
-		return DXGI_FORMAT_UNKNOWN;
-	}
 }
 
 static D3D12_SHADER_VISIBILITY stage_to_visibility(mars_pipeline_stage stage) {
@@ -130,8 +123,8 @@ pipeline dx_pipeline_impl::dx_pipeline_create(const device& _device, const rende
 		auto& attr = _setup.attributes[i];
 		D3D12_INPUT_ELEMENT_DESC elem = {};
 		elem.SemanticName = attr.semantic_name.c_str();
-		elem.SemanticIndex = 0;
-		elem.Format = mars_format_to_dxgi(attr.input_format);
+		elem.SemanticIndex = static_cast<UINT>(attr.semantic_index);
+		elem.Format = dx_format_from_mars(attr.input_format);
 		elem.InputSlot = (UINT)attr.binding;
 		elem.AlignedByteOffset = (UINT)attr.offset;
 		elem.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
@@ -186,11 +179,11 @@ pipeline dx_pipeline_impl::dx_pipeline_create(const device& _device, const rende
 	pso_desc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
 	pso_desc.StreamOutput.RasterizedStream = D3D12_SO_NO_RASTERIZED_STREAM;
 
-	if (rp_data->depth_format != MARS_FORMAT_UNDEFINED) {
+	if (rp_data->depth_format != MARS_DEPTH_FORMAT_UNDEFINED) {
 		pso_desc.DepthStencilState.DepthEnable = TRUE;
 		pso_desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 		pso_desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
-		pso_desc.DSVFormat = mars_format_to_dxgi(rp_data->depth_format);
+		pso_desc.DSVFormat = dx_depth_format_from_mars(rp_data->depth_format);
 	}
 
 	if (_setup.has_depth_test_override)
@@ -212,9 +205,9 @@ pipeline dx_pipeline_impl::dx_pipeline_create(const device& _device, const rende
 	}
 
 	pso_desc.SampleMask = UINT_MAX;
-	pso_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	pso_desc.PrimitiveTopologyType = mars_topology_type_to_dx12(_setup.primitive_topology);
 	pso_desc.NumRenderTargets = 1;
-	pso_desc.RTVFormats[0] = mars_format_to_dxgi(rp_data->format);
+	pso_desc.RTVFormats[0] = dx_format_from_mars(rp_data->format);
 	pso_desc.SampleDesc.Count = 1;
 	pso_desc.SampleDesc.Quality = 0;
 	pso_desc.NodeMask = 0;
@@ -252,7 +245,7 @@ void dx_pipeline_impl::dx_pipeline_bind(const pipeline& _pipeline, const command
 	D3D12_RECT scissor = {0, 0, (LONG)_params.size.x, (LONG)_params.size.y};
 	cb_data->cmd_list->RSSetViewports(1, &viewport);
 	cb_data->cmd_list->RSSetScissorRects(1, &scissor);
-	cb_data->cmd_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	cb_data->cmd_list->IASetPrimitiveTopology(mars_topology_to_dx12(_setup.primitive_topology));
 }
 
 void dx_pipeline_impl::dx_pipeline_destroy(pipeline& _pipeline, const device& _device) {

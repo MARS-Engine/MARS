@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <sstream>
 #include <set>
 #include <string>
 #include <vector>
@@ -31,6 +32,8 @@ struct queue_family_selection {
 	uint32_t compute = std::numeric_limits<uint32_t>::max();
 	uint32_t transfer = std::numeric_limits<uint32_t>::max();
 };
+
+bool query_required_features(vk_device_data* data, VkPhysicalDevice physical_device, bool require_generated_commands, std::string& failure_reason);
 
 queue_family_selection select_queue_families(VkPhysicalDevice physical_device) {
 	uint32_t queue_family_count = 0u;
@@ -75,6 +78,97 @@ bool supports_required_extensions(VkPhysicalDevice physical_device, const std::v
 			return false;
 	}
 	return true;
+}
+
+std::vector<std::string> missing_required_extensions(VkPhysicalDevice physical_device, const std::vector<const char*>& required_extensions) {
+	uint32_t extension_count = 0u;
+	vk_expect<vkEnumerateDeviceExtensionProperties>(physical_device, nullptr, &extension_count, nullptr);
+	std::vector<VkExtensionProperties> extensions(extension_count);
+	vk_expect<vkEnumerateDeviceExtensionProperties>(physical_device, nullptr, &extension_count, extensions.data());
+
+	std::vector<std::string> missing;
+	for (const char* required : required_extensions) {
+		const bool found = std::any_of(extensions.begin(), extensions.end(), [required](const VkExtensionProperties& extension) {
+			return std::strcmp(extension.extensionName, required) == 0;
+		});
+		if (!found)
+			missing.emplace_back(required);
+	}
+	return missing;
+}
+
+const char* physical_device_type_name(VkPhysicalDeviceType type) {
+	switch (type) {
+	case VK_PHYSICAL_DEVICE_TYPE_OTHER: return "other";
+	case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return "integrated";
+	case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: return "discrete";
+	case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: return "virtual";
+	case VK_PHYSICAL_DEVICE_TYPE_CPU: return "cpu";
+	default: return "unknown";
+	}
+}
+
+std::string join_strings(const std::vector<std::string>& values, std::string_view separator = ", ") {
+	if (values.empty())
+		return {};
+	std::string result;
+	for (size_t index = 0; index < values.size(); ++index) {
+		if (index != 0)
+			result += separator;
+		result += values[index];
+	}
+	return result;
+}
+
+std::string describe_device_requirement_report(
+	vk_device_data* data,
+	VkInstance instance,
+	const std::vector<const char*>& required_extensions,
+	bool require_generated_commands,
+	VkPhysicalDevice selected_device
+) {
+	uint32_t physical_device_count = 0u;
+	vk_expect<vkEnumeratePhysicalDevices>(instance, &physical_device_count, nullptr);
+	if (physical_device_count == 0u)
+		return "No Vulkan physical devices were reported by the driver.";
+
+	std::vector<VkPhysicalDevice> devices(physical_device_count);
+	vk_expect<vkEnumeratePhysicalDevices>(instance, &physical_device_count, devices.data());
+
+	std::ostringstream report;
+	report << "\nDetected Vulkan devices:";
+	for (VkPhysicalDevice candidate : devices) {
+		VkPhysicalDeviceProperties properties = {};
+		vkGetPhysicalDeviceProperties(candidate, &properties);
+
+		report << "\n- " << properties.deviceName << " [" << physical_device_type_name(properties.deviceType) << "]";
+		if (candidate == selected_device)
+			report << " (selected)";
+
+		const std::vector<std::string> missing_extensions = missing_required_extensions(candidate, required_extensions);
+		if (missing_extensions.empty())
+			report << "\n    Extensions: OK";
+		else
+			report << "\n    Missing extensions: " << join_strings(missing_extensions);
+
+		const auto queues = select_queue_families(candidate);
+		if (queues.graphics == std::numeric_limits<uint32_t>::max())
+			report << "\n    Queue families: missing graphics queue";
+		else
+			report << "\n    Queue families: graphics=" << queues.graphics << ", compute=" << queues.compute << ", transfer=" << queues.transfer;
+
+		if (!missing_extensions.empty()) {
+			report << "\n    Feature check: skipped because required extensions are missing";
+			continue;
+		}
+
+		std::string feature_failure_reason;
+		if (query_required_features(data, candidate, require_generated_commands, feature_failure_reason))
+			report << "\n    Feature check: OK";
+		else
+			report << "\n    Missing feature/support: " << feature_failure_reason;
+	}
+	return report.str();
 }
 
 bool validation_layer_available(const char* layer_name) {
@@ -460,14 +554,20 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 	const bool enable_generated_commands = data->physical_device != VK_NULL_HANDLE;
 	if (!enable_generated_commands)
 		data->physical_device = select_physical_device(data->instance, base_device_extensions);
-	mars::logger::assert_(data->physical_device != VK_NULL_HANDLE, vk_log_channel(), "Failed to select a Vulkan physical device");
+	mars::logger::assert_(
+		data->physical_device != VK_NULL_HANDLE,
+		vk_log_channel(),
+		"Failed to select a Vulkan physical device.{}",
+		describe_device_requirement_report(data, data->instance, enable_generated_commands ? device_extensions : base_device_extensions, enable_generated_commands, VK_NULL_HANDLE)
+	);
 
 	std::string feature_failure_reason;
 	mars::logger::assert_(
 		query_required_features(data, data->physical_device, enable_generated_commands, feature_failure_reason),
 		vk_log_channel(),
-		"Selected Vulkan device does not satisfy backend requirements: {}",
-		feature_failure_reason
+		"Selected Vulkan device does not satisfy backend requirements: {}{}",
+		feature_failure_reason,
+		describe_device_requirement_report(data, data->instance, enable_generated_commands ? device_extensions : base_device_extensions, enable_generated_commands, data->physical_device)
 	);
 
 	vkGetPhysicalDeviceProperties(data->physical_device, &data->physical_device_properties);
@@ -627,10 +727,10 @@ void vk_device_impl::vk_device_submit(const device& _device, const command_buffe
 	VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	if (command_buffer_data->swapchain && command_buffer_data->swapchain->image_acquired) {
 		submit_info.waitSemaphoreCount = 1u;
-		submit_info.pWaitSemaphores = &command_buffer_data->swapchain->image_available_semaphore;
+		submit_info.pWaitSemaphores = &command_buffer_data->swapchain->active_image_available_semaphore;
 		submit_info.pWaitDstStageMask = &wait_stage;
 		submit_info.signalSemaphoreCount = 1u;
-		submit_info.pSignalSemaphores = &command_buffer_data->swapchain->render_finished_semaphore;
+		submit_info.pSignalSemaphores = &command_buffer_data->swapchain->active_render_finished_semaphore;
 	}
 
 	const VkFence submit_fence = command_buffer_data->submit_fence;

@@ -6,6 +6,18 @@
 
 namespace mars::graphics::vk {
 namespace {
+VkPrimitiveTopology vk_topology_from_mars(mars_pipeline_primitive_topology topology) {
+	switch (topology) {
+	case MARS_PIPELINE_PRIMITIVE_TOPOLOGY_LINE_LIST:
+		return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+	case MARS_PIPELINE_PRIMITIVE_TOPOLOGY_POINT_LIST:
+		return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+	case MARS_PIPELINE_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
+	default:
+		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	}
+}
+
 void set_object_name(vk_device_data* device_data, uint64_t handle, VkObjectType object_type, const std::string& name) {
 	if (!device_data->set_debug_name || handle == 0u || name.empty())
 		return;
@@ -29,14 +41,11 @@ vk_sampler_kind combine_sampler_kind(vk_sampler_kind a, vk_sampler_kind b) {
 VkDescriptorSetLayout create_explicit_layout(vk_device_data* device_data, const std::vector<pipeline_descriptior_layout>& descriptors, std::vector<vk_pipeline_binding_info>& out_bindings) {
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
 	for (const auto& descriptor : descriptors) {
-		if (descriptor.descriptor_type != MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-			continue;
-
 		VkDescriptorSetLayoutBinding binding = {};
 		binding.binding = static_cast<uint32_t>(descriptor.binding);
-		binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		binding.descriptorType = vk_descriptor_type_from_pipeline_descriptor(descriptor.descriptor_type);
 		binding.descriptorCount = 1u;
-		binding.stageFlags = VK_SHADER_STAGE_ALL;
+		binding.stageFlags = vk_shader_stage_flags(descriptor.stage);
 		bindings.push_back(binding);
 		out_bindings.push_back({binding.binding, binding.descriptorType});
 	}
@@ -183,7 +192,7 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 
 	VkPipelineInputAssemblyStateCreateInfo input_assembly = {};
 	input_assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	input_assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	input_assembly.topology = vk_topology_from_mars(_setup.primitive_topology);
 
 	VkPipelineViewportStateCreateInfo viewport_state = {};
 	viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -220,8 +229,8 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 
 	VkPipelineDepthStencilStateCreateInfo depth_stencil = {};
 	depth_stencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depth_stencil.depthTestEnable = render_pass_data->depth_format != MARS_FORMAT_UNDEFINED ? VK_TRUE : VK_FALSE;
-	depth_stencil.depthWriteEnable = render_pass_data->depth_format != MARS_FORMAT_UNDEFINED ? VK_TRUE : VK_FALSE;
+	depth_stencil.depthTestEnable = render_pass_data->depth_format != MARS_DEPTH_FORMAT_UNDEFINED ? VK_TRUE : VK_FALSE;
+	depth_stencil.depthWriteEnable = render_pass_data->depth_format != MARS_DEPTH_FORMAT_UNDEFINED ? VK_TRUE : VK_FALSE;
 	depth_stencil.depthCompareOp = VK_COMPARE_OP_LESS;
 
 	if (_setup.has_depth_test_override)
@@ -238,7 +247,7 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 	dynamic_state.pDynamicStates = dynamic_states;
 
 	const VkFormat color_format = render_pass_data->actual_color_format != VK_FORMAT_UNDEFINED ? render_pass_data->actual_color_format : vk_format_from_mars(render_pass_data->format);
-	const VkFormat depth_format = render_pass_data->depth_format != MARS_FORMAT_UNDEFINED ? vk_format_from_mars(render_pass_data->depth_format) : VK_FORMAT_UNDEFINED;
+	const VkFormat depth_format = render_pass_data->depth_format != MARS_DEPTH_FORMAT_UNDEFINED ? vk_depth_format_from_mars(render_pass_data->depth_format) : VK_FORMAT_UNDEFINED;
 
 	VkPipelineRenderingCreateInfo rendering_info = {};
 	rendering_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;

@@ -36,12 +36,17 @@ VkPresentModeKHR choose_present_mode(const std::vector<VkPresentModeKHR>& presen
 }
 
 void destroy_swapchain_resources(vk_device_data* device_data, vk_swapchain_data* swapchain_data, bool destroy_surface) {
-	if (swapchain_data->render_finished_semaphore != VK_NULL_HANDLE)
-		vkDestroySemaphore(device_data->device, swapchain_data->render_finished_semaphore, nullptr);
-	if (swapchain_data->image_available_semaphore != VK_NULL_HANDLE)
-		vkDestroySemaphore(device_data->device, swapchain_data->image_available_semaphore, nullptr);
-	swapchain_data->render_finished_semaphore = VK_NULL_HANDLE;
-	swapchain_data->image_available_semaphore = VK_NULL_HANDLE;
+	for (VkSemaphore semaphore : swapchain_data->render_finished_semaphores)
+		if (semaphore != VK_NULL_HANDLE)
+			vkDestroySemaphore(device_data->device, semaphore, nullptr);
+	for (VkSemaphore semaphore : swapchain_data->image_available_semaphores)
+		if (semaphore != VK_NULL_HANDLE)
+			vkDestroySemaphore(device_data->device, semaphore, nullptr);
+	swapchain_data->render_finished_semaphores.clear();
+	swapchain_data->image_available_semaphores.clear();
+	swapchain_data->active_render_finished_semaphore = VK_NULL_HANDLE;
+	swapchain_data->active_image_available_semaphore = VK_NULL_HANDLE;
+	swapchain_data->sync_index = 0u;
 
 	for (VkImageView view : swapchain_data->views)
 		if (view != VK_NULL_HANDLE)
@@ -137,12 +142,19 @@ void create_swapchain_resources(const device& _device, const window& _window, vk
 
 	VkSemaphoreCreateInfo semaphore_info = {};
 	semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-	vk_expect<vkCreateSemaphore>(device_data->device, &semaphore_info, nullptr, &swapchain_data->image_available_semaphore);
-	vk_expect<vkCreateSemaphore>(device_data->device, &semaphore_info, nullptr, &swapchain_data->render_finished_semaphore);
+	swapchain_data->image_available_semaphores.resize(image_count, VK_NULL_HANDLE);
+	swapchain_data->render_finished_semaphores.resize(image_count, VK_NULL_HANDLE);
+	for (uint32_t index = 0u; index < image_count; ++index) {
+		vk_expect<vkCreateSemaphore>(device_data->device, &semaphore_info, nullptr, &swapchain_data->image_available_semaphores[index]);
+		vk_expect<vkCreateSemaphore>(device_data->device, &semaphore_info, nullptr, &swapchain_data->render_finished_semaphores[index]);
+	}
 
 	swapchain_data->format = surface_format.format;
 	swapchain_data->color_space = surface_format.colorSpace;
 	swapchain_data->extent = extent;
+	swapchain_data->active_image_available_semaphore = VK_NULL_HANDLE;
+	swapchain_data->active_render_finished_semaphore = VK_NULL_HANDLE;
+	swapchain_data->sync_index = 0u;
 	swapchain_data->image_acquired = false;
 }
 
@@ -176,23 +188,29 @@ void vk_swapchain_impl::vk_swapchain_present(const swapchain& _swapchain, const 
 	VkPresentInfoKHR present_info = {};
 	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	present_info.waitSemaphoreCount = 1u;
-	present_info.pWaitSemaphores = &data->render_finished_semaphore;
+	present_info.pWaitSemaphores = &data->active_render_finished_semaphore;
 	present_info.swapchainCount = 1u;
 	present_info.pSwapchains = &data->swapchain;
 	present_info.pImageIndices = &data->acquired_image_index;
 
 	vk_expect<vkQueuePresentKHR>(device_data->direct_queue.queue, &present_info);
 	data->image_acquired = false;
+	if (!data->image_available_semaphores.empty())
+		data->sync_index = (data->sync_index + 1u) % data->image_available_semaphores.size();
 }
 
 size_t vk_swapchain_impl::vk_swapchain_get_back_buffer_index(const swapchain& _swapchain) {
 	auto* data = _swapchain.data.expect<vk_swapchain_data>();
 	if (!data->image_acquired) {
+		if (data->image_available_semaphores.empty() || data->render_finished_semaphores.empty())
+			return data->acquired_image_index;
+		data->active_image_available_semaphore = data->image_available_semaphores[data->sync_index];
+		data->active_render_finished_semaphore = data->render_finished_semaphores[data->sync_index];
 		const VkResult result = vk_expect<vkAcquireNextImageKHR>(
 			data->device_data->device,
 			data->swapchain,
 			UINT64_MAX,
-			data->image_available_semaphore,
+			data->active_image_available_semaphore,
 			VK_NULL_HANDLE,
 			&data->acquired_image_index
 		);

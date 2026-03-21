@@ -125,10 +125,13 @@ consteval bool has_annotation(std::meta::info _type) {
 }
 
 consteval std::string_view display_name(std::meta::info reflected) {
-	if (const auto annotation = get_annotation<display_annotation>(reflected); annotation.has_value())
-		return annotation->display_name;
+	const auto annotation = get_annotation<display_annotation>(reflected);
+
+	if (annotation.has_value())
+		return std::string_view(annotation->display_name);
 	if (std::meta::has_identifier(reflected))
 		return std::meta::identifier_of(reflected);
+
 	return std::meta::display_string_of(reflected);
 }
 
@@ -157,7 +160,23 @@ consteval std::array<const char*, N> enum_values() {
 	return result;
 }
 
-inline static consteval display_annotation display(const char* _display_name) { return { _display_name }; }
+inline static consteval display_annotation display(std::string_view _display_name) {
+	return display_annotation{std::define_static_string(_display_name)};
+}
+
+template <typename E, bool Enumerable = std::meta::is_enumerable_type(^^E)>
+	requires std::is_enum_v<E>
+constexpr std::optional<E> try_string_to_enum(const std::string_view& _value) {
+	if constexpr (Enumerable) {
+		template for (constexpr auto e : std::define_static_array(std::meta::enumerators_of(^^E))) {
+			constexpr std::string_view identifier = std::meta::identifier_of(e);
+			if (_value == identifier || _value == display_name(e))
+				return [:e:];
+		}
+	}
+
+	return std::nullopt;
+}
 
 template <typename E, bool Enumerable = std::meta::is_enumerable_type(^^E)>
 	requires std::is_enum_v<E>
@@ -175,14 +194,9 @@ constexpr std::string_view enum_to_string(E _value) {
 template <typename E, bool Enumerable = std::meta::is_enumerable_type(^^E)>
 	requires std::is_enum_v<E>
 constexpr E string_to_enum(const std::string_view& _value) {
-	if constexpr (Enumerable) {
-		template for (constexpr auto e : std::define_static_array(std::meta::enumerators_of(^^E))) {
-			if (_value == std::meta::identifier_of(e))
-				return [:e:];
-		}
-	}
-
-	return {};
+	if (const std::optional<E> value = try_string_to_enum<E>(_value); value.has_value())
+		return *value;
+	return E{};
 }
 
 template <auto MemberPtr>

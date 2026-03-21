@@ -21,6 +21,20 @@ static std::string read_file(const std::string_view& path) {
 	return buf.str();
 }
 
+static std::string load_shader_source(const shader_module& module) {
+	if (!module.source.empty())
+		return std::string(module.source);
+	return read_file(module.path);
+}
+
+static std::string shader_debug_name(const shader_module& module) {
+	if (!module.name.empty())
+		return std::string(module.name);
+	if (!module.path.empty())
+		return std::string(module.path);
+	return "<inline>";
+}
+
 static HRESULT compile_shader_dxc(IDxcCompiler3* compiler, IDxcUtils* utils, IDxcIncludeHandler* handler, const std::string& source, const wchar_t* entry, const wchar_t* profile, ID3DBlob** out_blob) {
 	DxcBuffer src_buf;
 	src_buf.Ptr = source.c_str();
@@ -68,26 +82,27 @@ shader dx_shader_impl::dx_shader_create(const device& _device, const std::vector
 	dxc_utils->CreateDefaultIncludeHandler(&dxc_handler);
 
 	for (auto& mod : _shaders) {
-		std::string source = read_file(mod.path);
+		std::string source = load_shader_source(mod);
 		if (source.empty()) {
-			logger::error(dx12_channel, "Unable to read shader file: {}", mod.path);
+			logger::error(dx12_channel, "Unable to load shader source: {}", shader_debug_name(mod));
 			continue;
 		}
 
 		HRESULT compile_hr = S_OK;
+		const std::string debug_name = shader_debug_name(mod);
 		if (mod.type == MARS_SHADER_TYPE_VERTEX) {
 			compile_hr = compile_shader_dxc(dxc_compiler.Get(), dxc_utils.Get(), dxc_handler.Get(), source, L"VSMain", L"vs_6_6", &data->vertex_shader);
-			data->vertex_shader_path = mod.path;
+			data->vertex_shader_path = debug_name;
 		} else if (mod.type == MARS_SHADER_TYPE_FRAGMENT) {
 			compile_hr = compile_shader_dxc(dxc_compiler.Get(), dxc_utils.Get(), dxc_handler.Get(), source, L"PSMain", L"ps_6_6", &data->pixel_shader);
-			data->pixel_shader_path = mod.path;
+			data->pixel_shader_path = debug_name;
 		} else if (mod.type == MARS_SHADER_TYPE_COMPUTE) {
 			compile_hr = compile_shader_dxc(dxc_compiler.Get(), dxc_utils.Get(), dxc_handler.Get(), source, L"CSMain", L"cs_6_6", &data->compute_shader);
-			data->compute_shader_path = mod.path;
+			data->compute_shader_path = debug_name;
 		}
 
 		if (FAILED(compile_hr))
-			logger::error(dx12_channel, "Shader compile failed for path={} type={} hr={:#x}", mod.path, (int)mod.type, (unsigned long)compile_hr);
+			logger::error(dx12_channel, "Shader compile failed for {} type={} hr={:#x}", debug_name, (int)mod.type, (unsigned long)compile_hr);
 	}
 
 	shader result;

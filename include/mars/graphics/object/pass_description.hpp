@@ -33,6 +33,15 @@ struct pass_desc_traits {
 
 	static constexpr bool has_clear_depth_annotation = meta::has_annotation<mars::graphics::rp_clear_depth>(^^PassTag);
 
+	static constexpr bool has_depth_attachment = meta::has_annotation<mars::graphics::rp_depth_attachment>(^^PassTag);
+
+	static constexpr mars_depth_format depth_format = []() consteval {
+		if constexpr (has_depth_attachment)
+			return meta::get_annotation<mars::graphics::rp_depth_attachment>(^^PassTag).value().format;
+		else
+			return MARS_DEPTH_FORMAT_UNDEFINED;
+	}();
+
 	static constexpr float clear_depth = []() consteval {
 		if constexpr (has_clear_depth_annotation)
 			return meta::get_annotation<mars::graphics::rp_clear_depth>(^^PassTag).value().value;

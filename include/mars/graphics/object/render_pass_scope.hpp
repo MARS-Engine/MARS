@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mars/graphics/backend/depth_buffer.hpp>
 #include <mars/graphics/backend/framebuffer.hpp>
 #include <mars/graphics/backend/render_pass.hpp>
 #include <mars/graphics/functional/render_pass.hpp>
@@ -12,9 +13,9 @@ class render_pass_scope {
 	const mars::command_buffer* m_cmd = nullptr;
 
   public:
-	render_pass_scope(const mars::render_pass& rp, const command_buffer_recording& rec, const mars::framebuffer& fb, const mars::render_pass_bind_param& params)
+	render_pass_scope(const mars::render_pass& rp, const command_buffer_recording& rec, const mars::framebuffer& fb, const mars::depth_buffer* depth, const mars::render_pass_bind_param& params)
 		: m_rp(&rp), m_cmd(&rec.get()) {
-		mars::graphics::render_pass_bind(rp, rec, fb, params);
+		mars::graphics::render_pass_bind(rp, rec, fb, depth, params);
 	}
 
 	~render_pass_scope() {

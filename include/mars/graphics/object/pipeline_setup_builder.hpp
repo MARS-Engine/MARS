@@ -59,6 +59,11 @@ struct pipeline_setup_builder {
 		return *this;
 	}
 
+	pipeline_setup_builder& set_primitive_topology(mars_pipeline_primitive_topology topology) {
+		setup.primitive_topology = topology;
+		return *this;
+	}
+
 	pipeline_setup_builder& set_depth_test(bool enabled) {
 		setup.has_depth_test_override = true;
 		setup.depth_test_enable = enabled;

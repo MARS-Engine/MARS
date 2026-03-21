@@ -43,7 +43,12 @@ enum mars_format_type {
 	MARS_FORMAT_RGB32_UINT,
 	MARS_FORMAT_RGBA32_UINT,
 	MARS_FORMAT_RGBA16_SFLOAT,
-	MARS_FORMAT_D32_SFLOAT,
+	MARS_FORMAT_R32_TYPELESS,
+};
+
+enum mars_depth_format {
+	MARS_DEPTH_FORMAT_UNDEFINED,
+	MARS_DEPTH_FORMAT_D32_SFLOAT,
 };
 
 enum mars_texture_filter_mode {
@@ -79,7 +84,7 @@ template <typename T>
 consteval mars_format_type make_format() {
 	mars_format_type result = {};
 
-	const auto get_type = [](std::meta::info& _info) -> mars_format_type {
+	const auto get_type = [](std::meta::info _info) -> mars_format_type {
 		if (std::meta::is_same_type(_info, ^^float))
 			return MARS_FORMAT_R32_SFLOAT;
 		else if (std::meta::is_same_type(_info, ^^unsigned int))

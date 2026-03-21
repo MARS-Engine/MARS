@@ -54,6 +54,14 @@ class swapchain {
 		return mars::graphics::swapchain_get_back_buffer_index(m_swapchain);
 	}
 
+	size_t swapchain_size() const {
+		return m_swapchain.swapchain_size;
+	}
+
+	mars::vector2<size_t> size() const {
+		return m_swapchain.extent;
+	}
+
 	void destroy() {
 		if (m_swapchain.engine)
 			mars::graphics::swapchain_destroy(m_swapchain, m_device);

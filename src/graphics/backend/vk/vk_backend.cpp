@@ -6,6 +6,7 @@
 #include <mars/graphics/backend/vk/vk_command_queue.hpp>
 #include <mars/graphics/backend/vk/vk_compute_pipeline.hpp>
 #include <mars/graphics/backend/vk/vk_descriptor.hpp>
+#include <mars/graphics/backend/vk/vk_depth_buffer.hpp>
 #include <mars/graphics/backend/vk/vk_device.hpp>
 #include <mars/graphics/backend/vk/vk_framebuffer.hpp>
 #include <mars/graphics/backend/vk/vk_indirect_executor.hpp>
@@ -96,6 +97,12 @@ graphics_backend_functions* vulkan_t::get_functions() {
 			.texture_get_srv_index = &vk::vk_texture_impl::vk_texture_get_srv_index,
 			.texture_get_uav_base = &vk::vk_texture_impl::vk_texture_get_uav_base,
 			.texture_destroy = &vk::vk_texture_impl::vk_texture_destroy,
+		},
+		.depth_buffer = {
+			.depth_buffer_create = &vk::vk_depth_buffer_impl::vk_depth_buffer_create,
+			.depth_buffer_transition = &vk::vk_depth_buffer_impl::vk_depth_buffer_transition,
+			.depth_buffer_get_srv_index = &vk::vk_depth_buffer_impl::vk_depth_buffer_get_srv_index,
+			.depth_buffer_destroy = &vk::vk_depth_buffer_impl::vk_depth_buffer_destroy,
 		},
 		.render_pass = {
 			.render_pass_create = &vk::vk_render_pass_impl::vk_render_pass_create,

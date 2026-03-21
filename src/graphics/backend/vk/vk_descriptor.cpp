@@ -6,6 +6,20 @@
 
 namespace mars::graphics::vk {
 namespace {
+uint32_t texture_layer_count(const vk_texture_data* texture_data) {
+	return texture_data->texture_type == MARS_TEXTURE_TYPE_CUBE
+		? static_cast<uint32_t>(texture_data->array_size * 6u)
+		: static_cast<uint32_t>(texture_data->array_size);
+}
+
+uint32_t texture_uav_view_index(const vk_texture_data* texture_data, size_t mip_level, size_t array_slice) {
+	const uint32_t total_slices = texture_layer_count(texture_data);
+	if (mip_level >= texture_data->mip_levels || array_slice >= total_slices)
+		return std::numeric_limits<uint32_t>::max();
+
+	return static_cast<uint32_t>(mip_level) * total_slices + static_cast<uint32_t>(array_slice);
+}
+
 VkDescriptorType descriptor_pool_type_from_mars(mars_descriptor_type descriptor_type) {
 	switch (descriptor_type) {
 	case MARS_DESCRIPTOR_TYPE_SAMPLER:
@@ -68,41 +82,85 @@ descriptor_set create_set_impl(
 	for (size_t set_index = 0u; set_index < set_count; ++set_index) {
 		const auto& params = _params.empty() ? descriptor_set_create_params{} : _params[set_index];
 		std::vector<VkDescriptorBufferInfo> buffer_infos;
-		std::vector<uint32_t> bindings_to_write;
-			
+		std::vector<VkDescriptorImageInfo> image_infos;
+		std::vector<std::pair<uint32_t, VkDescriptorType>> buffer_writes;
+		std::vector<std::pair<uint32_t, VkDescriptorType>> image_writes;
+
 		buffer_infos.reserve(params.buffers.size());
-		bindings_to_write.reserve(params.buffers.size());
-			
+		image_infos.reserve(params.textures.size());
+		buffer_writes.reserve(params.buffers.size());
+		image_writes.reserve(params.textures.size());
+
 		for (const auto& [buffer_handle, binding] : params.buffers) {
-		    const auto binding_info = vk_find_binding_info(set_data->bindings, static_cast<uint32_t>(binding));
-		    if (!binding_info.has_value() || binding_info->type != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-		        continue;
-		
-		    buffer_infos.push_back({
-		        .buffer = buffer_handle.data.expect<vk_buffer_data>()->buffer,
-		        .offset = 0u,
-		        .range = buffer_handle.data.expect<vk_buffer_data>()->size,
-		    });
-		
-		    bindings_to_write.push_back(static_cast<uint32_t>(binding));
+			const auto binding_info = vk_find_binding_info(set_data->bindings, static_cast<uint32_t>(binding));
+			if (!binding_info.has_value() || binding_info->type != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+				continue;
+
+			auto* buffer_data = buffer_handle.data.expect<vk_buffer_data>();
+			buffer_infos.push_back({
+				.buffer = buffer_data->buffer,
+				.offset = 0u,
+				.range = buffer_data->size,
+			});
+			buffer_writes.push_back({static_cast<uint32_t>(binding), binding_info->type});
 		}
-		
+
+		for (const auto& texture_binding : params.textures) {
+			const auto binding_info = vk_find_binding_info(set_data->bindings, static_cast<uint32_t>(texture_binding.binding));
+			if (!binding_info.has_value())
+				continue;
+
+			auto* texture_data = texture_binding.image.data.get<vk_texture_data>();
+			if (texture_data == nullptr)
+				continue;
+
+			VkDescriptorImageInfo image_info = {};
+			image_info.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+			if (binding_info->type == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE) {
+				if (texture_data->srv_view == VK_NULL_HANDLE)
+					continue;
+				image_info.imageView = texture_data->srv_view;
+			} else if (binding_info->type == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE) {
+				const uint32_t view_index = texture_uav_view_index(texture_data, texture_binding.mip_level, texture_binding.array_slice);
+				if (view_index >= texture_data->uav_views.size())
+					continue;
+				image_info.imageView = texture_data->uav_views[view_index];
+			} else {
+				continue;
+			}
+
+			image_infos.push_back(image_info);
+			image_writes.push_back({static_cast<uint32_t>(texture_binding.binding), binding_info->type});
+		}
+
 		std::vector<VkWriteDescriptorSet> writes;
-		writes.reserve(buffer_infos.size());
-		
-		for (size_t i = 0; i < buffer_infos.size(); ++i) {
-		    VkWriteDescriptorSet write{};
-		    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		    write.dstSet = set_data->sets[set_index];
-		    write.dstBinding = bindings_to_write[i];
-		    write.descriptorCount = 1u;
-		    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		    write.pBufferInfo = &buffer_infos[i];
-		    writes.push_back(write);
+		writes.reserve(buffer_infos.size() + image_infos.size());
+
+		for (size_t index = 0u; index < buffer_infos.size(); ++index) {
+			VkWriteDescriptorSet write = {};
+			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write.dstSet = set_data->sets[set_index];
+			write.dstBinding = buffer_writes[index].first;
+			write.descriptorCount = 1u;
+			write.descriptorType = buffer_writes[index].second;
+			write.pBufferInfo = &buffer_infos[index];
+			writes.push_back(write);
 		}
-		
+
+		for (size_t index = 0u; index < image_infos.size(); ++index) {
+			VkWriteDescriptorSet write = {};
+			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write.dstSet = set_data->sets[set_index];
+			write.dstBinding = image_writes[index].first;
+			write.descriptorCount = 1u;
+			write.descriptorType = image_writes[index].second;
+			write.pImageInfo = &image_infos[index];
+			writes.push_back(write);
+		}
+
 		if (!writes.empty())
-		    vkUpdateDescriptorSets(device_data->device, static_cast<uint32_t>(writes.size()), writes.data(), 0u, nullptr);
+			vkUpdateDescriptorSets(device_data->device, static_cast<uint32_t>(writes.size()), writes.data(), 0u, nullptr);
 	}
 
 	return result;

@@ -46,7 +46,7 @@ You can also declare the following bools to tell the parser if a certain type is
 static constexpr bool array_support = false; // if a value starts with '[' its an array
 static constexpr bool string_support = false; // if a value starts with '"' its an string
 static constexpr bool bool_support = false; // if a value starts with 't' or 'f' its an bool
-static constexpr bool number_support = false; // if a value starts with -,+ or digit its an number
+static constexpr bool number_support = false; // if a value starts with - or digit its an number
 static constexpr bool struct_support = false; // if a value starts with '{' its an struct
 ```
 
@@ -57,16 +57,16 @@ template <>
 struct json_type_parser<vector3<unsigned char>> : public json_type_parser_base<vector3<unsigned char>> {
     inline static std::string_view::iterator parse(const std::string_view& _json, vector3<unsigned char>& _value) {
         std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
-        std::string str = parse::extract_string(start, _json.end());
-
-        if (str == "" && (*start != '"' || *(start + 1) != '"'))
+        std::string str;
+        std::string_view::iterator end = parse::parse_quoted_string(start, _json.end(), str);
+        if (end == _json.end() || str.size() != 8 || !str.starts_with("0x"))
             return _json.end();
 
         _value.x = utils::hex_byte_to_char({ start + 3, start + 5 });
         _value.y = utils::hex_byte_to_char({ start + 5, start + 7 });
         _value.z = utils::hex_byte_to_char({ start + 7, start + 9 });
 
-        return start + str.size() + 2;
+        return end;
     }
 
     inline static void stringify(vector3<unsigned char>& _value, std::string& _out) {

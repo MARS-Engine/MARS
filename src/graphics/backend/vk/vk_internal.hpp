@@ -268,6 +268,7 @@ struct vk_command_buffer_data {
 	vk_command_pool_data* pool = nullptr;
 	vk_device_data* device_data = nullptr;
 	vk_framebuffer_data* last_bound_framebuffer = nullptr;
+	struct vk_depth_buffer_data* last_bound_depth_buffer = nullptr;
 	vk_swapchain_data* swapchain = nullptr;
 	bool submitted = false;
 	bool has_global_memory_barrier = false;
@@ -313,19 +314,29 @@ struct vk_texture_data {
 
 struct vk_render_pass_data {
 	mars_format_type format = MARS_FORMAT_UNDEFINED;
-	mars_format_type depth_format = MARS_FORMAT_UNDEFINED;
+	mars_depth_format depth_format = MARS_DEPTH_FORMAT_UNDEFINED;
 	mars_render_pass_load_op load_operation = MARS_RENDER_PASS_LOAD_OP_CLEAR;
 	float depth_clear_value = 1.0f;
 	VkFormat actual_color_format = VK_FORMAT_UNDEFINED;
 };
 
+struct vk_depth_buffer_data {
+	VkImage image = VK_NULL_HANDLE;
+	VkDeviceMemory memory = VK_NULL_HANDLE;
+	VkImageView srv_view = VK_NULL_HANDLE;
+	VkImageView dsv_view = VK_NULL_HANDLE;
+	VkFormat format = VK_FORMAT_UNDEFINED;
+	mars_depth_format depth_format = MARS_DEPTH_FORMAT_UNDEFINED;
+	VkImageLayout current_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+	VkAccessFlags current_access = 0u;
+	VkPipelineStageFlags current_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	uint32_t srv_bindless_idx = std::numeric_limits<uint32_t>::max();
+	bool sampled = true;
+};
+
 struct vk_framebuffer_data {
 	VkImage color_image = VK_NULL_HANDLE;
 	VkImageView color_view = VK_NULL_HANDLE;
-	VkImage depth_image = VK_NULL_HANDLE;
-	VkDeviceMemory depth_memory = VK_NULL_HANDLE;
-	VkImageView depth_view = VK_NULL_HANDLE;
-	bool depth_initialized = false;
 	bool is_swapchain = false;
 	uint32_t swapchain_image_index = 0u;
 	vk_swapchain_data* swapchain_owner = nullptr;
@@ -426,15 +437,14 @@ struct vk_swapchain_data {
 	std::vector<VkImage> images;
 	std::vector<VkImageView> views;
 	std::vector<VkImageLayout> image_layouts;
-	VkSemaphore image_available_semaphore = VK_NULL_HANDLE;
-	VkSemaphore render_finished_semaphore = VK_NULL_HANDLE;
+	std::vector<VkSemaphore> image_available_semaphores;
+	std::vector<VkSemaphore> render_finished_semaphores;
+	VkSemaphore active_image_available_semaphore = VK_NULL_HANDLE;
+	VkSemaphore active_render_finished_semaphore = VK_NULL_HANDLE;
+	size_t sync_index = 0u;
 	uint32_t acquired_image_index = 0u;
 	bool image_acquired = false;
 };
-
-inline bool vk_is_depth_format(mars_format_type format) {
-	return format == MARS_FORMAT_D32_SFLOAT;
-}
 
 inline VkFormat vk_format_from_mars(mars_format_type format) {
 	switch (format) {
@@ -466,8 +476,18 @@ inline VkFormat vk_format_from_mars(mars_format_type format) {
 		return VK_FORMAT_R32G32B32A32_UINT;
 	case MARS_FORMAT_RGBA16_SFLOAT:
 		return VK_FORMAT_R16G16B16A16_SFLOAT;
-	case MARS_FORMAT_D32_SFLOAT:
+	case MARS_FORMAT_R32_TYPELESS:
+		return VK_FORMAT_UNDEFINED;
+	default:
+		return VK_FORMAT_UNDEFINED;
+	}
+}
+
+inline VkFormat vk_depth_format_from_mars(mars_depth_format format) {
+	switch (format) {
+	case MARS_DEPTH_FORMAT_D32_SFLOAT:
 		return VK_FORMAT_D32_SFLOAT;
+	case MARS_DEPTH_FORMAT_UNDEFINED:
 	default:
 		return VK_FORMAT_UNDEFINED;
 	}
@@ -495,8 +515,6 @@ inline size_t vk_format_pixel_size(mars_format_type format) {
 	case MARS_FORMAT_RGBA32_SFLOAT:
 	case MARS_FORMAT_RGBA32_UINT:
 		return 16u;
-	case MARS_FORMAT_D32_SFLOAT:
-		return 4u;
 	default:
 		return 4u;
 	}

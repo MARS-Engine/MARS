@@ -8,6 +8,7 @@ target_sources(
         vk_command_queue.cpp
         vk_compute_pipeline.cpp
         vk_descriptor.cpp
+        vk_depth_buffer.cpp
         vk_device.cpp
         vk_framebuffer.cpp
         vk_indirect_executor.cpp

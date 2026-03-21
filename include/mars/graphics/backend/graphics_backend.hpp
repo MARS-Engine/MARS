@@ -6,6 +6,7 @@
 #include "command_queue.hpp"
 #include "compute_pipeline.hpp"
 #include "descriptor.hpp"
+#include "depth_buffer.hpp"
 #include "device.hpp"
 #include "framebuffer.hpp"
 #include "indirect_executor.hpp"
@@ -37,6 +38,7 @@ struct graphics_backend_functions {
 	command_pool_impl command_pool;
 	buffer_impl buffer;
 	texture_impl texture;
+	depth_buffer_impl depth_buffer;
 	render_pass_impl render_pass;
 	framebuffer_impl framebuffer;
 	descriptor_impl descriptor;

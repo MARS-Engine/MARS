@@ -37,6 +37,12 @@ enum mars_compare_op {
 	MARS_COMPARE_OP_ALWAYS,
 };
 
+enum mars_pipeline_primitive_topology {
+	MARS_PIPELINE_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+	MARS_PIPELINE_PRIMITIVE_TOPOLOGY_LINE_LIST,
+	MARS_PIPELINE_PRIMITIVE_TOPOLOGY_POINT_LIST,
+};
+
 namespace mars {
 struct render_pass;
 struct command_buffer;
@@ -56,6 +62,7 @@ struct pipeline_attribute_description {
 	size_t offset;
 	mars_format_type input_format;
 	std::string semantic_name;
+	size_t semantic_index = 0;
 };
 
 struct pipeline_binding_description {
@@ -75,6 +82,7 @@ struct pipeline_setup {
 	std::vector<pipeline_binding_description> bindings;
 	std::vector<pipeline_attribute_description> attributes;
 	std::vector<pipeline_descriptior_layout> descriptors;
+	mars_pipeline_primitive_topology primitive_topology = MARS_PIPELINE_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	size_t push_constant_count = 0;
 	mars_pipeline_stage push_constant_stage = MARS_PIPELINE_STAGE_FRAGMENT;
 	bool has_depth_test_override = false;

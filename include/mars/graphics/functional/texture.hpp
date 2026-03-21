@@ -28,6 +28,14 @@ inline texture_upload_layout texture_get_upload_layout(texture& _texture, const 
 	return _texture.engine->get_impl<texture_impl>().texture_get_upload_layout(_texture, _device);
 }
 
+inline uint32_t texture_get_srv_index(const texture& _texture) {
+	return _texture.engine->get_impl<texture_impl>().texture_get_srv_index(_texture);
+}
+
+inline uint32_t texture_get_uav_base(const texture& _texture) {
+	return _texture.engine->get_impl<texture_impl>().texture_get_uav_base(_texture);
+}
+
 inline void texture_destroy(texture& _texture, const device& _device) {
 	return _texture.engine->get_impl<texture_impl>().texture_destroy(_texture, _device);
 }

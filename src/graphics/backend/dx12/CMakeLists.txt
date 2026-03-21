@@ -8,6 +8,7 @@ target_sources(
         dx_command_queue.cpp
         dx_compute_pipeline.cpp
         dx_descriptor.cpp
+        dx_depth_buffer.cpp
         dx_device.cpp
         dx_framebuffer.cpp
         dx_indirect_executor.cpp

@@ -25,6 +25,8 @@ struct shader {
 struct shader_module {
 	mars_shader_type type;
 	std::string_view path;
+	std::string_view source;
+	std::string_view name;
 };
 
 struct shader_impl {

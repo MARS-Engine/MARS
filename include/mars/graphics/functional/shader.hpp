@@ -27,6 +27,10 @@ inline static consteval shader_input_annotation shader_input(mars_shader_type _t
 
 namespace graphics {
 
+inline shader shader_create(const device& _device, const std::vector<shader_module>& modules) {
+	return _device.engine->get_impl<shader_impl>().shader_create(_device, modules);
+}
+
 template <typename T>
 inline shader shader_create(const device& _device) {
 	constexpr auto ctx = std::meta::access_context::current();

@@ -2,6 +2,7 @@
 
 #include <mars/graphics/backend/command_pool.hpp>
 #include <mars/graphics/backend/compute_pipeline.hpp>
+#include <mars/graphics/backend/depth_buffer.hpp>
 #include <mars/graphics/backend/descriptor.hpp>
 #include <mars/graphics/backend/framebuffer.hpp>
 #include <mars/graphics/backend/pipeline.hpp>
@@ -106,19 +107,19 @@ class raster_scope {
 	raster_scope(const raster_scope&) = delete;
 	raster_scope& operator=(const raster_scope&) = delete;
 
-	void begin(const mars::graphics::object::framebuffer_handle<PassTag>& fb, const mars::render_pass_bind_param& params) {
+	void begin(const mars::graphics::object::framebuffer_handle<PassTag>& fb, const mars::depth_buffer* depth, const mars::render_pass_bind_param& params) {
 		static_assert(!mars::graphics::object::pass_desc_traits<PassTag>::uses_swapchain, "raster_scope::begin(framebuffer_handle): PassTag uses swapchain; use swapchain_framebuffer_handle instead");
 
 		assert_expected_extent(fb.value.extent);
-		mars::graphics::render_pass_bind(*m_rp, *m_cmd, fb.value, params);
+		mars::graphics::render_pass_bind(*m_rp, *m_cmd, fb.value, depth, params);
 		m_began = true;
 	}
 
-	void begin(const mars::graphics::object::swapchain_framebuffer_handle<PassTag>& fb, const mars::render_pass_bind_param& params) {
+	void begin(const mars::graphics::object::swapchain_framebuffer_handle<PassTag>& fb, const mars::depth_buffer* depth, const mars::render_pass_bind_param& params) {
 		static_assert(mars::graphics::object::pass_desc_traits<PassTag>::uses_swapchain, "raster_scope::begin(swapchain_framebuffer_handle): PassTag is not swapchain-backed");
 
 		assert_expected_extent(fb.value.extent);
-		mars::graphics::render_pass_bind(*m_rp, *m_cmd, fb.value, params);
+		mars::graphics::render_pass_bind(*m_rp, *m_cmd, fb.value, depth, params);
 		m_began = true;
 	}
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cctype>
 #include <ranges>
 #include <string>
 #include <string_view>
@@ -21,19 +22,63 @@ inline auto first_space(const std::string_view::iterator& begin, const std::stri
 	});
 }
 
-inline std::string extract_string(const std::string_view::iterator& _begin, const std::string_view::iterator& _end) {
-	if (*_begin != '"' || (_begin + 1) == _end)
-		return "";
+inline std::string_view::iterator parse_quoted_string(const std::string_view::iterator& begin, const std::string_view::iterator& end, std::string& out) {
+	if (begin == end || *begin != '"')
+		return end;
 
-	std::string_view::iterator current = std::ranges::find(_begin + 1, _end, '"');
+	out.clear();
+	bool escaping = false;
+	for (auto it = begin + 1; it != end; ++it) {
+		const char c = *it;
+		if (escaping) {
+			switch (c) {
+			case '"':
+				out.push_back('"');
+				break;
+			case '\\':
+				out.push_back('\\');
+				break;
+			case '/':
+				out.push_back('/');
+				break;
+			case 'b':
+				out.push_back('\b');
+				break;
+			case 'f':
+				out.push_back('\f');
+				break;
+			case 'n':
+				out.push_back('\n');
+				break;
+			case 'r':
+				out.push_back('\r');
+				break;
+			case 't':
+				out.push_back('\t');
+				break;
+			default:
+				// JSON unicode escapes (\uXXXX) are not decoded yet; keep the
+				// escaped payload verbatim after the backslash for now.
+				out.push_back(c);
+				break;
+			}
+			escaping = false;
+			continue;
+		}
 
-	while (current != _end && *(current - 1) == '\\')
-		current = std::ranges::find(_begin + 1, _end, '"');
+		if (c == '\\') {
+			escaping = true;
+			continue;
+		}
 
-	if (current == _end)
-		return "";
+		if (c == '"')
+			return it + 1;
 
-	return std::string(_begin + 1, current);
+		out.push_back(c);
+	}
+
+	out.clear();
+	return end;
 }
 } // namespace parse
 } // namespace mars

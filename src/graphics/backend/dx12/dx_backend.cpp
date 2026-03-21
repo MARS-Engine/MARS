@@ -7,6 +7,7 @@
 #include <mars/graphics/backend/dx12/dx_command_queue.hpp>
 #include <mars/graphics/backend/dx12/dx_compute_pipeline.hpp>
 #include <mars/graphics/backend/dx12/dx_descriptor.hpp>
+#include <mars/graphics/backend/dx12/dx_depth_buffer.hpp>
 #include <mars/graphics/backend/dx12/dx_device.hpp>
 #include <mars/graphics/backend/dx12/dx_framebuffer.hpp>
 #include <mars/graphics/backend/dx12/dx_indirect_executor.hpp>
@@ -98,6 +99,12 @@ graphics_backend_functions* directx12_t::get_functions() {
 			.texture_get_srv_index = &dx::dx_texture_impl::dx_texture_get_srv_index,
 			.texture_get_uav_base = &dx::dx_texture_impl::dx_texture_get_uav_base,
 			.texture_destroy = &dx::dx_texture_impl::dx_texture_destroy,
+		},
+		.depth_buffer = {
+			.depth_buffer_create = &dx::dx_depth_buffer_impl::dx_depth_buffer_create,
+			.depth_buffer_transition = &dx::dx_depth_buffer_impl::dx_depth_buffer_transition,
+			.depth_buffer_get_srv_index = &dx::dx_depth_buffer_impl::dx_depth_buffer_get_srv_index,
+			.depth_buffer_destroy = &dx::dx_depth_buffer_impl::dx_depth_buffer_destroy,
 		},
 		.render_pass = {
 			.render_pass_create = &dx::dx_render_pass_impl::dx_render_pass_create,

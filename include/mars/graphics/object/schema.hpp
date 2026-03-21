@@ -45,7 +45,7 @@ struct rp_color_attachment {
 };
 
 struct rp_depth_attachment {
-	mars_format_type format;
+	mars_depth_format format;
 };
 
 struct rp_size {
@@ -117,7 +117,7 @@ static consteval graphics::reads_from<ProducerTag> reads_from(mars_texture_state
 static consteval graphics::rp_color_attachment rp_color_attachment(mars_format_type fmt, mars_render_pass_load_op op = MARS_RENDER_PASS_LOAD_OP_CLEAR) {
 	return {.format = fmt, .load_op = op};
 }
-static consteval graphics::rp_depth_attachment rp_depth_attachment(mars_format_type fmt) {
+static consteval graphics::rp_depth_attachment rp_depth_attachment(mars_depth_format fmt) {
 	return {.format = fmt};
 }
 static consteval graphics::rp_size rp_size(size_t width = 0, size_t height = 0) {

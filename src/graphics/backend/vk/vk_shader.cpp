@@ -26,6 +26,11 @@ using dxc_module_t = void*;
 
 namespace mars::graphics::vk {
 namespace {
+constexpr uint32_t kUniformBindingCount = 15u;
+constexpr uint32_t kSampledImageBindingCount = 32u;
+constexpr uint32_t kSamplerBindingCount = 4u;
+constexpr uint32_t kDescriptorSetIndex = 1u;
+constexpr uint32_t kSamplerSetIndex = 3u;
 
 #ifdef _WIN32
 using dxc_create_instance_proc = HRESULT(WINAPI*)(REFCLSID, REFIID, LPVOID*);
@@ -53,6 +58,22 @@ std::string read_file_binary(const std::filesystem::path& path) {
 	if (!file.is_open())
 		return {};
 	return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+}
+
+std::string load_shader_source(const shader_module& module) {
+	if (!module.source.empty())
+		return std::string(module.source);
+	if (!module.path.empty())
+		return read_file_binary(std::filesystem::path(module.path));
+	return {};
+}
+
+std::string shader_debug_name(const shader_module& module) {
+	if (!module.name.empty())
+		return std::string(module.name);
+	if (!module.path.empty())
+		return std::string(module.path);
+	return "<inline>";
 }
 
 vk_sampler_kind detect_sampler_kind(const std::string& source) {
@@ -421,20 +442,28 @@ std::string transform_push_constant_cbuffers(const std::string& source) {
 }
 
 void append_bindings(std::vector<std::wstring>& storage) {
-	for (uint32_t binding = 0u; binding < 15u; ++binding) {
+	for (uint32_t binding = 0u; binding < kUniformBindingCount; ++binding) {
 		storage.push_back(L"-fvk-bind-register");
 		storage.push_back(std::wstring(L"b") + std::to_wstring(binding));
 		storage.push_back(L"0");
 		storage.push_back(std::to_wstring(binding));
-		storage.push_back(L"1");
+		storage.push_back(std::to_wstring(kDescriptorSetIndex));
 	}
 
-	for (uint32_t binding = 0u; binding < 4u; ++binding) {
+	for (uint32_t binding = 0u; binding < kSampledImageBindingCount; ++binding) {
+		storage.push_back(L"-fvk-bind-register");
+		storage.push_back(std::wstring(L"t") + std::to_wstring(binding));
+		storage.push_back(L"0");
+		storage.push_back(std::to_wstring(binding));
+		storage.push_back(std::to_wstring(kDescriptorSetIndex));
+	}
+
+	for (uint32_t binding = 0u; binding < kSamplerBindingCount; ++binding) {
 		storage.push_back(L"-fvk-bind-register");
 		storage.push_back(std::wstring(L"s") + std::to_wstring(binding));
 		storage.push_back(L"0");
 		storage.push_back(std::to_wstring(binding));
-		storage.push_back(L"3");
+		storage.push_back(std::to_wstring(kSamplerSetIndex));
 	}
 }
 
@@ -544,19 +573,21 @@ bool compile_module(
 	IDxcUtils* dxc_utils,
 	IDxcCompiler3* compiler,
 	IDxcIncludeHandler* include_handler,
-	const std::filesystem::path& path,
+	const shader_module& module,
 	const wchar_t* entry_point,
 	const wchar_t* profile,
 	vk_shader_stage_data* out_stage
 ) {
-	const std::string source = read_file_binary(path);
+	const std::string source = load_shader_source(module);
 	if (source.empty()) {
-		mars::logger::error(vk_log_channel(), "Unable to read shader file {}", path.string());
+		mars::logger::error(vk_log_channel(), "Unable to load shader source {}", shader_debug_name(module));
 		return false;
 	}
 
 	const std::string transformed_source = transform_push_constant_cbuffers(source);
-	const std::filesystem::path absolute_path = std::filesystem::absolute(path);
+	const std::filesystem::path absolute_path = module.path.empty()
+		? std::filesystem::current_path()
+		: std::filesystem::absolute(std::filesystem::path(module.path));
 	std::vector<std::wstring> arg_storage = {
 		L"-spirv",
 		L"-E",
@@ -587,7 +618,7 @@ bool compile_module(
 	DXC_PTR(IDxcResult) result;
 	const HRESULT compile_hr = compiler->Compile(&buffer, args.data(), static_cast<UINT32>(args.size()), include_handler, IID_PPV_ARGS(&result));
 	if (FAILED(compile_hr)) {
-		mars::logger::error(vk_log_channel(), "DXC compile failed for {}", path.string());
+		mars::logger::error(vk_log_channel(), "DXC compile failed for {}", shader_debug_name(module));
 		return false;
 	}
 
@@ -614,7 +645,7 @@ bool compile_module(
 	module_info.pCode = static_cast<const uint32_t*>(blob->GetBufferPointer());
 	vk_expect<vkCreateShaderModule>(device_data->device, &module_info, nullptr, &out_stage->module);
 
-	out_stage->path = path.string();
+	out_stage->path = shader_debug_name(module);
 	out_stage->sampler_kind = detect_sampler_kind(source);
 	return out_stage->module != VK_NULL_HANDLE;
 }
@@ -683,17 +714,23 @@ shader vk_shader_impl::vk_shader_create(const device& _device, const std::vector
 #endif
 
 	for (const auto& module : _shaders) {
-		const std::filesystem::path original_path(module.path);
-		const std::filesystem::path path = resolve_vulkan_shader_path(original_path);
+		shader_module resolved_module = module;
+		std::string resolved_path_storage;
+		if (resolved_module.source.empty() && !resolved_module.path.empty()) {
+			const std::filesystem::path original_path(module.path);
+			const std::filesystem::path path = resolve_vulkan_shader_path(original_path);
+			resolved_path_storage = path.string();
+			resolved_module.path = resolved_path_storage;
+		}
 		switch (module.type) {
 		case MARS_SHADER_TYPE_VERTEX:
-			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), transformed_handler.Get(), path, L"VSMain", L"vs_6_8", &data->vertex);
+			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), transformed_handler.Get(), resolved_module, L"VSMain", L"vs_6_8", &data->vertex);
 			break;
 		case MARS_SHADER_TYPE_FRAGMENT:
-			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), transformed_handler.Get(), path, L"PSMain", L"ps_6_6", &data->fragment);
+			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), transformed_handler.Get(), resolved_module, L"PSMain", L"ps_6_6", &data->fragment);
 			break;
 		case MARS_SHADER_TYPE_COMPUTE:
-			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), transformed_handler.Get(), path, L"CSMain", L"cs_6_6", &data->compute);
+			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), transformed_handler.Get(), resolved_module, L"CSMain", L"cs_6_6", &data->compute);
 			break;
 		}
 	}

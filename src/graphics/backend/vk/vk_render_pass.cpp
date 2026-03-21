@@ -1,10 +1,13 @@
 #include "vk_internal.hpp"
 
+#include <mars/graphics/backend/depth_buffer.hpp>
 #include <mars/graphics/backend/framebuffer.hpp>
 #include <mars/graphics/backend/vk/vk_render_pass.hpp>
 
 namespace mars::graphics::vk {
 namespace {
+constexpr VkImageLayout kDepthSampledLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
 void transition_image(
 	VkCommandBuffer command_buffer,
 	VkImage image,
@@ -51,12 +54,14 @@ render_pass vk_render_pass_impl::vk_render_pass_create(const device& _device, co
 	return result;
 }
 
-void vk_render_pass_impl::vk_render_pass_bind(const render_pass& _render_pass, const command_buffer& _command_buffer, const framebuffer& _framebuffer, const render_pass_bind_param& _params) {
+void vk_render_pass_impl::vk_render_pass_bind(const render_pass& _render_pass, const command_buffer& _command_buffer, const framebuffer& _framebuffer, const depth_buffer* _depth_buffer, const render_pass_bind_param& _params) {
 	auto* command_buffer_data = _command_buffer.data.expect<vk_command_buffer_data>();
 	auto* framebuffer_data = _framebuffer.data.expect<vk_framebuffer_data>();
 	auto* render_pass_data = _render_pass.data.expect<vk_render_pass_data>();
+	auto* depth_data = _depth_buffer != nullptr ? _depth_buffer->data.expect<vk_depth_buffer_data>() : nullptr;
 
 	command_buffer_data->last_bound_framebuffer = framebuffer_data;
+	command_buffer_data->last_bound_depth_buffer = depth_data;
 	command_buffer_data->swapchain = framebuffer_data->is_swapchain ? framebuffer_data->swapchain_owner : nullptr;
 
 	vk_cmd_pipeline_memory_barrier2(
@@ -106,19 +111,21 @@ void vk_render_pass_impl::vk_render_pass_bind(const render_pass& _render_pass, c
 		framebuffer_data->color_texture->current_stage = vk_attachment_stage_flags();
 	}
 
-	if (framebuffer_data->depth_view != VK_NULL_HANDLE && !framebuffer_data->depth_initialized) {
+	if (depth_data != nullptr && depth_data->sampled) {
 		transition_image(
 			command_buffer_data->command_buffer,
-			framebuffer_data->depth_image,
+			depth_data->image,
 			VK_IMAGE_ASPECT_DEPTH_BIT,
-			VK_IMAGE_LAYOUT_UNDEFINED,
+			depth_data->current_layout,
 			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-			0u,
+			depth_data->current_access,
 			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-			VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+			depth_data->current_stage,
 			VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT
 		);
-		framebuffer_data->depth_initialized = true;
+		depth_data->current_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		depth_data->current_access = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		depth_data->current_stage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 	}
 
 	VkClearValue clear_value = {};
@@ -140,7 +147,7 @@ void vk_render_pass_impl::vk_render_pass_bind(const render_pass& _render_pass, c
 
 	VkRenderingAttachmentInfo depth_attachment = {};
 	depth_attachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-	depth_attachment.imageView = framebuffer_data->depth_view;
+	depth_attachment.imageView = depth_data != nullptr ? depth_data->dsv_view : VK_NULL_HANDLE;
 	depth_attachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	depth_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -153,7 +160,7 @@ void vk_render_pass_impl::vk_render_pass_bind(const render_pass& _render_pass, c
 	rendering_info.layerCount = 1u;
 	rendering_info.colorAttachmentCount = 1u;
 	rendering_info.pColorAttachments = &color_attachment;
-	rendering_info.pDepthAttachment = framebuffer_data->depth_view != VK_NULL_HANDLE ? &depth_attachment : nullptr;
+	rendering_info.pDepthAttachment = depth_data != nullptr ? &depth_attachment : nullptr;
 
 	vkCmdBeginRendering(command_buffer_data->command_buffer, &rendering_info);
 }
@@ -161,6 +168,7 @@ void vk_render_pass_impl::vk_render_pass_bind(const render_pass& _render_pass, c
 void vk_render_pass_impl::vk_render_pass_unbind(const render_pass&, const command_buffer& _command_buffer) {
 	auto* command_buffer_data = _command_buffer.data.expect<vk_command_buffer_data>();
 	auto* framebuffer_data = command_buffer_data->last_bound_framebuffer;
+	auto* depth_data = command_buffer_data->last_bound_depth_buffer;
 	if (!framebuffer_data)
 		return;
 
@@ -196,7 +204,25 @@ void vk_render_pass_impl::vk_render_pass_unbind(const render_pass&, const comman
 		framebuffer_data->color_texture->current_stage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 	}
 
+	if (depth_data != nullptr && depth_data->sampled) {
+		transition_image(
+			command_buffer_data->command_buffer,
+			depth_data->image,
+			VK_IMAGE_ASPECT_DEPTH_BIT,
+			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+			kDepthSampledLayout,
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+			VK_ACCESS_SHADER_READ_BIT,
+			VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+		);
+		depth_data->current_layout = kDepthSampledLayout;
+		depth_data->current_access = VK_ACCESS_SHADER_READ_BIT;
+		depth_data->current_stage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+	}
+
 	command_buffer_data->last_bound_framebuffer = nullptr;
+	command_buffer_data->last_bound_depth_buffer = nullptr;
 }
 
 void vk_render_pass_impl::vk_render_pass_destroy(render_pass& _render_pass, const device&) {

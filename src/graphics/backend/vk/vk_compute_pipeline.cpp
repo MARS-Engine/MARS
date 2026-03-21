@@ -9,14 +9,11 @@ namespace {
 VkDescriptorSetLayout create_explicit_layout(vk_device_data* device_data, const std::vector<pipeline_descriptior_layout>& descriptors, std::vector<vk_pipeline_binding_info>& out_bindings) {
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
 	for (const auto& descriptor : descriptors) {
-		if (descriptor.descriptor_type != MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
-			continue;
-
 		VkDescriptorSetLayoutBinding binding = {};
 		binding.binding = static_cast<uint32_t>(descriptor.binding);
-		binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		binding.descriptorType = vk_descriptor_type_from_pipeline_descriptor(descriptor.descriptor_type);
 		binding.descriptorCount = 1u;
-		binding.stageFlags = VK_SHADER_STAGE_ALL;
+		binding.stageFlags = vk_shader_stage_flags(descriptor.stage);
 		bindings.push_back(binding);
 		out_bindings.push_back({binding.binding, binding.descriptorType});
 	}

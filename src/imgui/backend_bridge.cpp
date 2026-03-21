@@ -6,6 +6,7 @@
 #include <mars/graphics/backend/device.hpp>
 #include <mars/graphics/backend/dx12/dx_backend.hpp>
 #include <mars/graphics/backend/swapchain.hpp>
+#include <mars/graphics/backend/texture.hpp>
 #include <mars/graphics/backend/vk/vk_backend.hpp>
 #include <mars/graphics/functional/window.hpp>
 
@@ -72,6 +73,13 @@ struct backend_state {
 	const mars::swapchain* swapchain = nullptr;
 	descriptor_allocator dx_descriptors;
 	VkDescriptorPool vk_descriptor_pool = VK_NULL_HANDLE;
+	struct preview_texture_entry {
+		const void* texture_key = nullptr;
+		VkImageView image_view = VK_NULL_HANDLE;
+		VkImageLayout image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+		VkDescriptorSet descriptor_set = VK_NULL_HANDLE;
+	};
+	std::vector<preview_texture_entry> preview_textures;
 };
 
 backend_state g_state;
@@ -121,6 +129,47 @@ graphics::vk::vk_swapchain_data* require_vk_swapchain_data(const mars::swapchain
 	if (!vk_swapchain)
 		throw std::runtime_error("mars::imgui: swapchain is not backed by Vulkan data");
 	return vk_swapchain;
+}
+
+void clear_preview_textures() {
+	for (auto& entry : g_state.preview_textures) {
+		if (entry.descriptor_set != VK_NULL_HANDLE)
+			ImGui_ImplVulkan_RemoveTexture(entry.descriptor_set);
+	}
+	g_state.preview_textures.clear();
+}
+
+VkDescriptorSet get_or_create_preview_texture(graphics::vk::vk_device_data* device_data, const void* texture_key, VkImageView image_view, VkImageLayout image_layout) {
+	for (auto& entry : g_state.preview_textures) {
+		if (entry.texture_key != texture_key)
+			continue;
+
+		if (entry.image_view == image_view && entry.image_layout == image_layout)
+			return entry.descriptor_set;
+
+		if (entry.descriptor_set != VK_NULL_HANDLE)
+			ImGui_ImplVulkan_RemoveTexture(entry.descriptor_set);
+
+		entry.image_view = image_view;
+		entry.image_layout = image_layout;
+		entry.descriptor_set = ImGui_ImplVulkan_AddTexture(
+			graphics::vk::vk_get_sampler(device_data, graphics::vk::vk_sampler_kind::linear_clamp),
+			image_view,
+			image_layout
+		);
+		return entry.descriptor_set;
+	}
+
+	backend_state::preview_texture_entry& entry = g_state.preview_textures.emplace_back();
+	entry.texture_key = texture_key;
+	entry.image_view = image_view;
+	entry.image_layout = image_layout;
+	entry.descriptor_set = ImGui_ImplVulkan_AddTexture(
+		graphics::vk::vk_get_sampler(device_data, graphics::vk::vk_sampler_kind::linear_clamp),
+		image_view,
+		image_layout
+	);
+	return entry.descriptor_set;
 }
 } // namespace
 
@@ -245,6 +294,41 @@ void new_frame() {
 	ImGui::NewFrame();
 }
 
+ImTextureRef texture_ref(const mars::texture& texture) {
+	if (!g_state.initialized || texture.engine == nullptr)
+		return {};
+
+	switch (g_state.kind) {
+	case backend_kind::dx12: {
+		auto* texture_data = texture.data.get<graphics::dx::dx_texture_data>();
+		if (texture_data == nullptr || texture_data->srv_bindless_idx == UINT32_MAX || g_state.dx_descriptors.descriptor_size == 0)
+			return {};
+
+		D3D12_GPU_DESCRIPTOR_HANDLE gpu = g_state.dx_descriptors.gpu_start;
+		gpu.ptr += static_cast<SIZE_T>(texture_data->srv_bindless_idx) * g_state.dx_descriptors.descriptor_size;
+		return ImTextureRef(static_cast<ImTextureID>(gpu.ptr));
+	}
+	case backend_kind::vulkan: {
+		auto* device_data = require_vk_device_data(*g_state.device);
+		auto* texture_data = texture.data.get<graphics::vk::vk_texture_data>();
+		if (texture_data == nullptr || texture_data->srv_view == VK_NULL_HANDLE)
+			return {};
+
+		const VkImageLayout image_layout = texture_data->current_layout == VK_IMAGE_LAYOUT_UNDEFINED
+			? VK_IMAGE_LAYOUT_GENERAL
+			: texture_data->current_layout;
+		const void* texture_key = texture.data.get<void>();
+
+		const VkDescriptorSet descriptor_set = get_or_create_preview_texture(device_data, texture_key, texture_data->srv_view, image_layout);
+		return ImTextureRef(static_cast<ImTextureID>(reinterpret_cast<uintptr_t>(descriptor_set)));
+	}
+	case backend_kind::none:
+		return {};
+	}
+
+	return {};
+}
+
 void render_draw_data(const mars::command_buffer& command_buffer) {
 	if (!g_state.initialized)
 		return;
@@ -272,6 +356,8 @@ void render_draw_data(const mars::command_buffer& command_buffer) {
 void shutdown_backend() {
 	if (!g_state.initialized)
 		return;
+
+	clear_preview_textures();
 
 	if (g_state.kind == backend_kind::dx12)
 		ImGui_ImplDX12_Shutdown();
