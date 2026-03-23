@@ -8,7 +8,6 @@ namespace mars {
 struct input;
 
 struct input_events {
-	void on_key_down(input& _input, char _key);
 	void on_left_mouse_click(input& _input);
 	void on_right_mouse_click(input& _input);
 };
@@ -26,12 +25,14 @@ struct input : event<input_events> {
 
 namespace detail {
 void input_on_mouse_change(window& _window, const mars::vector2<size_t>& _position, const window_event_buttons& _click, input& _input) {
+	(void)_window;
 	_input.mouse_position = _position;
 	if (_click.left_button)
 		_input.on_left_mouse_click();
 	else if (_click.right_button)
 		_input.on_right_mouse_click();
 }
+
 } // namespace detail
 
 void input_create(input& _input, window& _window) {

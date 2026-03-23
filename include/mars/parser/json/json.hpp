@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cctype>
+#include <array>
+#include <algorithm>
 #include <format>
 #include <mars/math/vector3.hpp>
 #include <mars/meta.hpp>
@@ -8,6 +10,8 @@
 #include <mars/utility/hex.hpp>
 #include <meta>
 #include <type_traits>
+#include <unordered_map>
+#include <vector>
 
 namespace mars::json {
 struct json_skip_annotation {
@@ -286,6 +290,190 @@ struct json_type_parser<std::vector<T>> : public json_type_parser_base<std::vect
 		}
 
 		_out[_out.size() - 1] = ']';
+	}
+
+	static constexpr bool array_support = true;
+};
+
+template <typename T, size_t N>
+struct json_type_parser<std::array<T, N>> : public json_type_parser_base<std::array<T, N>> {
+	inline static std::string_view::iterator parse(const std::string_view& _json, std::array<T, N>& _value) {
+		std::string_view::iterator current = parse::first_space<false>(_json.begin(), _json.end());
+
+		if (current == _json.end() || *current != '[')
+			return _json.end();
+
+		current++;
+		size_t index = 0;
+
+		while (current != _json.end() && *current != ']') {
+			current = parse::first_space<false>(current, _json.end());
+			if (current == _json.end())
+				return _json.end();
+			if (index >= N)
+				return _json.end();
+
+			std::string_view value_json{current, _json.end()};
+			current = json_type_parser<T>::parse(value_json, _value[index]);
+			if (current == _json.end())
+				return _json.end();
+			index++;
+
+			current = parse::first_space<false>(current, _json.end());
+			if (current == _json.end())
+				return _json.end();
+			if (*current == ',')
+				current++;
+			else if (*current != ']')
+				return _json.end();
+		}
+
+		if (current == _json.end() || *current != ']' || index != N)
+			return _json.end();
+
+		return current + 1;
+	}
+
+	inline static void stringify(std::array<T, N>& _value, std::string& _out) {
+		_out += '[';
+		for (size_t index = 0; index < N; ++index) {
+			T& current = _value[index];
+			json_type_parser<T>::stringify(current, _out);
+			if (index + 1 < N)
+				_out += ',';
+		}
+		_out += ']';
+	}
+
+	static constexpr bool array_support = true;
+};
+
+template <typename K, typename V>
+struct json_map_entry {
+	K key {};
+	V value {};
+};
+
+template <typename K, typename V>
+struct json_type_parser<std::unordered_map<K, V>> : public json_type_parser_base<std::unordered_map<K, V>> {
+	using map_type = std::unordered_map<K, V>;
+	using entry_type = json_map_entry<K, V>;
+
+	inline static std::string_view::iterator parse(const std::string_view& _json, map_type& _value) {
+		std::string_view::iterator current = parse::first_space<false>(_json.begin(), _json.end());
+
+		if constexpr (std::is_same_v<K, std::string>) {
+			if (current != _json.end() && *current == '{') {
+				current++;
+				_value.clear();
+
+				while (current != _json.end() && *current != '}') {
+					current = parse::first_space<false>(current, _json.end());
+					if (current == _json.end())
+						return _json.end();
+
+					std::string key;
+					current = parse::parse_quoted_string(current, _json.end(), key);
+					if (current == _json.end())
+						return _json.end();
+
+					current = parse::first_space<false>(current, _json.end());
+					if (current == _json.end() || *current != ':')
+						return _json.end();
+
+					current = parse::first_space<false>(current + 1, _json.end());
+					if (current == _json.end())
+						return _json.end();
+
+					std::string_view value_json{current, _json.end()};
+					V value {};
+					current = json_type_parser<V>::parse(value_json, value);
+					if (current == _json.end())
+						return _json.end();
+					if (!_value.emplace(std::move(key), std::move(value)).second)
+						return _json.end();
+
+					current = parse::first_space<false>(current, _json.end());
+					if (current == _json.end())
+						return _json.end();
+					if (*current == ',')
+						current++;
+					else if (*current != '}')
+						return _json.end();
+				}
+
+				if (current == _json.end() || *current != '}')
+					return _json.end();
+
+				return current + 1;
+			}
+		}
+
+		if (current == _json.end() || *current != '[')
+			return _json.end();
+
+		current++;
+		_value.clear();
+
+		while (current != _json.end() && *current != ']') {
+			current = parse::first_space<false>(current, _json.end());
+			if (current == _json.end())
+				return _json.end();
+
+			std::string_view entry_json{current, _json.end()};
+			entry_type entry {};
+			current = json_type_parser<entry_type>::parse(entry_json, entry);
+			if (current == _json.end())
+				return _json.end();
+			if (!_value.emplace(std::move(entry.key), std::move(entry.value)).second)
+				return _json.end();
+
+			current = parse::first_space<false>(current, _json.end());
+			if (current == _json.end())
+				return _json.end();
+			if (*current == ',')
+				current++;
+			else if (*current != ']')
+				return _json.end();
+		}
+
+		if (current == _json.end() || *current != ']')
+			return _json.end();
+
+		return current + 1;
+	}
+
+	inline static void stringify(map_type& _value, std::string& _out) {
+		struct serialized_entry {
+			std::string key_text;
+			entry_type entry;
+		};
+
+		std::vector<serialized_entry> entries;
+		entries.reserve(_value.size());
+		for (auto& [key, value] : _value) {
+			std::string key_text;
+			K key_copy = key;
+			json_type_parser<K>::stringify(key_copy, key_text);
+			entries.push_back({
+				.key_text = std::move(key_text),
+				.entry = {
+					.key = key,
+					.value = value
+				}
+			});
+		}
+
+		std::ranges::sort(entries, {}, &serialized_entry::key_text);
+
+		_out += '[';
+		for (size_t index = 0; index < entries.size(); ++index) {
+			entry_type entry = std::move(entries[index].entry);
+			json_type_parser<entry_type>::stringify(entry, _out);
+			if (index + 1 < entries.size())
+				_out += ',';
+		}
+		_out += ']';
 	}
 
 	static constexpr bool array_support = true;

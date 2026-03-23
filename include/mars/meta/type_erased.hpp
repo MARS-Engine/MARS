@@ -13,6 +13,12 @@ namespace detail {
 inline static log_channel type_erasure_channel("mars/meta/type_erasure");
 }
 
+#if defined(_MSC_VER)
+    #define NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
+#else
+    #define NO_UNIQUE_ADDRESS [[no_unique_address]]
+#endif
+
 struct type_erased_ptr {
   private:
 	struct empty {
@@ -20,7 +26,7 @@ struct type_erased_ptr {
 
 	void* data = nullptr;
 
-	[[no_unique_address]]
+	NO_UNIQUE_ADDRESS
 	std::conditional_t<environment::is_shipping, empty, void (*)(const std::string_view&)> id;
 
 	static void internal_error(const std::string_view& requested, const std::string_view& stored) {

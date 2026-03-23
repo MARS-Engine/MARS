@@ -147,6 +147,7 @@ class raster_scope {
 	}
 
 	mars::command_buffer& get() { return *m_cmd; }
+	const mars::render_pass& get_render_pass() const { return *m_rp; }
 };
 
 } // namespace mars

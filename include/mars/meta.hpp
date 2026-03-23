@@ -95,8 +95,7 @@ consteval bool is_type(std::meta::info _type) {
 
 template <typename T>
 constexpr std::string_view type_name() {
-	using value_type = std::remove_cvref_t<T>;
-	return std::meta::display_string_of(^^value_type);
+	return std::meta::display_string_of(^^std::remove_cvref_t<T>);
 }
 
 template <auto Value>
@@ -202,11 +201,10 @@ constexpr E string_to_enum(const std::string_view& _value) {
 template <auto MemberPtr>
 consteval size_t get_member_function_position() {
 	constexpr auto ctx = std::meta::access_context::current();
-	using parent_type = member_function_pointer_info<decltype(MemberPtr)>::t_parent;
 
 	std::size_t index = 0;
 
-	template for (constexpr auto mem : std::define_static_array(std::meta::members_of(^^parent_type, ctx))) {
+	template for (constexpr auto mem : std::define_static_array(std::meta::members_of(^^typename member_function_pointer_info<decltype(MemberPtr)>::t_parent, ctx))) {
 		if constexpr (!std::meta::is_function(mem) || std::meta::is_special_member_function(mem))
 			continue;
 		else {

@@ -44,7 +44,12 @@ inline shader shader_create(const device& _device) {
 	template for (constexpr auto mem : std::define_static_array(std::meta::nonstatic_data_members_of(^^T, ctx))) {
 		constexpr auto input_anno = mars::meta::get_annotation<prop::shader_input_annotation>(mem);
 		if constexpr (input_anno.has_value()) {
-			modules.push_back({.type = input_anno.value().type, .path = path_anno.value().path});
+			modules.push_back({
+				.type = input_anno.value().type,
+				.path = path_anno.value().path,
+				.source = {},
+				.name = {},
+			});
 
 			if constexpr (input_anno.value().type == MARS_SHADER_TYPE_VERTEX) {
 				using InputType = [:std::meta::type_of(mem):];
@@ -69,7 +74,12 @@ inline shader shader_create_compute(const device& _device) {
 	static_assert(path_anno.has_value(), "compute shader struct must have [[=mars::prop::shader(path)]] annotation");
 
 	std::vector<shader_module> modules;
-	modules.push_back({.type = MARS_SHADER_TYPE_COMPUTE, .path = path_anno.value().path});
+	modules.push_back({
+		.type = MARS_SHADER_TYPE_COMPUTE,
+		.path = path_anno.value().path,
+		.source = {},
+		.name = {},
+	});
 	return _device.engine->get_impl<shader_impl>().shader_create(_device, modules);
 }
 

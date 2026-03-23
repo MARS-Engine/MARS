@@ -46,6 +46,7 @@ device dx_device_impl::dx_device_create(graphics_engine& _engine) {
 	result.engine = _engine.allocator;
 	result.data.store(data);
 
+	dx_command_queue_impl::dx_command_queue_create(result);
 	dx_command_queue_impl::dx_compute_queue_create(result);
 	dx_command_queue_impl::dx_copy_queue_create(result);
 
@@ -119,6 +120,12 @@ bool dx_device_impl::dx_device_supports_feature(const device&, device_feature) {
 
 void dx_device_impl::dx_device_destroy(device& _device) {
 	auto data = _device.data.expect<dx_device_data>();
+	if (data->copy_queue_data.get<void>() != nullptr)
+		dx_command_queue_impl::dx_copy_queue_destroy(_device);
+	if (data->compute_queue_data.get<void>() != nullptr)
+		dx_command_queue_impl::dx_compute_queue_destroy(_device);
+	if (data->command_queue_data.get<void>() != nullptr)
+		dx_command_queue_impl::dx_command_queue_destroy(_device);
 	delete data;
 	_device = {};
 }

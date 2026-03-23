@@ -36,9 +36,9 @@ struct event_storage {
 			);
 
 			auto vector_type = std::meta::substitute(^^std::vector, {helper_type});
-			std::meta::data_member_options opts;
-			opts.name = std::meta::identifier_of(mem);
-			member_specs.push_back(std::meta::data_member_spec(vector_type, opts));
+			member_specs.push_back(std::meta::data_member_spec(vector_type, {
+				.name = std::meta::identifier_of(mem),
+			}));
 		}
 
 		std::meta::define_aggregate(^^storage, member_specs);
@@ -82,7 +82,7 @@ struct event : public event_storage<T> {
 	bool internal_is_bound(uintptr_t _object) {
 		constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
 		auto& function_vec = static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):];
-		for (int i = 0; i < function_vec.size(); i++)
+		for (size_t i = 0; i < function_vec.size(); ++i)
 			if (function_vec[i].helper_function == thunk_from_tuple<F, C, typename mars::meta::member_function_pointer_info<decltype(MemberPtr)>::t_args_tuple>::value && function_vec[i].data == reinterpret_cast<uintptr_t>(_object))
 				return true;
 		return false;
@@ -150,7 +150,7 @@ struct event : public event_storage<T> {
 	void stop_listening(C& _object) {
 		constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
 		auto& function_vec = static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):];
-		for (int i = 0; i < function_vec.size(); i++) {
+		for (size_t i = 0; i < function_vec.size(); ++i) {
 			if (function_vec[i].data == reinterpret_cast<uintptr_t>(&_object)) {
 				function_vec[i].data = dead_mark;
 				break;
@@ -164,10 +164,9 @@ struct event : public event_storage<T> {
 		constexpr size_t index = mars::meta::get_member_function_position<MemberPtr>();
 		auto& function_vec = static_cast<event_storage<T>&>(*this).functions.[:mars::meta::get_member_variable_by_index(^^decltype(event_storage<T>::functions), index):];
 
-		for (int i = 0; i < function_vec.size(); i++) {
+		for (size_t i = 0; i < function_vec.size();) {
 			if (function_vec[i].data == dead_mark) {
 				function_vec.erase(function_vec.begin() + i);
-				i--;
 				continue;
 			}
 
@@ -175,6 +174,7 @@ struct event : public event_storage<T> {
 				function_vec[i].simple_function(std::forward<Args>(args)...);
 			else
 				function_vec[i].helper_function(function_vec[i], std::forward<Args>(args)...);
+			++i;
 		}
 	}
 };

@@ -15,7 +15,7 @@ struct type_erased_fn {
 
 	std::byte data[sizeof(void (*)())]{};
 
-	[[no_unique_address]]
+	NO_UNIQUE_ADDRESS
 	std::conditional_t<environment::is_shipping, empty, void (*)(const std::string_view&)> id;
 
 	template <typename T>
