@@ -6,8 +6,8 @@
 
 namespace mars::graphics::vk {
 namespace {
-VkPrimitiveTopology vk_topology_from_mars(mars_pipeline_primitive_topology topology) {
-	switch (topology) {
+VkPrimitiveTopology vk_topology_from_mars(mars_pipeline_primitive_topology _topology) {
+	switch (_topology) {
 	case MARS_PIPELINE_PRIMITIVE_TOPOLOGY_LINE_LIST:
 		return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
 	case MARS_PIPELINE_PRIMITIVE_TOPOLOGY_POINT_LIST:
@@ -18,43 +18,46 @@ VkPrimitiveTopology vk_topology_from_mars(mars_pipeline_primitive_topology topol
 	}
 }
 
-void set_object_name(vk_device_data* device_data, uint64_t handle, VkObjectType object_type, const std::string& name) {
-	if (!device_data->set_debug_name || handle == 0u || name.empty())
+void set_object_name(vk_device_data* _device_data, uint64_t _handle, VkObjectType _object_type, const std::string& _name) {
+	if (!_device_data->set_debug_name || _handle == 0u || _name.empty())
 		return;
 
 	VkDebugUtilsObjectNameInfoEXT name_info = {};
 	name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
-	name_info.objectType = object_type;
-	name_info.objectHandle = handle;
-	name_info.pObjectName = name.c_str();
-	vk_expect<&vk_device_data::set_debug_name>(device_data, device_data->device, &name_info);
+	name_info.objectType = _object_type;
+	name_info.objectHandle = _handle;
+	name_info.pObjectName = _name.c_str();
+
+	vk_expect<&vk_device_data::set_debug_name>(_device_data, _device_data->device, &name_info);
 }
 
-vk_sampler_kind combine_sampler_kind(vk_sampler_kind a, vk_sampler_kind b) {
-	if (a == vk_sampler_kind::point_clamp || b == vk_sampler_kind::point_clamp)
+vk_sampler_kind combine_sampler_kind(vk_sampler_kind _a, vk_sampler_kind _b) {
+	if (_a == vk_sampler_kind::point_clamp || _b == vk_sampler_kind::point_clamp)
 		return vk_sampler_kind::point_clamp;
-	if (a == vk_sampler_kind::linear_clamp || b == vk_sampler_kind::linear_clamp)
+	if (_a == vk_sampler_kind::linear_clamp || _b == vk_sampler_kind::linear_clamp)
 		return vk_sampler_kind::linear_clamp;
 	return vk_sampler_kind::none;
 }
 
-VkDescriptorSetLayout create_explicit_layout(vk_device_data* device_data, const std::vector<pipeline_descriptior_layout>& descriptors, std::vector<vk_pipeline_binding_info>& out_bindings) {
+VkDescriptorSetLayout create_explicit_layout(vk_device_data* _device_data, const std::vector<pipeline_descriptior_layout>& _descriptors, std::vector<vk_pipeline_binding_info>& _out_bindings) {
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
-	for (const auto& descriptor : descriptors) {
+
+	for (const auto& descriptor : _descriptors) {
 		VkDescriptorSetLayoutBinding binding = {};
 		binding.binding = static_cast<uint32_t>(descriptor.binding);
 		binding.descriptorType = vk_descriptor_type_from_pipeline_descriptor(descriptor.descriptor_type);
 		binding.descriptorCount = 1u;
 		binding.stageFlags = vk_shader_stage_flags(descriptor.stage);
+
 		bindings.push_back(binding);
-		out_bindings.push_back({binding.binding, binding.descriptorType});
+		_out_bindings.push_back({binding.binding, binding.descriptorType});
 	}
 
 	if (bindings.empty())
 		return VK_NULL_HANDLE;
 
-	std::sort(bindings.begin(), bindings.end(), [](const auto& lhs, const auto& rhs) { return lhs.binding < rhs.binding; });
-	std::sort(out_bindings.begin(), out_bindings.end(), [](const auto& lhs, const auto& rhs) { return lhs.binding < rhs.binding; });
+	std::ranges::sort(bindings, {}, &VkDescriptorSetLayoutBinding::binding);
+	std::ranges::sort(_out_bindings, {}, &vk_pipeline_binding_info::binding);
 
 	VkDescriptorSetLayoutCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -62,12 +65,12 @@ VkDescriptorSetLayout create_explicit_layout(vk_device_data* device_data, const 
 	create_info.pBindings = bindings.data();
 
 	VkDescriptorSetLayout layout = VK_NULL_HANDLE;
-	vk_expect<vkCreateDescriptorSetLayout>(device_data->device, &create_info, nullptr, &layout);
+	vk_expect<vkCreateDescriptorSetLayout>(_device_data->device, &create_info, nullptr, &layout);
 	return layout;
 }
 
-void create_sampler_resources(vk_device_data* device_data, vk_pipeline_data* data, vk_sampler_kind sampler_kind) {
-	if (sampler_kind == vk_sampler_kind::none)
+void create_sampler_resources(vk_device_data* _device_data, vk_pipeline_data* _data, vk_sampler_kind _sampler_kind) {
+	if (_sampler_kind == vk_sampler_kind::none)
 		return;
 
 	VkDescriptorSetLayoutBinding binding = {};
@@ -80,29 +83,29 @@ void create_sampler_resources(vk_device_data* device_data, vk_pipeline_data* dat
 	layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layout_info.bindingCount = 1u;
 	layout_info.pBindings = &binding;
-	vk_expect<vkCreateDescriptorSetLayout>(device_data->device, &layout_info, nullptr, &data->sampler_set_layout);
+	vk_expect<vkCreateDescriptorSetLayout>(_device_data->device, &layout_info, nullptr, &_data->sampler_set_layout);
 
 	VkDescriptorSetAllocateInfo alloc_info = {};
 	alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	alloc_info.descriptorPool = device_data->sampler_descriptor_pool;
+	alloc_info.descriptorPool = _device_data->sampler_descriptor_pool;
 	alloc_info.descriptorSetCount = 1u;
-	alloc_info.pSetLayouts = &data->sampler_set_layout;
-	vk_expect<vkAllocateDescriptorSets>(device_data->device, &alloc_info, &data->sampler_set);
+	alloc_info.pSetLayouts = &_data->sampler_set_layout;
+	vk_expect<vkAllocateDescriptorSets>(_device_data->device, &alloc_info, &_data->sampler_set);
 
 	VkDescriptorImageInfo image_info = {};
-	image_info.sampler = vk_get_sampler(device_data, sampler_kind);
+	image_info.sampler = vk_get_sampler(_device_data, _sampler_kind);
 
 	VkWriteDescriptorSet write = {};
 	write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	write.dstSet = data->sampler_set;
+	write.dstSet = _data->sampler_set;
 	write.dstBinding = 0u;
 	write.descriptorCount = 1u;
 	write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
 	write.pImageInfo = &image_info;
-	vkUpdateDescriptorSets(device_data->device, 1u, &write, 0u, nullptr);
+	vkUpdateDescriptorSets(_device_data->device, 1u, &write, 0u, nullptr);
 
-	data->uses_sampler = true;
-	data->sampler_kind = sampler_kind;
+	_data->uses_sampler = true;
+	_data->sampler_kind = _sampler_kind;
 }
 } // namespace
 
@@ -119,9 +122,11 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 		result.data.store(data);
 		return result;
 	}
+
 	data->debug_name = shader_data->vertex.path + "|" + shader_data->fragment.path;
 
 	data->explicit_set_layout = create_explicit_layout(device_data, _setup.descriptors, data->explicit_bindings);
+
 	if (_setup.push_constant_count > 0u) {
 		data->has_push_constants = true;
 		data->push_constant_count = _setup.push_constant_count;
@@ -129,6 +134,7 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 		const uint32_t push_constant_bytes = static_cast<uint32_t>(_setup.push_constant_count * sizeof(uint32_t));
 		mars::logger::assert_(push_constant_bytes <= device_data->physical_device_properties.limits.maxPushConstantsSize, vk_log_channel(), "Graphics push constant payload exceeds device limit ({} > {})", push_constant_bytes, device_data->physical_device_properties.limits.maxPushConstantsSize);
 	}
+
 	create_sampler_resources(device_data, data, combine_sampler_kind(shader_data->vertex.sampler_kind, shader_data->fragment.sampler_kind));
 
 	VkDescriptorSetLayout set_layouts[] = {
@@ -147,6 +153,7 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 	layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	layout_info.setLayoutCount = 4u;
 	layout_info.pSetLayouts = set_layouts;
+
 	if (data->has_push_constants) {
 		layout_info.pushConstantRangeCount = 1u;
 		layout_info.pPushConstantRanges = &push_constant_range;
@@ -156,6 +163,7 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 
 	std::vector<VkVertexInputBindingDescription> binding_descriptions;
 	binding_descriptions.reserve(_setup.bindings.size());
+
 	for (const auto& binding : _setup.bindings)
 		binding_descriptions.push_back({
 			.binding = static_cast<uint32_t>(binding.binding),
@@ -165,6 +173,7 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 
 	std::vector<VkVertexInputAttributeDescription> attribute_descriptions;
 	attribute_descriptions.reserve(_setup.attributes.size());
+
 	for (const auto& attribute : _setup.attributes)
 		attribute_descriptions.push_back({
 			.location = static_cast<uint32_t>(attribute.location),
@@ -210,22 +219,24 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 	multisample_state.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisample_state.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-	VkPipelineColorBlendAttachmentState color_blend_attachment = {};
-	color_blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	if (_setup.has_alpha_blend_override && _setup.alpha_blend_enable) {
-		color_blend_attachment.blendEnable = VK_TRUE;
-		color_blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-		color_blend_attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-		color_blend_attachment.colorBlendOp = VK_BLEND_OP_ADD;
-		color_blend_attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-		color_blend_attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-		color_blend_attachment.alphaBlendOp = VK_BLEND_OP_ADD;
+	std::vector<VkPipelineColorBlendAttachmentState> color_blend_attachments(render_pass_data->actual_color_formats.size());
+	for (auto& color_blend_attachment : color_blend_attachments) {
+		color_blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		if (_setup.has_alpha_blend_override && _setup.alpha_blend_enable) {
+			color_blend_attachment.blendEnable = VK_TRUE;
+			color_blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+			color_blend_attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			color_blend_attachment.colorBlendOp = VK_BLEND_OP_ADD;
+			color_blend_attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+			color_blend_attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			color_blend_attachment.alphaBlendOp = VK_BLEND_OP_ADD;
+		}
 	}
 
 	VkPipelineColorBlendStateCreateInfo color_blend_state = {};
 	color_blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	color_blend_state.attachmentCount = 1u;
-	color_blend_state.pAttachments = &color_blend_attachment;
+	color_blend_state.attachmentCount = static_cast<uint32_t>(color_blend_attachments.size());
+	color_blend_state.pAttachments = color_blend_attachments.data();
 
 	VkPipelineDepthStencilStateCreateInfo depth_stencil = {};
 	depth_stencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -246,13 +257,12 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 	dynamic_state.dynamicStateCount = 2u;
 	dynamic_state.pDynamicStates = dynamic_states;
 
-	const VkFormat color_format = render_pass_data->actual_color_format != VK_FORMAT_UNDEFINED ? render_pass_data->actual_color_format : vk_format_from_mars(render_pass_data->format);
 	const VkFormat depth_format = render_pass_data->depth_format != MARS_DEPTH_FORMAT_UNDEFINED ? vk_depth_format_from_mars(render_pass_data->depth_format) : VK_FORMAT_UNDEFINED;
 
 	VkPipelineRenderingCreateInfo rendering_info = {};
 	rendering_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
-	rendering_info.colorAttachmentCount = 1u;
-	rendering_info.pColorAttachmentFormats = &color_format;
+	rendering_info.colorAttachmentCount = static_cast<uint32_t>(render_pass_data->actual_color_formats.size());
+	rendering_info.pColorAttachmentFormats = render_pass_data->actual_color_formats.data();
 	rendering_info.depthAttachmentFormat = depth_format;
 
 	VkGraphicsPipelineCreateInfo pipeline_info = {};
@@ -270,10 +280,9 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 	pipeline_info.pDynamicState = &dynamic_state;
 	pipeline_info.layout = data->layout;
 	vk_expect<vkCreateGraphicsPipelines>(device_data->device, VK_NULL_HANDLE, 1u, &pipeline_info, nullptr, &data->pipeline);
+
 	if (data->pipeline != VK_NULL_HANDLE) {
-		const std::string pipeline_name =
-			"gfx|" + shader_data->vertex.path + "|" + shader_data->fragment.path +
-			"|depth=" + std::to_string(static_cast<int>(depth_format));
+		const std::string pipeline_name = "gfx|" + shader_data->vertex.path + "|" + shader_data->fragment.path + "|depth=" + std::to_string(static_cast<int>(depth_format));
 		set_object_name(device_data, reinterpret_cast<uint64_t>(data->pipeline), VK_OBJECT_TYPE_PIPELINE, pipeline_name);
 	}
 

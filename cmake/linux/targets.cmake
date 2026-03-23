@@ -1,5 +1,11 @@
 include_guard(GLOBAL)
 
+function(mars_require_reflection_flags)
+    if(NOT DEFINED PARCEL_REFLECTION_FLAGS OR "${PARCEL_REFLECTION_FLAGS}" STREQUAL "")
+        message(FATAL_ERROR "PARCEL_REFLECTION_FLAGS must be defined before configuring Mars targets")
+    endif()
+endfunction()
+
 function(mars_linux_apply_libcxx target)
     if(CUSTOM_CLANG_PATH)
         target_compile_options("${target}" PRIVATE )
@@ -7,6 +13,7 @@ function(mars_linux_apply_libcxx target)
 endfunction()
 
 function(mars_linux_configure_target target)
+    mars_require_reflection_flags()
     if(CUSTOM_CLANG_PATH)
         #  makes Clang automatically add its own libc++ include
         # paths — no need to add them manually (doing so causes double-inclusion
@@ -21,7 +28,7 @@ function(mars_linux_configure_target target)
     target_compile_options(
         "${target}"
         PRIVATE
-            -freflection
+            ${PARCEL_REFLECTION_FLAGS}
     )
 
     target_link_libraries("${target}" PUBLIC SDL3::SDL3-shared DXC::dxcompiler)

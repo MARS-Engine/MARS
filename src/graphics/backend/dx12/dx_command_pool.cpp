@@ -7,14 +7,32 @@
 #include <WinPixEventRuntime/pix3.h>
 
 #include <algorithm>
+#include <cstdio>
 #include <string>
 
 namespace mars::graphics::dx {
 static log_channel dx12_channel("dx12");
+namespace {
+constexpr DWORD k_fence_wait_timeout_ms = 5000u;
+
+void log_device_removed_reason(dx_command_queue_data* _queue) {
+	if (_queue == nullptr || _queue->cmd_queue == nullptr)
+		return;
+
+	Microsoft::WRL::ComPtr<ID3D12Device> device;
+	if (FAILED(_queue->cmd_queue->GetDevice(IID_PPV_ARGS(&device))) || !device)
+		return;
+
+	const HRESULT removed_reason = device->GetDeviceRemovedReason();
+	if (removed_reason != S_OK)
+		logger::error(dx12_channel, "DX12 device removed while waiting on a fence (reason={:#x})", static_cast<unsigned long>(removed_reason));
+}
+}
 
 command_pool dx_command_pool_impl::dx_command_pool_create(const device& _device) {
 	auto device_data = _device.data.expect<dx_device_data>();
 	auto data = new dx_command_pool_data();
+	data->queue = device_data->command_queue_data.expect<dx_command_queue_data>();
 
 	dx_expect<&ID3D12Device::CreateCommandAllocator>(device_data->device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&data->cmd_allocator));
 
@@ -61,6 +79,32 @@ void dx_command_pool_impl::dx_command_buffer_reset(const command_buffer& _comman
 	}
 
 	if (data->pool->submitted) {
+		if (data->pool->queue && data->pool->queue->fence &&
+			data->pool->queue->fence->GetCompletedValue() < data->pool->last_submitted_fence_value) {
+			const HRESULT event_hr = data->pool->queue->fence->SetEventOnCompletion(data->pool->last_submitted_fence_value, data->pool->queue->fence_event);
+			if (FAILED(event_hr)) {
+				logger::error(
+					dx12_channel,
+					"SetEventOnCompletion failed while waiting for fence value {} (hr={:#x})",
+					data->pool->last_submitted_fence_value,
+					static_cast<unsigned long>(event_hr)
+				);
+				log_device_removed_reason(data->pool->queue);
+				return;
+			}
+			logger::warning(dx12_channel, "Waiting for DX12 fence value {} before resetting the command allocator", data->pool->last_submitted_fence_value);
+			const DWORD wait_result = WaitForSingleObject(data->pool->queue->fence_event, k_fence_wait_timeout_ms);
+			if (wait_result != WAIT_OBJECT_0) {
+				if (wait_result == WAIT_TIMEOUT) {
+					logger::error(dx12_channel, "Timed out waiting {} ms for DX12 fence value {}", static_cast<unsigned long>(k_fence_wait_timeout_ms), data->pool->last_submitted_fence_value);
+				}
+				else {
+					logger::error(dx12_channel, "WaitForSingleObject failed while waiting for fence value {} (result={}, last_error={})", data->pool->last_submitted_fence_value, static_cast<unsigned long>(wait_result), static_cast<unsigned long>(GetLastError()));
+				}
+				log_device_removed_reason(data->pool->queue);
+				return;
+			}
+		}
 		HRESULT hr = dx_expect<&ID3D12CommandAllocator::Reset>(data->pool->cmd_allocator.Get());
 		if (FAILED(hr))
 			return;
@@ -129,13 +173,15 @@ void dx_command_pool_impl::dx_command_pool_destroy(command_pool& _command_pool, 
 
 void dx_command_pool_impl::dx_command_buffer_begin_event(const command_buffer& _command_buffer, std::string_view _name) {
 	auto data = _command_buffer.data.expect<dx_command_buffer_data>();
-	if (!data->cmd_list) return;
+	if (!data->cmd_list)
+		return;
 	PIXBeginEvent(data->cmd_list.Get(), 0ull, std::string(_name).c_str());
 }
 
 void dx_command_pool_impl::dx_command_buffer_end_event(const command_buffer& _command_buffer) {
 	auto data = _command_buffer.data.expect<dx_command_buffer_data>();
-	if (!data->cmd_list) return;
+	if (!data->cmd_list)
+		return;
 	PIXEndEvent(data->cmd_list.Get());
 }
 } // namespace mars::graphics::dx

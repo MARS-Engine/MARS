@@ -89,8 +89,13 @@ void dx_device_impl::dx_device_submit(const device& _device, const command_buffe
 	ID3D12CommandList* lists[] = {cb_data->cmd_list.Get()};
 	cq_data->cmd_queue->ExecuteCommandLists(1, lists);
 
-	if (cb_data->pool)
+	const UINT64 fence_value = ++cq_data->fence_value;
+	cq_data->cmd_queue->Signal(cq_data->fence.Get(), fence_value);
+
+	if (cb_data->pool) {
 		cb_data->pool->submitted = true;
+		cb_data->pool->last_submitted_fence_value = fence_value;
+	}
 }
 
 void dx_device_impl::dx_device_flush(const device& _device) {

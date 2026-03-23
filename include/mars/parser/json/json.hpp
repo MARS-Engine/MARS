@@ -10,10 +10,23 @@
 #include <type_traits>
 
 namespace mars::json {
-struct json_skip_anoation {
+struct json_skip_annotation {
 };
 
-static constexpr json_skip_anoation skip = {};
+using json_skip_anoation = json_skip_annotation;
+
+static constexpr json_skip_annotation skip_annotation = {};
+static constexpr json_skip_annotation skip = skip_annotation;
+
+struct json_skip_empty_annotation {
+};
+
+static constexpr json_skip_empty_annotation skip_empty = {};
+
+struct json_skip_default_annotation {
+};
+
+static constexpr json_skip_default_annotation skip_default = {};
 
 enum json_value_types {
 	JSON_VALUE_TYPES_INVALID,
@@ -49,6 +62,22 @@ struct json_type_parser_base {
 	static constexpr bool bool_support = false;
 	static constexpr bool number_support = false;
 	static constexpr bool struct_support = false;
+
+	template <typename C>
+	inline static bool should_skip_empty_field(const C& _value) {
+		if constexpr (requires(const C& current) { current.empty(); })
+			return _value.empty();
+		return false;
+	}
+
+	template <typename C>
+	inline static bool should_skip_default_field(const C& _value) {
+		// Use value-initialization as the baseline "default" value. This is
+		// intentionally structural and may differ from a type's semantic default.
+		if constexpr (std::is_default_constructible_v<C> && requires(const C& lhs, const C& rhs) { lhs == rhs; })
+			return _value == C {};
+		return false;
+	}
 
 	inline static std::string_view::iterator default_parse(const std::string_view& _json, T& _value) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
@@ -171,10 +200,21 @@ struct json_type_parser_base {
 		constexpr auto ctx = std::meta::access_context::current();
 		if constexpr (std::is_class_v<T>) {
 			template for (constexpr auto mem : std::define_static_array(std::meta::nonstatic_data_members_of(^^T, ctx))) {
-				constexpr std::optional<json_skip_anoation> annoation = mars::meta::get_annotation<json_skip_anoation>(mem);
-				if constexpr (!annoation.has_value()) {
+				constexpr bool should_skip_field = mars::meta::get_annotation<json_skip_anoation>(mem).has_value();
+				constexpr bool should_skip_empty_field_annotation = mars::meta::get_annotation<json_skip_empty_annotation>(mem).has_value();
+				constexpr bool should_skip_default_field_annotation = mars::meta::get_annotation<json_skip_default_annotation>(mem).has_value();
+				if constexpr (!should_skip_field) {
+					using C = typename[:std::meta::type_of(mem):];
+					const C& value = _value.[:mem:];
+					bool should_skip = false;
+					if constexpr (should_skip_empty_field_annotation)
+						should_skip = should_skip || should_skip_empty_field(value);
+					if constexpr (should_skip_default_field_annotation)
+						should_skip = should_skip || should_skip_default_field(value);
+					if (should_skip)
+						continue;
 					_out += '"' + std::string(std::define_static_string(std::meta::identifier_of(mem))) + "\":";
-					json_type_parser<typename[:std::meta::type_of(mem):]>::stringify(_value.[:mem:], _out);
+					json_type_parser<C>::stringify(_value.[:mem:], _out);
 					_out += ',';
 				}
 			}

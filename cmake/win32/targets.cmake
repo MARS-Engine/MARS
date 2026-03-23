@@ -1,16 +1,23 @@
 include_guard(GLOBAL)
 
+function(mars_require_reflection_flags)
+    if(NOT DEFINED PARCEL_REFLECTION_FLAGS OR "${PARCEL_REFLECTION_FLAGS}" STREQUAL "")
+        message(FATAL_ERROR "PARCEL_REFLECTION_FLAGS must be defined before configuring Mars targets")
+    endif()
+endfunction()
+
 function(mars_win32_apply_libcxx target)
     target_include_directories("${target}" PRIVATE "${CUSTOM_CLANG_PATH}/include/c++/v1")
 endfunction()
 
 function(mars_win32_configure_target target)
+    mars_require_reflection_flags()
     target_include_directories("${target}" PUBLIC "${CUSTOM_CLANG_PATH}/include/c++/v1")
 
     target_compile_options(
         "${target}"
         PRIVATE
-            -freflection
+            ${PARCEL_REFLECTION_FLAGS}
     )
 
     target_link_options(
@@ -24,7 +31,6 @@ function(mars_win32_configure_target target)
         PUBLIC
             SDL3::SDL3-shared
             WinPixEventRuntime
-            "${CUSTOM_CLANG_PATH}/lib/c++.lib"
             d3d12.lib
             dxgi.lib
             DXC::dxcompiler

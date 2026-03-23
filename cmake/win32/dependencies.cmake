@@ -24,13 +24,20 @@ function(mars_win32_prepare_dependencies)
         set_target_properties(DXC::dxcompiler PROPERTIES
             IMPORTED_LOCATION             "${dxc_SOURCE_DIR}/bin/x64/dxcompiler.dll"
             IMPORTED_IMPLIB               "${dxc_SOURCE_DIR}/lib/x64/dxcompiler.lib"
-            INTERFACE_INCLUDE_DIRECTORIES "${dxc_SOURCE_DIR}/inc"
+            INTERFACE_INCLUDE_DIRECTORIES "${dxc_SOURCE_DIR}/inc;${dxc_SOURCE_DIR}/inc/Support"
         )
         set(MARS_DXCOMPILER_BIN "${dxc_SOURCE_DIR}/bin/x64/dxcompiler.dll" CACHE PATH "" FORCE)
         set(MARS_DXIL_BIN       "${dxc_SOURCE_DIR}/bin/x64/dxil.dll"       CACHE PATH "" FORCE)
     endif()
     
-    find_file(MARS_LIBCXX_DLL    NAMES c++.dll libc++.dll PATHS "${CUSTOM_CLANG_PATH}/bin" NO_DEFAULT_PATH)
+    find_file(
+        MARS_LIBCXX_DLL
+        NAMES c++.dll libc++.dll
+        PATHS
+            "${CUSTOM_CLANG_PATH}/bin"
+            "${CUSTOM_CLANG_PATH}/lib"
+        NO_DEFAULT_PATH
+    )
 
     if(NOT TARGET SDL3::SDL3-shared)
         FetchContent_Declare(

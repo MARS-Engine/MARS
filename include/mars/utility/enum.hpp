@@ -22,7 +22,8 @@ std::istream& operator>>(std::istream& is, E& value) {
 	std::string string_value;
 	if (is >> string_value) {
 		template for (constexpr auto e : std::define_static_array(std::meta::enumerators_of(^^E))) {
-			if (string_value == std::define_static_string(std::meta::identifier_of(e))) {
+			if (string_value == std::define_static_string(std::meta::identifier_of(e)) ||
+				string_value == mars::meta::display_name(e)) {
 				value = [:e:];
 				return is;
 			}

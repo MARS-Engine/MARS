@@ -5,6 +5,7 @@
 #include <mars/meta/type_erased.hpp>
 
 #include <cstddef>
+#include <vector>
 
 enum mars_render_pass_load_op {
 	MARS_RENDER_PASS_LOAD_OP_LOAD,
@@ -25,7 +26,7 @@ struct render_pass {
 };
 
 struct render_pass_create_params {
-	mars_format_type format;
+	std::vector<mars_format_type> color_formats;
 	mars_depth_format depth_format = MARS_DEPTH_FORMAT_UNDEFINED;
 	mars_render_pass_load_op load_operation = MARS_RENDER_PASS_LOAD_OP_CLEAR;
 	float depth_clear_value = 1.0f;

@@ -313,11 +313,11 @@ struct vk_texture_data {
 };
 
 struct vk_render_pass_data {
-	mars_format_type format = MARS_FORMAT_UNDEFINED;
+	std::vector<mars_format_type> color_formats;
 	mars_depth_format depth_format = MARS_DEPTH_FORMAT_UNDEFINED;
 	mars_render_pass_load_op load_operation = MARS_RENDER_PASS_LOAD_OP_CLEAR;
 	float depth_clear_value = 1.0f;
-	VkFormat actual_color_format = VK_FORMAT_UNDEFINED;
+	std::vector<VkFormat> actual_color_formats;
 };
 
 struct vk_depth_buffer_data {
@@ -335,12 +335,12 @@ struct vk_depth_buffer_data {
 };
 
 struct vk_framebuffer_data {
-	VkImage color_image = VK_NULL_HANDLE;
-	VkImageView color_view = VK_NULL_HANDLE;
+	std::vector<VkImage> color_images;
+	std::vector<VkImageView> color_views;
 	bool is_swapchain = false;
 	uint32_t swapchain_image_index = 0u;
 	vk_swapchain_data* swapchain_owner = nullptr;
-	vk_texture_data* color_texture = nullptr;
+	std::vector<vk_texture_data*> color_textures;
 };
 
 struct vk_descriptor_data {
@@ -521,16 +521,14 @@ inline size_t vk_format_pixel_size(mars_format_type format) {
 }
 
 inline VkShaderStageFlags vk_shader_stage_flags(mars_pipeline_stage stage) {
-	switch (stage) {
-	case MARS_PIPELINE_STAGE_VERTEX:
-		return VK_SHADER_STAGE_VERTEX_BIT;
-	case MARS_PIPELINE_STAGE_FRAGMENT:
-		return VK_SHADER_STAGE_FRAGMENT_BIT;
-	case MARS_PIPELINE_STAGE_COMPUTE:
-		return VK_SHADER_STAGE_COMPUTE_BIT;
-	default:
-		return VK_SHADER_STAGE_ALL;
-	}
+	VkShaderStageFlags flags = 0u;
+	if (mars::enum_has_flag(stage, MARS_PIPELINE_STAGE_VERTEX))
+		flags |= VK_SHADER_STAGE_VERTEX_BIT;
+	if (mars::enum_has_flag(stage, MARS_PIPELINE_STAGE_FRAGMENT))
+		flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+	if (mars::enum_has_flag(stage, MARS_PIPELINE_STAGE_COMPUTE))
+		flags |= VK_SHADER_STAGE_COMPUTE_BIT;
+	return flags != 0u ? flags : VK_SHADER_STAGE_ALL;
 }
 
 inline VkDescriptorType vk_descriptor_type_from_pipeline_descriptor(mars_pipeline_descriptor_type descriptor_type) {

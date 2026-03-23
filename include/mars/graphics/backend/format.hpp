@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mars/utility/enum_flags.hpp>
+
 #include <climits>
 #include <meta>
 #include <optional>
@@ -69,15 +71,8 @@ enum mars_texture_type : uint8_t {
 	MARS_TEXTURE_TYPE_CUBE,
 };
 
-inline constexpr mars_texture_usage operator|(mars_texture_usage _left, mars_texture_usage _right) {
-	using T = std::underlying_type_t<mars_texture_usage>;
-	return static_cast<mars_texture_usage>(static_cast<T>(_left) | static_cast<T>(_right));
-}
-
-inline constexpr mars_texture_usage operator&(mars_texture_usage _left, mars_texture_usage _right) {
-	using T = std::underlying_type_t<mars_texture_usage>;
-	return static_cast<mars_texture_usage>(static_cast<T>(_left) & static_cast<T>(_right));
-}
+template <>
+struct mars::enum_flags::enabled<mars_texture_usage> : std::true_type {};
 
 namespace mars::graphics {
 template <typename T>

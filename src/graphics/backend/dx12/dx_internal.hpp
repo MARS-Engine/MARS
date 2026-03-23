@@ -242,6 +242,7 @@ struct dx_pipeline_data {
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> root_signature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipeline_state;
 	std::vector<dx_root_param_entry> root_layout;
+	mars_pipeline_primitive_topology primitive_topology = MARS_PIPELINE_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	size_t push_constants_root_index = SIZE_MAX;
 	size_t push_constant_count = 0;
 	bool has_push_constants = false;
@@ -258,7 +259,9 @@ struct dx_compute_pipeline_data {
 
 struct dx_command_pool_data {
 	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> cmd_allocator;
+	dx_command_queue_data* queue = nullptr;
 	bool submitted = false;
+	UINT64 last_submitted_fence_value = 0;
 };
 
 struct dx_command_buffer_data {
@@ -297,7 +300,7 @@ struct dx_texture_data {
 };
 
 struct dx_render_pass_data {
-	mars_format_type format;
+	std::vector<mars_format_type> color_formats;
 	mars_depth_format depth_format = MARS_DEPTH_FORMAT_UNDEFINED;
 	float depth_clear_value = 1.0f;
 };
@@ -314,12 +317,12 @@ struct dx_depth_buffer_data {
 };
 
 struct dx_framebuffer_data {
-	D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = {};
-	Microsoft::WRL::ComPtr<ID3D12Resource> render_target;
-	dx_texture_data* render_target_texture = nullptr;
+	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtv_handles;
+	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> render_targets;
+	std::vector<dx_texture_data*> render_target_textures;
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtv_heap;
 	bool is_swapchain = false;
-	D3D12_RESOURCE_STATES before_render_state = D3D12_RESOURCE_STATE_COMMON;
+	std::vector<D3D12_RESOURCE_STATES> before_render_states;
 };
 
 struct dx_descriptor_data {

@@ -58,6 +58,7 @@
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <d3dcompiler.h>
+#include <cstdio>
 #ifdef _MSC_VER
 #pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
 #endif
@@ -388,8 +389,15 @@ void ImGui_ImplDX12_UpdateTexture(ImTextureData* tex)
         desc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
         ID3D12Resource* pTexture = nullptr;
-        bd->pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc,
+        HRESULT hr = bd->pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc,
             D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&pTexture));
+        if (FAILED(hr))
+        {
+            fprintf(stderr, "ImGui DX12: failed to create font texture (%dx%d), hr=0x%08X, removed=0x%08X\n",
+                tex->Width, tex->Height, (unsigned int)hr, (unsigned int)bd->pd3dDevice->GetDeviceRemovedReason());
+            IM_ASSERT(false && "ImGui DX12 font texture creation failed");
+            return;
+        }
 
         // Create SRV
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -414,6 +422,7 @@ void ImGui_ImplDX12_UpdateTexture(ImTextureData* tex)
     {
         ImGui_ImplDX12_Texture* backend_tex = (ImGui_ImplDX12_Texture*)tex->BackendUserData;
         IM_ASSERT(tex->Format == ImTextureFormat_RGBA32);
+        HRESULT hr = S_OK;
 
         // We could use the smaller rect on _WantCreate but using the full rect allows us to clear the texture.
         // FIXME-OPT: Uploading single box even when using ImTextureStatus_WantUpdates. Could use tex->Updates[]
@@ -452,9 +461,15 @@ void ImGui_ImplDX12_UpdateTexture(ImTextureData* tex)
 
         // FIXME-OPT: Can upload buffer be reused?
         ID3D12Resource* uploadBuffer = nullptr;
-        HRESULT hr = bd->pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc,
+        hr = bd->pd3dDevice->CreateCommittedResource(&props, D3D12_HEAP_FLAG_NONE, &desc,
             D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadBuffer));
-        IM_ASSERT(SUCCEEDED(hr));
+        if (FAILED(hr))
+        {
+            fprintf(stderr, "ImGui DX12: failed to create upload buffer (%u bytes), hr=0x%08X, removed=0x%08X\n",
+                upload_size, (unsigned int)hr, (unsigned int)bd->pd3dDevice->GetDeviceRemovedReason());
+            IM_ASSERT(false && "ImGui DX12 upload buffer creation failed");
+            return;
+        }
 
         // Create temporary command list and execute immediately
         ID3D12Fence* fence = nullptr;

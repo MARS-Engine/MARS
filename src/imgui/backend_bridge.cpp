@@ -32,35 +32,42 @@ enum class backend_kind {
 };
 
 struct descriptor_allocator {
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> owned_heap;
 	ID3D12DescriptorHeap* heap = nullptr;
 	D3D12_CPU_DESCRIPTOR_HANDLE cpu_start = {};
 	D3D12_GPU_DESCRIPTOR_HANDLE gpu_start = {};
 	UINT descriptor_size = 0;
 	std::vector<UINT> free_indices;
 
-	void create(graphics::dx::dx_device_data* device_data, UINT descriptor_count) {
-		heap = device_data->bindless_heap.Get();
+	void create(graphics::dx::dx_device_data* _device_data, UINT _descriptor_count) {
+		D3D12_DESCRIPTOR_HEAP_DESC heap_desc = {};
+		heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		heap_desc.NumDescriptors = _descriptor_count;
+		heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		if (FAILED(_device_data->device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&owned_heap))))
+			throw std::runtime_error("mars::imgui: failed to create DX12 descriptor heap");
+		heap = owned_heap.Get();
 		cpu_start = heap->GetCPUDescriptorHandleForHeapStart();
 		gpu_start = heap->GetGPUDescriptorHandleForHeapStart();
-		descriptor_size = device_data->bindless_descriptor_size;
+		descriptor_size = _device_data->device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		free_indices.clear();
-		free_indices.reserve(descriptor_count);
-		for (UINT i = descriptor_count; i > 0; --i)
-			free_indices.push_back(graphics::dx::dx_allocate_bindless_srv_slot(device_data));
+		free_indices.reserve(_descriptor_count);
+		for (UINT i = _descriptor_count; i > 0; --i)
+			free_indices.push_back(i - 1);
 	}
 
-	void alloc(D3D12_CPU_DESCRIPTOR_HANDLE* cpu, D3D12_GPU_DESCRIPTOR_HANDLE* gpu) {
+	void alloc(D3D12_CPU_DESCRIPTOR_HANDLE* _cpu, D3D12_GPU_DESCRIPTOR_HANDLE* _gpu) {
 		if (free_indices.empty())
 			throw std::runtime_error("mars::imgui: descriptor allocator exhausted");
 		const UINT idx = free_indices.back();
 		free_indices.pop_back();
-		cpu->ptr = cpu_start.ptr + idx * descriptor_size;
-		gpu->ptr = gpu_start.ptr + idx * descriptor_size;
+		_cpu->ptr = cpu_start.ptr + idx * descriptor_size;
+		_gpu->ptr = gpu_start.ptr + idx * descriptor_size;
 	}
 
-	void free(D3D12_CPU_DESCRIPTOR_HANDLE cpu, D3D12_GPU_DESCRIPTOR_HANDLE gpu) {
-		const UINT cpu_idx = static_cast<UINT>((cpu.ptr - cpu_start.ptr) / descriptor_size);
-		const UINT gpu_idx = static_cast<UINT>((gpu.ptr - gpu_start.ptr) / descriptor_size);
+	void free(D3D12_CPU_DESCRIPTOR_HANDLE _cpu, D3D12_GPU_DESCRIPTOR_HANDLE _gpu) {
+		const UINT cpu_idx = static_cast<UINT>((_cpu.ptr - cpu_start.ptr) / descriptor_size);
+		const UINT gpu_idx = static_cast<UINT>((_gpu.ptr - gpu_start.ptr) / descriptor_size);
 		if (cpu_idx == gpu_idx)
 			free_indices.push_back(cpu_idx);
 	}
@@ -75,6 +82,9 @@ struct backend_state {
 	VkDescriptorPool vk_descriptor_pool = VK_NULL_HANDLE;
 	struct preview_texture_entry {
 		const void* texture_key = nullptr;
+		UINT dx12_srv_bindless_idx = UINT32_MAX;
+		D3D12_CPU_DESCRIPTOR_HANDLE dx12_cpu_handle = {};
+		D3D12_GPU_DESCRIPTOR_HANDLE dx12_gpu_handle = {};
 		VkImageView image_view = VK_NULL_HANDLE;
 		VkImageLayout image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
 		VkDescriptorSet descriptor_set = VK_NULL_HANDLE;
@@ -133,41 +143,98 @@ graphics::vk::vk_swapchain_data* require_vk_swapchain_data(const mars::swapchain
 
 void clear_preview_textures() {
 	for (auto& entry : g_state.preview_textures) {
+		if (entry.dx12_cpu_handle.ptr != 0 && entry.dx12_gpu_handle.ptr != 0)
+			g_state.dx_descriptors.free(entry.dx12_cpu_handle, entry.dx12_gpu_handle);
 		if (entry.descriptor_set != VK_NULL_HANDLE)
 			ImGui_ImplVulkan_RemoveTexture(entry.descriptor_set);
 	}
 	g_state.preview_textures.clear();
 }
 
-VkDescriptorSet get_or_create_preview_texture(graphics::vk::vk_device_data* device_data, const void* texture_key, VkImageView image_view, VkImageLayout image_layout) {
+ImTextureRef get_or_create_preview_texture(graphics::dx::dx_device_data* _device_data, const void* _texture_key, UINT _srv_bindless_idx) {
+	if (g_state.dx_descriptors.heap == nullptr)
+		return {};
+
+	auto* texture_data = static_cast<graphics::dx::dx_texture_data*>(const_cast<void*>(_texture_key));
+	if (texture_data == nullptr || texture_data->resource == nullptr)
+		return {};
+
+	auto recreate_srv = [&](backend_state::preview_texture_entry& _entry) {
+		D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
+		srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srv_desc.Format = texture_data->format;
+		if (texture_data->texture_type == MARS_TEXTURE_TYPE_CUBE) {
+			srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+			srv_desc.TextureCube.MostDetailedMip = 0;
+			srv_desc.TextureCube.MipLevels = static_cast<UINT>(texture_data->mip_levels);
+			srv_desc.TextureCube.ResourceMinLODClamp = 0.0f;
+		}
+		else if (texture_data->array_size > 1) {
+			srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+			srv_desc.Texture2DArray.MostDetailedMip = 0;
+			srv_desc.Texture2DArray.MipLevels = static_cast<UINT>(std::max<size_t>(1, texture_data->mip_levels));
+			srv_desc.Texture2DArray.FirstArraySlice = 0;
+			srv_desc.Texture2DArray.ArraySize = static_cast<UINT>(texture_data->array_size);
+			srv_desc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+		}
+		else {
+			srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			srv_desc.Texture2D.MostDetailedMip = 0;
+			srv_desc.Texture2D.MipLevels = static_cast<UINT>(std::max<size_t>(1, texture_data->mip_levels));
+			srv_desc.Texture2D.ResourceMinLODClamp = 0.0f;
+		}
+
+		_device_data->device->CreateShaderResourceView(texture_data->resource.Get(), &srv_desc, _entry.dx12_cpu_handle);
+		_entry.dx12_srv_bindless_idx = _srv_bindless_idx;
+	};
+
 	for (auto& entry : g_state.preview_textures) {
-		if (entry.texture_key != texture_key)
+		if (entry.texture_key != _texture_key)
 			continue;
 
-		if (entry.image_view == image_view && entry.image_layout == image_layout)
+		if (entry.dx12_srv_bindless_idx != _srv_bindless_idx)
+			recreate_srv(entry);
+
+		return ImTextureRef(static_cast<ImTextureID>(entry.dx12_gpu_handle.ptr));
+	}
+
+	backend_state::preview_texture_entry& entry = g_state.preview_textures.emplace_back();
+	entry.texture_key = _texture_key;
+	entry.dx12_srv_bindless_idx = _srv_bindless_idx;
+	g_state.dx_descriptors.alloc(&entry.dx12_cpu_handle, &entry.dx12_gpu_handle);
+	recreate_srv(entry);
+	return ImTextureRef(static_cast<ImTextureID>(entry.dx12_gpu_handle.ptr));
+}
+
+VkDescriptorSet get_or_create_preview_texture(graphics::vk::vk_device_data* _device_data, const void* _texture_key, VkImageView _image_view, VkImageLayout _image_layout) {
+	for (auto& entry : g_state.preview_textures) {
+		if (entry.texture_key != _texture_key)
+			continue;
+
+		if (entry.image_view == _image_view && entry.image_layout == _image_layout)
 			return entry.descriptor_set;
 
 		if (entry.descriptor_set != VK_NULL_HANDLE)
 			ImGui_ImplVulkan_RemoveTexture(entry.descriptor_set);
 
-		entry.image_view = image_view;
-		entry.image_layout = image_layout;
+		entry.image_view = _image_view;
+		entry.image_layout = _image_layout;
 		entry.descriptor_set = ImGui_ImplVulkan_AddTexture(
-			graphics::vk::vk_get_sampler(device_data, graphics::vk::vk_sampler_kind::linear_clamp),
-			image_view,
-			image_layout
+			graphics::vk::vk_get_sampler(_device_data, graphics::vk::vk_sampler_kind::linear_clamp),
+			_image_view,
+			_image_layout
 		);
 		return entry.descriptor_set;
 	}
 
 	backend_state::preview_texture_entry& entry = g_state.preview_textures.emplace_back();
-	entry.texture_key = texture_key;
-	entry.image_view = image_view;
-	entry.image_layout = image_layout;
+	entry.texture_key = _texture_key;
+	entry.image_view = _image_view;
+	entry.image_layout = _image_layout;
 	entry.descriptor_set = ImGui_ImplVulkan_AddTexture(
-		graphics::vk::vk_get_sampler(device_data, graphics::vk::vk_sampler_kind::linear_clamp),
-		image_view,
-		image_layout
+		graphics::vk::vk_get_sampler(_device_data, graphics::vk::vk_sampler_kind::linear_clamp),
+		_image_view,
+		_image_layout
 	);
 	return entry.descriptor_set;
 }
@@ -182,12 +249,14 @@ void initialize_backend(const mars::window& window, const mars::device& device, 
 		shutdown_backend();
 
 	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
+	if (ImGui::GetCurrentContext() == nullptr)
+		ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.IniFilename = nullptr;
 	io.LogFilename = nullptr;
-	io.Fonts->AddFontDefault();
+	if (io.Fonts->Fonts.empty())
+		io.Fonts->AddFontDefault();
 	ImGui::StyleColorsDark();
 
 	if (is_dx12_backend(device)) {
@@ -300,13 +369,12 @@ ImTextureRef texture_ref(const mars::texture& texture) {
 
 	switch (g_state.kind) {
 	case backend_kind::dx12: {
+		auto* device_data = require_dx_device_data(*g_state.device);
 		auto* texture_data = texture.data.get<graphics::dx::dx_texture_data>();
-		if (texture_data == nullptr || texture_data->srv_bindless_idx == UINT32_MAX || g_state.dx_descriptors.descriptor_size == 0)
+		if (texture_data == nullptr || texture_data->srv_bindless_idx == UINT32_MAX)
 			return {};
-
-		D3D12_GPU_DESCRIPTOR_HANDLE gpu = g_state.dx_descriptors.gpu_start;
-		gpu.ptr += static_cast<SIZE_T>(texture_data->srv_bindless_idx) * g_state.dx_descriptors.descriptor_size;
-		return ImTextureRef(static_cast<ImTextureID>(gpu.ptr));
+		const void* texture_key = texture.data.get<void>();
+		return get_or_create_preview_texture(device_data, texture_key, texture_data->srv_bindless_idx);
 	}
 	case backend_kind::vulkan: {
 		auto* device_data = require_vk_device_data(*g_state.device);

@@ -2,6 +2,7 @@
 #include "dx_internal.hpp"
 
 #include <mars/graphics/backend/dx12/dx_depth_buffer.hpp>
+#include <mars/graphics/functional/device.hpp>
 
 namespace mars::graphics::dx {
 namespace {

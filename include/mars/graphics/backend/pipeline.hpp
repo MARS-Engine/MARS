@@ -3,9 +3,12 @@
 #include "format.hpp"
 #include "shader.hpp"
 
+#include <mars/utility/enum_flags.hpp>
+
 #include <mars/graphics/backend/command_pool.hpp>
 #include <mars/math/vector2.hpp>
 #include <mars/meta/type_erased.hpp>
+#include <cstdint>
 #include <vector>
 
 enum mars_pipeline_input_advance_type {
@@ -13,11 +16,16 @@ enum mars_pipeline_input_advance_type {
 	MARS_PIPELINE_INPUT_ADVANCE_TYPE_INSTANCE,
 };
 
-enum mars_pipeline_stage {
-	MARS_PIPELINE_STAGE_VERTEX,
-	MARS_PIPELINE_STAGE_FRAGMENT,
-	MARS_PIPELINE_STAGE_COMPUTE,
+enum mars_pipeline_stage : uint32_t {
+	MARS_PIPELINE_STAGE_NONE = 0u,
+	MARS_PIPELINE_STAGE_VERTEX = 1u << 0,
+	MARS_PIPELINE_STAGE_FRAGMENT = 1u << 1,
+	MARS_PIPELINE_STAGE_COMPUTE = 1u << 2,
+	MARS_PIPELINE_STAGE_VERTEX_FRAGMENT = MARS_PIPELINE_STAGE_VERTEX | MARS_PIPELINE_STAGE_FRAGMENT,
 };
+
+template <>
+struct mars::enum_flags::enabled<mars_pipeline_stage> : std::true_type {};
 
 enum mars_pipeline_descriptor_type {
 	MARS_PIPELINE_DESCRIPTOR_TYPE_UNIFORM_BUFFER,

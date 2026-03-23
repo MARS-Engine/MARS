@@ -78,13 +78,15 @@ static void dump_dx12_info_queue(ID3D12Device* device) {
 }
 
 static D3D12_SHADER_VISIBILITY stage_to_visibility(mars_pipeline_stage stage) {
-	switch (stage) {
-	case MARS_PIPELINE_STAGE_VERTEX:
-	case MARS_PIPELINE_STAGE_FRAGMENT:
-	case MARS_PIPELINE_STAGE_COMPUTE:
-	default:
+	if (mars::enum_has_flag(stage, MARS_PIPELINE_STAGE_COMPUTE))
 		return D3D12_SHADER_VISIBILITY_ALL;
-	}
+	const bool vertex = mars::enum_has_flag(stage, MARS_PIPELINE_STAGE_VERTEX);
+	const bool fragment = mars::enum_has_flag(stage, MARS_PIPELINE_STAGE_FRAGMENT);
+	if (vertex && !fragment)
+		return D3D12_SHADER_VISIBILITY_VERTEX;
+	if (!vertex && fragment)
+		return D3D12_SHADER_VISIBILITY_PIXEL;
+	return D3D12_SHADER_VISIBILITY_ALL;
 }
 
 pipeline dx_pipeline_impl::dx_pipeline_create(const device& _device, const render_pass& _render_pass, const pipeline_setup& _setup) {
@@ -92,6 +94,7 @@ pipeline dx_pipeline_impl::dx_pipeline_create(const device& _device, const rende
 	auto shader_data = _setup.pipeline_shader.data.expect<dx_shader_data>();
 	auto rp_data = _render_pass.data.expect<dx_render_pass_data>();
 	auto data = new dx_pipeline_data();
+	data->primitive_topology = _setup.primitive_topology;
 
 	if (!shader_data->vertex_shader || !shader_data->pixel_shader) {
 		logger::error(dx12_channel, "Graphics pipeline creation failed: missing VS/PS bytecode");
@@ -206,8 +209,9 @@ pipeline dx_pipeline_impl::dx_pipeline_create(const device& _device, const rende
 
 	pso_desc.SampleMask = UINT_MAX;
 	pso_desc.PrimitiveTopologyType = mars_topology_type_to_dx12(_setup.primitive_topology);
-	pso_desc.NumRenderTargets = 1;
-	pso_desc.RTVFormats[0] = dx_format_from_mars(rp_data->format);
+	pso_desc.NumRenderTargets = static_cast<UINT>((std::min)(rp_data->color_formats.size(), size_t{8}));
+	for (UINT i = 0; i < pso_desc.NumRenderTargets; ++i)
+		pso_desc.RTVFormats[i] = dx_format_from_mars(rp_data->color_formats[i]);
 	pso_desc.SampleDesc.Count = 1;
 	pso_desc.SampleDesc.Quality = 0;
 	pso_desc.NodeMask = 0;
@@ -245,7 +249,7 @@ void dx_pipeline_impl::dx_pipeline_bind(const pipeline& _pipeline, const command
 	D3D12_RECT scissor = {0, 0, (LONG)_params.size.x, (LONG)_params.size.y};
 	cb_data->cmd_list->RSSetViewports(1, &viewport);
 	cb_data->cmd_list->RSSetScissorRects(1, &scissor);
-	cb_data->cmd_list->IASetPrimitiveTopology(mars_topology_to_dx12(_setup.primitive_topology));
+	cb_data->cmd_list->IASetPrimitiveTopology(mars_topology_to_dx12(pipeline_data->primitive_topology));
 }
 
 void dx_pipeline_impl::dx_pipeline_destroy(pipeline& _pipeline, const device& _device) {
