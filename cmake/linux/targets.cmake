@@ -1,8 +1,8 @@
 include_guard(GLOBAL)
 
 function(mars_require_reflection_flags)
-    if(NOT DEFINED PARCEL_REFLECTION_FLAGS OR "${PARCEL_REFLECTION_FLAGS}" STREQUAL "")
-        message(FATAL_ERROR "PARCEL_REFLECTION_FLAGS must be defined before configuring Mars targets")
+    if(NOT DEFINED MARS_REFLECTION_FLAGS OR "${MARS_REFLECTION_FLAGS}" STREQUAL "")
+        message(FATAL_ERROR "MARS_REFLECTION_FLAGS must be defined before configuring Mars targets")
     endif()
 endfunction()
 
@@ -28,7 +28,7 @@ function(mars_linux_configure_target target)
     target_compile_options(
         "${target}"
         PRIVATE
-            ${PARCEL_REFLECTION_FLAGS}
+            ${MARS_REFLECTION_FLAGS}
     )
 
     target_link_libraries("${target}" PUBLIC SDL3::SDL3-shared DXC::dxcompiler)
