@@ -11,10 +11,11 @@ struct sync;
 
 enum class device_feature : uint32_t {
 	generated_commands,
+	ray_tracing,
 };
 
 struct device {
-	graphics_backend_functions* engine;
+	graphics_backend_functions* engine = nullptr;
 	meta::type_erased_ptr data;
 };
 
@@ -22,7 +23,8 @@ struct device_impl {
 	device (*device_create)(graphics_engine& _engine) = nullptr;
 	void (*device_submit)(const device& _device, const command_buffer& _command_buffer) = nullptr;
 	void (*device_flush)(const device& _device) = nullptr;
-	bool (*device_supports_feature)(const device& _device, device_feature feature) = nullptr;
+	bool (*device_supports_feature)(const device& _device, device_feature _feature) = nullptr;
 	void (*device_destroy)(device& _device) = nullptr;
+	void (*device_submit_compute)(const device& _device, const command_buffer& _command_buffer) = nullptr;
 };
 } // namespace mars

@@ -1,6 +1,7 @@
 target_sources(
     mars
     PRIVATE
+        vk_acceleration_structure.cpp
         vk_append_buffer.cpp
         vk_backend.cpp
         vk_buffer.cpp
@@ -13,6 +14,7 @@ target_sources(
         vk_framebuffer.cpp
         vk_indirect_executor.cpp
         vk_pipeline.cpp
+        vk_ray_tracing_pipeline.cpp
         vk_readback_buffer.cpp
         vk_render_pass.cpp
         vk_shader.cpp

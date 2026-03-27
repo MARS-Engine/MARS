@@ -14,5 +14,6 @@ struct vk_buffer_impl {
 	static void vk_buffer_destroy(buffer& _buffer, const device& _device);
 	static uint32_t vk_buffer_get_uav_index(const buffer& _buffer);
 	static uint32_t vk_buffer_get_srv_index(const buffer& _buffer);
+	static uint64_t vk_buffer_get_device_address(const buffer& _buffer);
 };
 } // namespace mars::graphics::vk

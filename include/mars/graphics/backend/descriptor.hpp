@@ -3,6 +3,7 @@
 #include <mars/graphics/backend/compute_pipeline.hpp>
 #include <mars/graphics/backend/device.hpp>
 #include <mars/graphics/backend/pipeline.hpp>
+#include <mars/graphics/backend/ray_tracing_pipeline.hpp>
 #include <mars/graphics/backend/texture.hpp>
 
 #include <array>
@@ -25,9 +26,9 @@ enum mars_descriptor_type {
 
 namespace mars {
 struct descriptor {
-	graphics_backend_functions* engine;
+	graphics_backend_functions* engine = nullptr;
 	meta::type_erased_ptr data;
-	size_t frames_in_flight;
+	size_t frames_in_flight = 0;
 };
 
 struct descriptor_create_params {
@@ -36,7 +37,7 @@ struct descriptor_create_params {
 };
 
 struct descriptor_set {
-	graphics_backend_functions* engine;
+	graphics_backend_functions* engine = nullptr;
 	meta::type_erased_ptr data;
 };
 
@@ -56,8 +57,10 @@ struct descriptor_impl {
 	descriptor (*descriptor_create)(const device& _device, const descriptor_create_params& _params, size_t _frames_in_flight) = nullptr;
 	descriptor_set (*descriptor_set_create)(const descriptor& _descriptor, const device& _device, const pipeline& _pipeline, const std::vector<descriptor_set_create_params>& _params) = nullptr;
 	descriptor_set (*descriptor_set_create_compute)(const descriptor& _descriptor, const device& _device, const compute_pipeline& _pipeline, const std::vector<descriptor_set_create_params>& _params) = nullptr;
+	descriptor_set (*descriptor_set_create_rt)(const descriptor& _descriptor, const device& _device, const ray_tracing_pipeline& _pipeline, const std::vector<descriptor_set_create_params>& _params) = nullptr;
 	void (*descriptor_set_bind)(const descriptor_set& _descriptor_set, const command_buffer& _command_buffer, const pipeline& _pipeline, size_t _current_frame) = nullptr;
 	void (*descriptor_set_bind_compute)(const descriptor_set& _descriptor_set, const command_buffer& _command_buffer, const compute_pipeline& _pipeline, size_t _current_frame) = nullptr;
+	void (*descriptor_set_bind_rt)(const descriptor_set& _descriptor_set, const command_buffer& _command_buffer, const ray_tracing_pipeline& _pipeline, size_t _current_frame) = nullptr;
 	void (*descriptor_set_update_cbv)(descriptor_set& _descriptor_set, size_t _binding, const buffer& _buffer) = nullptr;
 	void (*descriptor_destroy)(descriptor& _descriptor, const device& _device) = nullptr;
 };

@@ -1,7 +1,8 @@
+#include <mars/graphics/backend/vk/vk_device.hpp>
+
 #include "vk_internal.hpp"
 
 #include <mars/graphics/backend/vk/vk_backend.hpp>
-#include <mars/graphics/backend/vk/vk_device.hpp>
 #include <mars/graphics/functional/graphics_engine.hpp>
 
 #include <SDL3/SDL_vulkan.h>
@@ -33,7 +34,7 @@ struct queue_family_selection {
 	uint32_t transfer = std::numeric_limits<uint32_t>::max();
 };
 
-bool query_required_features(vk_device_data* data, VkPhysicalDevice physical_device, bool require_generated_commands, std::string& failure_reason);
+bool query_required_features(vk_device_data* _data, VkPhysicalDevice _physical_device, bool _require_generated_commands, std::string& _failure_reason);
 
 queue_family_selection select_queue_families(VkPhysicalDevice physical_device) {
 	uint32_t queue_family_count = 0u;
@@ -64,13 +65,13 @@ queue_family_selection select_queue_families(VkPhysicalDevice physical_device) {
 	return selected;
 }
 
-bool supports_required_extensions(VkPhysicalDevice physical_device, const std::vector<const char*>& required_extensions) {
+bool supports_required_extensions(VkPhysicalDevice _physical_device, const std::vector<const char*>& _required_extensions) {
 	uint32_t extension_count = 0u;
-	vk_expect<vkEnumerateDeviceExtensionProperties>(physical_device, nullptr, &extension_count, nullptr);
+	vk_expect<vkEnumerateDeviceExtensionProperties>(_physical_device, nullptr, &extension_count, nullptr);
 	std::vector<VkExtensionProperties> extensions(extension_count);
-	vk_expect<vkEnumerateDeviceExtensionProperties>(physical_device, nullptr, &extension_count, extensions.data());
+	vk_expect<vkEnumerateDeviceExtensionProperties>(_physical_device, nullptr, &extension_count, extensions.data());
 
-	for (const char* required : required_extensions) {
+	for (const char* required : _required_extensions) {
 		const bool found = std::any_of(extensions.begin(), extensions.end(), [required](const VkExtensionProperties& extension) {
 			return std::strcmp(extension.extensionName, required) == 0;
 		});
@@ -80,14 +81,14 @@ bool supports_required_extensions(VkPhysicalDevice physical_device, const std::v
 	return true;
 }
 
-std::vector<std::string> missing_required_extensions(VkPhysicalDevice physical_device, const std::vector<const char*>& required_extensions) {
+std::vector<std::string> missing_required_extensions(VkPhysicalDevice _physical_device, const std::vector<const char*>& _required_extensions) {
 	uint32_t extension_count = 0u;
-	vk_expect<vkEnumerateDeviceExtensionProperties>(physical_device, nullptr, &extension_count, nullptr);
+	vk_expect<vkEnumerateDeviceExtensionProperties>(_physical_device, nullptr, &extension_count, nullptr);
 	std::vector<VkExtensionProperties> extensions(extension_count);
-	vk_expect<vkEnumerateDeviceExtensionProperties>(physical_device, nullptr, &extension_count, extensions.data());
+	vk_expect<vkEnumerateDeviceExtensionProperties>(_physical_device, nullptr, &extension_count, extensions.data());
 
 	std::vector<std::string> missing;
-	for (const char* required : required_extensions) {
+	for (const char* required : _required_extensions) {
 		const bool found = std::any_of(extensions.begin(), extensions.end(), [required](const VkExtensionProperties& extension) {
 			return std::strcmp(extension.extensionName, required) == 0;
 		});
@@ -97,8 +98,8 @@ std::vector<std::string> missing_required_extensions(VkPhysicalDevice physical_d
 	return missing;
 }
 
-const char* physical_device_type_name(VkPhysicalDeviceType type) {
-	switch (type) {
+const char* physical_device_type_name(VkPhysicalDeviceType _type) {
+	switch (_type) {
 	case VK_PHYSICAL_DEVICE_TYPE_OTHER: return "other";
 	case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return "integrated";
 	case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: return "discrete";
@@ -108,32 +109,26 @@ const char* physical_device_type_name(VkPhysicalDeviceType type) {
 	}
 }
 
-std::string join_strings(const std::vector<std::string>& values, std::string_view separator = ", ") {
-	if (values.empty())
+std::string join_strings(const std::vector<std::string>& _values, std::string_view _separator = ", ") {
+	if (_values.empty())
 		return {};
 	std::string result;
-	for (size_t index = 0; index < values.size(); ++index) {
+	for (size_t index = 0; index < _values.size(); ++index) {
 		if (index != 0)
-			result += separator;
-		result += values[index];
+			result += _separator;
+		result += _values[index];
 	}
 	return result;
 }
 
-std::string describe_device_requirement_report(
-	vk_device_data* data,
-	VkInstance instance,
-	const std::vector<const char*>& required_extensions,
-	bool require_generated_commands,
-	VkPhysicalDevice selected_device
-) {
+std::string describe_device_requirement_report(vk_device_data* _data, VkInstance _instance, const std::vector<const char*>& _required_extensions, bool _require_generated_commands, VkPhysicalDevice _selected_device) {
 	uint32_t physical_device_count = 0u;
-	vk_expect<vkEnumeratePhysicalDevices>(instance, &physical_device_count, nullptr);
+	vk_expect<vkEnumeratePhysicalDevices>(_instance, &physical_device_count, nullptr);
 	if (physical_device_count == 0u)
 		return "No Vulkan physical devices were reported by the driver.";
 
 	std::vector<VkPhysicalDevice> devices(physical_device_count);
-	vk_expect<vkEnumeratePhysicalDevices>(instance, &physical_device_count, devices.data());
+	vk_expect<vkEnumeratePhysicalDevices>(_instance, &physical_device_count, devices.data());
 
 	std::ostringstream report;
 	report << "\nDetected Vulkan devices:";
@@ -142,10 +137,10 @@ std::string describe_device_requirement_report(
 		vkGetPhysicalDeviceProperties(candidate, &properties);
 
 		report << "\n- " << properties.deviceName << " [" << physical_device_type_name(properties.deviceType) << "]";
-		if (candidate == selected_device)
+		if (candidate == _selected_device)
 			report << " (selected)";
 
-		const std::vector<std::string> missing_extensions = missing_required_extensions(candidate, required_extensions);
+		const std::vector<std::string> missing_extensions = missing_required_extensions(candidate, _required_extensions);
 		if (missing_extensions.empty())
 			report << "\n    Extensions: OK";
 		else
@@ -163,7 +158,7 @@ std::string describe_device_requirement_report(
 		}
 
 		std::string feature_failure_reason;
-		if (query_required_features(data, candidate, require_generated_commands, feature_failure_reason))
+		if (query_required_features(_data, candidate, _require_generated_commands, feature_failure_reason))
 			report << "\n    Feature check: OK";
 		else
 			report << "\n    Missing feature/support: " << feature_failure_reason;
@@ -171,17 +166,17 @@ std::string describe_device_requirement_report(
 	return report.str();
 }
 
-bool validation_layer_available(const char* layer_name) {
+bool validation_layer_available(const char* _layer_name) {
 	uint32_t layer_count = 0u;
 	vk_expect<vkEnumerateInstanceLayerProperties>(&layer_count, nullptr);
 	std::vector<VkLayerProperties> layers(layer_count);
 	vk_expect<vkEnumerateInstanceLayerProperties>(&layer_count, layers.data());
-	return std::any_of(layers.begin(), layers.end(), [layer_name](const VkLayerProperties& layer) {
-		return std::strcmp(layer.layerName, layer_name) == 0;
+	return std::any_of(layers.begin(), layers.end(), [_layer_name](const VkLayerProperties& layer) {
+		return std::strcmp(layer.layerName, _layer_name) == 0;
 	});
 }
 
-bool query_required_features(vk_device_data* data, VkPhysicalDevice physical_device, bool require_generated_commands, std::string& failure_reason) {
+bool query_required_features(vk_device_data* _data, VkPhysicalDevice _physical_device, bool _require_generated_commands, std::string& _failure_reason) {
 	VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT dynamic_rendering_unused_attachments = {};
 	dynamic_rendering_unused_attachments.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT;
 
@@ -199,13 +194,13 @@ bool query_required_features(vk_device_data* data, VkPhysicalDevice physical_dev
 	VkPhysicalDeviceMaintenance5Features maintenance5 = {};
 	maintenance5.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES;
 
-	if (require_generated_commands) {
-	    generated_commands.pNext = &dynamic_rendering_local_read;
-	    maintenance5.pNext = &generated_commands;
-	} 
+	if (_require_generated_commands) {
+		generated_commands.pNext = &dynamic_rendering_local_read;
+		maintenance5.pNext = &generated_commands;
+	}
 	else {
-	    maintenance5.pNext = &dynamic_rendering_local_read;
-	    data->device_generated_commands_properties = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_EXT};
+		maintenance5.pNext = &dynamic_rendering_local_read;
+		_data->device_generated_commands_properties = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_EXT};
 	}
 
 	VkPhysicalDeviceVulkan12Features features_12 = {};
@@ -223,35 +218,35 @@ bool query_required_features(vk_device_data* data, VkPhysicalDevice physical_dev
 	VkPhysicalDeviceFeatures2 features_2 = {};
 	features_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
 	features_2.pNext = &features_13;
-	vkGetPhysicalDeviceFeatures2(physical_device, &features_2);
+	vkGetPhysicalDeviceFeatures2(_physical_device, &features_2);
 
 	VkPhysicalDeviceProperties2 properties_2 = {};
 	properties_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-	properties_2.pNext = require_generated_commands ? &data->device_generated_commands_properties : nullptr;
-	vkGetPhysicalDeviceProperties2(physical_device, &properties_2);
+	properties_2.pNext = _require_generated_commands ? &_data->device_generated_commands_properties : nullptr;
+	vkGetPhysicalDeviceProperties2(_physical_device, &properties_2);
 
 	if (!features_12.timelineSemaphore) {
-		failure_reason = "timelineSemaphore is required";
+		_failure_reason = "timelineSemaphore is required";
 		return false;
 	}
 	if (!features_12.drawIndirectCount) {
-		failure_reason = "drawIndirectCount is required";
+		_failure_reason = "drawIndirectCount is required";
 		return false;
 	}
 	if (!features_11.shaderDrawParameters) {
-		failure_reason = "shaderDrawParameters is required";
+		_failure_reason = "shaderDrawParameters is required";
 		return false;
 	}
 	if (!features_12.shaderBufferInt64Atomics) {
-		failure_reason = "shaderBufferInt64Atomics is required";
+		_failure_reason = "shaderBufferInt64Atomics is required";
 		return false;
 	}
 	if (!features_12.descriptorIndexing) {
-		failure_reason = "descriptorIndexing is required";
+		_failure_reason = "descriptorIndexing is required";
 		return false;
 	}
 	if (!features_12.bufferDeviceAddress) {
-		failure_reason = "bufferDeviceAddress is required";
+		_failure_reason = "bufferDeviceAddress is required";
 		return false;
 	}
 	if (!features_12.runtimeDescriptorArray ||
@@ -260,83 +255,83 @@ bool query_required_features(vk_device_data* data, VkPhysicalDevice physical_dev
 		!features_12.shaderStorageImageArrayNonUniformIndexing ||
 		!features_12.shaderStorageBufferArrayNonUniformIndexing ||
 		!features_12.shaderUniformBufferArrayNonUniformIndexing) {
-		failure_reason = "descriptor indexing features are incomplete";
+		_failure_reason = "descriptor indexing features are incomplete";
 		return false;
 	}
 	if (!features_12.scalarBlockLayout) {
-		failure_reason = "scalarBlockLayout is required";
+		_failure_reason = "scalarBlockLayout is required";
 		return false;
 	}
 	if (!features_13.dynamicRendering) {
-		failure_reason = "dynamicRendering is required";
+		_failure_reason = "dynamicRendering is required";
 		return false;
 	}
 	if (!dynamic_rendering_unused_attachments.dynamicRenderingUnusedAttachments) {
-		failure_reason = "dynamicRenderingUnusedAttachments is required";
+		_failure_reason = "dynamicRenderingUnusedAttachments is required";
 		return false;
 	}
 	if (!features_13.synchronization2) {
-		failure_reason = "synchronization2 is required";
+		_failure_reason = "synchronization2 is required";
 		return false;
 	}
 	if (!features_13.shaderDemoteToHelperInvocation) {
-		failure_reason = "shaderDemoteToHelperInvocation is required";
+		_failure_reason = "shaderDemoteToHelperInvocation is required";
 		return false;
 	}
 	if (!maintenance5.maintenance5) {
-		failure_reason = "maintenance5 is required";
+		_failure_reason = "maintenance5 is required";
 		return false;
 	}
-	if (require_generated_commands && !generated_commands.deviceGeneratedCommands) {
-		failure_reason = "deviceGeneratedCommands is required";
+	if (_require_generated_commands && !generated_commands.deviceGeneratedCommands) {
+		_failure_reason = "deviceGeneratedCommands is required";
 		return false;
 	}
 	if (!mutable_descriptor.mutableDescriptorType) {
-		failure_reason = "mutableDescriptorType is required";
+		_failure_reason = "mutableDescriptorType is required";
 		return false;
 	}
 	if (!features_2.features.geometryShader) {
-		failure_reason = "geometryShader is required";
+		_failure_reason = "geometryShader is required";
 		return false;
 	}
 	if (!features_2.features.multiDrawIndirect) {
-		failure_reason = "multiDrawIndirect is required";
+		_failure_reason = "multiDrawIndirect is required";
 		return false;
 	}
 	if (!features_2.features.drawIndirectFirstInstance) {
-		failure_reason = "drawIndirectFirstInstance is required";
+		_failure_reason = "drawIndirectFirstInstance is required";
 		return false;
 	}
 	if (!features_2.features.fragmentStoresAndAtomics) {
-		failure_reason = "fragmentStoresAndAtomics is required";
+		_failure_reason = "fragmentStoresAndAtomics is required";
 		return false;
 	}
 
-	if (require_generated_commands && data->device_generated_commands_properties.maxIndirectSequenceCount == 0u) {
-		failure_reason = "device generated commands reports maxIndirectSequenceCount == 0";
+	if (_require_generated_commands && _data->device_generated_commands_properties.maxIndirectSequenceCount == 0u) {
+		_failure_reason = "device generated commands reports maxIndirectSequenceCount == 0";
 		return false;
 	}
 
 	if (!dynamic_rendering_local_read.dynamicRenderingLocalRead) {
-    	failure_reason = "dynamicRenderingLocalRead is required";
-    	return false;
+		_failure_reason = "dynamicRenderingLocalRead is required";
+		return false;
 	}
 
 	return true;
 }
 
-VkPhysicalDevice select_physical_device(VkInstance instance, const std::vector<const char*>& required_extensions) {
+VkPhysicalDevice select_physical_device(VkInstance _instance, const std::vector<const char*>& _required_extensions) {
 	uint32_t physical_device_count = 0u;
-	vk_expect<vkEnumeratePhysicalDevices>(instance, &physical_device_count, nullptr);
+	vk_expect<vkEnumeratePhysicalDevices>(_instance, &physical_device_count, nullptr);
 	if (physical_device_count == 0u)
 		return VK_NULL_HANDLE;
 	std::vector<VkPhysicalDevice> devices(physical_device_count);
-	vk_expect<vkEnumeratePhysicalDevices>(instance, &physical_device_count, devices.data());
+	vk_expect<vkEnumeratePhysicalDevices>(_instance, &physical_device_count, devices.data());
 
 	VkPhysicalDevice best_device = VK_NULL_HANDLE;
 	VkPhysicalDeviceType best_type = VK_PHYSICAL_DEVICE_TYPE_OTHER;
 	for (VkPhysicalDevice candidate : devices) {
-		if (!supports_required_extensions(candidate, required_extensions))
+		if (!supports_required_extensions(candidate, _required_extensions))
 			continue;
 
 		const auto queues = select_queue_families(candidate);
@@ -353,9 +348,9 @@ VkPhysicalDevice select_physical_device(VkInstance instance, const std::vector<c
 	return best_device;
 }
 
-VkDebugUtilsMessengerEXT create_debug_messenger(VkInstance instance) {
+VkDebugUtilsMessengerEXT create_debug_messenger(VkInstance _instance) {
 	auto create_fn = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
-		vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT")
+		vkGetInstanceProcAddr(_instance, "vkCreateDebugUtilsMessengerEXT")
 	);
 	if (!create_fn)
 		return VK_NULL_HANDLE;
@@ -372,53 +367,53 @@ VkDebugUtilsMessengerEXT create_debug_messenger(VkInstance instance) {
 	create_info.pfnUserCallback = &debug_messenger_callback;
 
 	VkDebugUtilsMessengerEXT messenger = VK_NULL_HANDLE;
-	vk_expect(create_fn, instance, &create_info, nullptr, &messenger);
+	vk_expect(create_fn, _instance, &create_info, nullptr, &messenger);
 	return messenger;
 }
 
-VkDescriptorSetLayout create_empty_set_layout(VkDevice device) {
+VkDescriptorSetLayout create_empty_set_layout(VkDevice _device) {
 	VkDescriptorSetLayoutCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	VkDescriptorSetLayout layout = VK_NULL_HANDLE;
-	vk_expect<vkCreateDescriptorSetLayout>(device, &create_info, nullptr, &layout);
+	vk_expect<vkCreateDescriptorSetLayout>(_device, &create_info, nullptr, &layout);
 	return layout;
 }
 
-VkDescriptorPool create_empty_descriptor_pool(VkDevice device) {
+VkDescriptorPool create_empty_descriptor_pool(VkDevice _device) {
 	VkDescriptorPoolCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	create_info.maxSets = 1u;
 	VkDescriptorPool pool = VK_NULL_HANDLE;
-	vk_expect<vkCreateDescriptorPool>(device, &create_info, nullptr, &pool);
+	vk_expect<vkCreateDescriptorPool>(_device, &create_info, nullptr, &pool);
 	return pool;
 }
 
-VkDescriptorSet allocate_descriptor_set(VkDevice device, VkDescriptorPool pool, VkDescriptorSetLayout layout, const uint32_t* variable_descriptor_count = nullptr) {
+VkDescriptorSet allocate_descriptor_set(VkDevice _device, VkDescriptorPool _pool, VkDescriptorSetLayout _layout, const uint32_t* _variable_descriptor_count = nullptr) {
 	VkDescriptorSetVariableDescriptorCountAllocateInfo variable_info = {};
-	if (variable_descriptor_count) {
+	if (_variable_descriptor_count) {
 		variable_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO;
 		variable_info.descriptorSetCount = 1u;
-		variable_info.pDescriptorCounts = variable_descriptor_count;
+		variable_info.pDescriptorCounts = _variable_descriptor_count;
 	}
 
 	VkDescriptorSetAllocateInfo allocate_info = {};
 	allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocate_info.pNext = variable_descriptor_count ? &variable_info : nullptr;
-	allocate_info.descriptorPool = pool;
+	allocate_info.pNext = _variable_descriptor_count ? &variable_info : nullptr;
+	allocate_info.descriptorPool = _pool;
 	allocate_info.descriptorSetCount = 1u;
-	allocate_info.pSetLayouts = &layout;
+	allocate_info.pSetLayouts = &_layout;
 
 	VkDescriptorSet set = VK_NULL_HANDLE;
-	vk_expect<vkAllocateDescriptorSets>(device, &allocate_info, &set);
+	vk_expect<vkAllocateDescriptorSets>(_device, &allocate_info, &set);
 	return set;
 }
 
-VkSampler create_sampler(VkDevice device, VkFilter filter) {
+VkSampler create_sampler(VkDevice _device, VkFilter _filter) {
 	VkSamplerCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	create_info.magFilter = filter;
-	create_info.minFilter = filter;
-	create_info.mipmapMode = filter == VK_FILTER_NEAREST ? VK_SAMPLER_MIPMAP_MODE_NEAREST : VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	create_info.magFilter = _filter;
+	create_info.minFilter = _filter;
+	create_info.mipmapMode = _filter == VK_FILTER_NEAREST ? VK_SAMPLER_MIPMAP_MODE_NEAREST : VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	create_info.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 	create_info.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 	create_info.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
@@ -426,15 +421,16 @@ VkSampler create_sampler(VkDevice device, VkFilter filter) {
 	create_info.maxLod = VK_LOD_CLAMP_NONE;
 	create_info.maxAnisotropy = 1.0f;
 	VkSampler sampler = VK_NULL_HANDLE;
-	vk_expect<vkCreateSampler>(device, &create_info, nullptr, &sampler);
+	vk_expect<vkCreateSampler>(_device, &create_info, nullptr, &sampler);
 	return sampler;
 }
 
-void create_descriptor_infrastructure(vk_device_data* data) {
-	const std::array<VkDescriptorType, 3> mutable_types = {
+void create_descriptor_infrastructure(vk_device_data* _data) {
+	const std::array<VkDescriptorType, 4> mutable_types = {
 		VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 		VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
 		VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+		VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
 	};
 	VkMutableDescriptorTypeListEXT mutable_type_list = {};
 	mutable_type_list.descriptorTypeCount = static_cast<uint32_t>(mutable_types.size());
@@ -463,7 +459,7 @@ void create_descriptor_infrastructure(vk_device_data* data) {
 	binding_flags_info.pNext = &mutable_info;
 	set_layout_info.bindingCount = 1u;
 	set_layout_info.pBindings = &bindless_binding;
-	vk_expect<vkCreateDescriptorSetLayout>(data->device, &set_layout_info, nullptr, &data->bindless_set_layout);
+	vk_expect<vkCreateDescriptorSetLayout>(_data->device, &set_layout_info, nullptr, &_data->bindless_set_layout);
 
 	std::array<VkDescriptorPoolSize, 1> pool_sizes = {{
 		{VK_DESCRIPTOR_TYPE_MUTABLE_EXT, vk_device_data::BINDLESS_TOTAL},
@@ -476,13 +472,13 @@ void create_descriptor_infrastructure(vk_device_data* data) {
 	pool_info.maxSets = 1u;
 	pool_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
 	pool_info.pPoolSizes = pool_sizes.data();
-	vk_expect<vkCreateDescriptorPool>(data->device, &pool_info, nullptr, &data->bindless_pool);
+	vk_expect<vkCreateDescriptorPool>(_data->device, &pool_info, nullptr, &_data->bindless_pool);
 
-	data->bindless_set = allocate_descriptor_set(data->device, data->bindless_pool, data->bindless_set_layout);
+	_data->bindless_set = allocate_descriptor_set(_data->device, _data->bindless_pool, _data->bindless_set_layout);
 
-	data->empty_set_layout = create_empty_set_layout(data->device);
-	data->empty_descriptor_pool = create_empty_descriptor_pool(data->device);
-	data->empty_set = allocate_descriptor_set(data->device, data->empty_descriptor_pool, data->empty_set_layout);
+	_data->empty_set_layout = create_empty_set_layout(_data->device);
+	_data->empty_descriptor_pool = create_empty_descriptor_pool(_data->device);
+	_data->empty_set = allocate_descriptor_set(_data->device, _data->empty_descriptor_pool, _data->empty_set_layout);
 
 	VkDescriptorPoolSize sampler_pool_size = {VK_DESCRIPTOR_TYPE_SAMPLER, 512u};
 	VkDescriptorPoolCreateInfo sampler_pool_info = {};
@@ -491,10 +487,10 @@ void create_descriptor_infrastructure(vk_device_data* data) {
 	sampler_pool_info.maxSets = 512u;
 	sampler_pool_info.poolSizeCount = 1u;
 	sampler_pool_info.pPoolSizes = &sampler_pool_size;
-	vk_expect<vkCreateDescriptorPool>(data->device, &sampler_pool_info, nullptr, &data->sampler_descriptor_pool);
+	vk_expect<vkCreateDescriptorPool>(_data->device, &sampler_pool_info, nullptr, &_data->sampler_descriptor_pool);
 
-	data->linear_clamp_sampler = create_sampler(data->device, VK_FILTER_LINEAR);
-	data->point_clamp_sampler = create_sampler(data->device, VK_FILTER_NEAREST);
+	_data->linear_clamp_sampler = create_sampler(_data->device, VK_FILTER_LINEAR);
+	_data->point_clamp_sampler = create_sampler(_data->device, VK_FILTER_NEAREST);
 }
 
 } // namespace
@@ -570,6 +566,21 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 		describe_device_requirement_report(data, data->instance, enable_generated_commands ? device_extensions : base_device_extensions, enable_generated_commands, data->physical_device)
 	);
 
+	const std::vector<const char*> rt_required_extensions = {
+		VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+		VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+		VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+		VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME,
+	};
+	
+	const bool enable_ray_tracing = supports_required_extensions(data->physical_device, rt_required_extensions);
+	std::vector<const char*> active_extensions = enable_generated_commands ? device_extensions : base_device_extensions;
+	
+	if (enable_ray_tracing) {
+		for (const char* ext : rt_required_extensions)
+			active_extensions.push_back(ext);
+	}
+
 	vkGetPhysicalDeviceProperties(data->physical_device, &data->physical_device_properties);
 	vkGetPhysicalDeviceMemoryProperties(data->physical_device, &data->memory_properties);
 
@@ -619,6 +630,18 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 	} else
 		maintenance5_features.pNext = &dynamic_rendering_local_read_features;
 
+	VkPhysicalDeviceRayTracingPipelineFeaturesKHR rt_pipeline_features = {};
+	rt_pipeline_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
+	VkPhysicalDeviceAccelerationStructureFeaturesKHR rt_as_features = {};
+	rt_as_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+
+	if (enable_ray_tracing) {
+		rt_pipeline_features.rayTracingPipeline = VK_TRUE;
+		rt_as_features.accelerationStructure = VK_TRUE;
+		rt_as_features.pNext = &rt_pipeline_features;
+		dynamic_rendering_unused_attachments.pNext = &rt_as_features;
+	}
+
 	VkPhysicalDeviceVulkan12Features features_12 = {};
 	features_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
 	features_12.timelineSemaphore = VK_TRUE;
@@ -660,8 +683,8 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 	device_info.pNext = &features_13;
 	device_info.queueCreateInfoCount = static_cast<uint32_t>(queue_infos.size());
 	device_info.pQueueCreateInfos = queue_infos.data();
-	device_info.enabledExtensionCount = static_cast<uint32_t>((enable_generated_commands ? device_extensions : base_device_extensions).size());
-	device_info.ppEnabledExtensionNames = (enable_generated_commands ? device_extensions : base_device_extensions).data();
+	device_info.enabledExtensionCount = static_cast<uint32_t>(active_extensions.size());
+	device_info.ppEnabledExtensionNames = active_extensions.data();
 	device_info.pEnabledFeatures = &device_features;
 
 	if (validation_layer_available(validation_layer)) {
@@ -684,6 +707,7 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 	data->supports_timeline_semaphore = true;
 	data->supports_maintenance5 = true;
 	data->supports_device_generated_commands = enable_generated_commands;
+	data->supports_ray_tracing = enable_ray_tracing;
 
 	data->cmd_begin_debug_label = reinterpret_cast<PFN_vkCmdBeginDebugUtilsLabelEXT>(vkGetDeviceProcAddr(data->device, "vkCmdBeginDebugUtilsLabelEXT"));
 	data->cmd_end_debug_label = reinterpret_cast<PFN_vkCmdEndDebugUtilsLabelEXT>(vkGetDeviceProcAddr(data->device, "vkCmdEndDebugUtilsLabelEXT"));
@@ -705,6 +729,29 @@ device vk_device_impl::vk_device_create(graphics_engine& _engine) {
 		mars::logger::assert_(data->cmd_execute_generated_commands != nullptr, vk_log_channel(), "Failed to load vkCmdExecuteGeneratedCommandsEXT");
 		mars::logger::assert_(data->create_indirect_commands_layout != nullptr, vk_log_channel(), "Failed to load vkCreateIndirectCommandsLayoutEXT");
 		mars::logger::assert_(data->destroy_indirect_commands_layout != nullptr, vk_log_channel(), "Failed to load vkDestroyIndirectCommandsLayoutEXT");
+	}
+
+	if (enable_ray_tracing) {
+		VkPhysicalDeviceProperties2 rt_props2 = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
+		rt_props2.pNext = &data->rt_pipeline_properties;
+		vkGetPhysicalDeviceProperties2(data->physical_device, &rt_props2);
+
+		data->create_acceleration_structure = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(
+			vkGetDeviceProcAddr(data->device, "vkCreateAccelerationStructureKHR"));
+		data->destroy_acceleration_structure = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(
+			vkGetDeviceProcAddr(data->device, "vkDestroyAccelerationStructureKHR"));
+		data->cmd_build_acceleration_structures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(
+			vkGetDeviceProcAddr(data->device, "vkCmdBuildAccelerationStructuresKHR"));
+		data->get_acceleration_structure_build_sizes = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(
+			vkGetDeviceProcAddr(data->device, "vkGetAccelerationStructureBuildSizesKHR"));
+		data->get_acceleration_structure_device_address = reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(
+			vkGetDeviceProcAddr(data->device, "vkGetAccelerationStructureDeviceAddressKHR"));
+		data->cmd_trace_rays = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(
+			vkGetDeviceProcAddr(data->device, "vkCmdTraceRaysKHR"));
+		data->create_ray_tracing_pipelines = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(
+			vkGetDeviceProcAddr(data->device, "vkCreateRayTracingPipelinesKHR"));
+		data->get_ray_tracing_shader_group_handles = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(
+			vkGetDeviceProcAddr(data->device, "vkGetRayTracingShaderGroupHandlesKHR"));
 	}
 
 	create_descriptor_infrastructure(data);
@@ -738,6 +785,20 @@ void vk_device_impl::vk_device_submit(const device& _device, const command_buffe
 	command_buffer_data->submitted = submit_result == VK_SUCCESS || submit_result == VK_SUBOPTIMAL_KHR;
 }
 
+void vk_device_impl::vk_device_submit_compute(const device& _device, const command_buffer& _command_buffer) {
+	auto* device_data = _device.data.expect<vk_device_data>();
+	auto* command_buffer_data = _command_buffer.data.expect<vk_command_buffer_data>();
+
+	VkSubmitInfo submit_info = {};
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.commandBufferCount = 1u;
+	submit_info.pCommandBuffers = &command_buffer_data->command_buffer;
+
+	const VkFence submit_fence = command_buffer_data->submit_fence;
+	const VkResult submit_result = vk_expect<vkQueueSubmit>(device_data->compute_queue.queue, 1u, &submit_info, submit_fence);
+	command_buffer_data->submitted = submit_result == VK_SUCCESS || submit_result == VK_SUBOPTIMAL_KHR;
+}
+
 void vk_device_impl::vk_device_flush(const device& _device) {
 	auto* device_data = _device.data.expect<vk_device_data>();
 	vk_expect<vkQueueWaitIdle>(device_data->direct_queue.queue);
@@ -749,7 +810,7 @@ void vk_device_impl::vk_device_flush(const device& _device) {
 		vk_expect<vkQueueWaitIdle>(device_data->copy_queue.queue);
 }
 
-bool vk_device_impl::vk_device_supports_feature(const device& _device, device_feature feature) {
+bool vk_device_impl::vk_device_supports_feature(const device& _device, device_feature _feature) {
 	if (_device.engine != vulkan_t::get_functions())
 		return false;
 
@@ -757,9 +818,11 @@ bool vk_device_impl::vk_device_supports_feature(const device& _device, device_fe
 	if (data == nullptr)
 		return false;
 
-	switch (feature) {
+	switch (_feature) {
 	case device_feature::generated_commands:
 		return data->supports_device_generated_commands;
+	case device_feature::ray_tracing:
+		return data->supports_ray_tracing;
 	default:
 		return false;
 	}

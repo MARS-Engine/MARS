@@ -1,6 +1,6 @@
-#include "vk_internal.hpp"
-
 #include <mars/graphics/backend/vk/vk_pipeline.hpp>
+
+#include "vk_internal.hpp"
 
 #include <algorithm>
 
@@ -50,7 +50,11 @@ VkDescriptorSetLayout create_explicit_layout(vk_device_data* _device_data, const
 		binding.stageFlags = vk_shader_stage_flags(descriptor.stage);
 
 		bindings.push_back(binding);
-		_out_bindings.push_back({binding.binding, binding.descriptorType});
+		_out_bindings.push_back({
+			.binding = binding.binding,
+			.register_space = static_cast<uint32_t>(descriptor.register_space),
+			.type = binding.descriptorType,
+		});
 	}
 
 	if (bindings.empty())
@@ -113,53 +117,53 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 	auto* device_data = _device.data.expect<vk_device_data>();
 	auto* shader_data = _setup.pipeline_shader.data.expect<vk_shader_data>();
 	auto* render_pass_data = _render_pass.data.expect<vk_render_pass_data>();
-	auto* data = new vk_pipeline_data();
+	auto* pipeline_data = new vk_pipeline_data();
 
 	if (shader_data->vertex.module == VK_NULL_HANDLE || shader_data->fragment.module == VK_NULL_HANDLE) {
 		mars::logger::error(vk_log_channel(), "Graphics pipeline creation failed: missing shader modules");
 		pipeline result;
 		result.engine = _device.engine;
-		result.data.store(data);
+		result.data.store(pipeline_data);
 		return result;
 	}
 
-	data->debug_name = shader_data->vertex.path + "|" + shader_data->fragment.path;
+	pipeline_data->debug_name = shader_data->vertex.path + "|" + shader_data->fragment.path;
 
-	data->explicit_set_layout = create_explicit_layout(device_data, _setup.descriptors, data->explicit_bindings);
+	pipeline_data->explicit_set_layout = create_explicit_layout(device_data, _setup.descriptors, pipeline_data->explicit_bindings);
 
 	if (_setup.push_constant_count > 0u) {
-		data->has_push_constants = true;
-		data->push_constant_count = _setup.push_constant_count;
-		data->push_constant_stage_flags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		pipeline_data->has_push_constants = true;
+		pipeline_data->push_constant_count = _setup.push_constant_count;
+		pipeline_data->push_constant_stage_flags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 		const uint32_t push_constant_bytes = static_cast<uint32_t>(_setup.push_constant_count * sizeof(uint32_t));
 		mars::logger::assert_(push_constant_bytes <= device_data->physical_device_properties.limits.maxPushConstantsSize, vk_log_channel(), "Graphics push constant payload exceeds device limit ({} > {})", push_constant_bytes, device_data->physical_device_properties.limits.maxPushConstantsSize);
 	}
 
-	create_sampler_resources(device_data, data, combine_sampler_kind(shader_data->vertex.sampler_kind, shader_data->fragment.sampler_kind));
+	create_sampler_resources(device_data, pipeline_data, combine_sampler_kind(shader_data->vertex.sampler_kind, shader_data->fragment.sampler_kind));
 
 	VkDescriptorSetLayout set_layouts[] = {
 		device_data->bindless_set_layout,
-		data->explicit_set_layout != VK_NULL_HANDLE ? data->explicit_set_layout : device_data->empty_set_layout,
+		pipeline_data->explicit_set_layout != VK_NULL_HANDLE ? pipeline_data->explicit_set_layout : device_data->empty_set_layout,
 		device_data->empty_set_layout,
-		data->sampler_set_layout != VK_NULL_HANDLE ? data->sampler_set_layout : device_data->empty_set_layout,
+		pipeline_data->sampler_set_layout != VK_NULL_HANDLE ? pipeline_data->sampler_set_layout : device_data->empty_set_layout,
 	};
 
 	VkPushConstantRange push_constant_range = {};
-	push_constant_range.stageFlags = data->push_constant_stage_flags;
+	push_constant_range.stageFlags = pipeline_data->push_constant_stage_flags;
 	push_constant_range.offset = 0u;
-	push_constant_range.size = static_cast<uint32_t>(data->push_constant_count * sizeof(uint32_t));
+	push_constant_range.size = static_cast<uint32_t>(pipeline_data->push_constant_count * sizeof(uint32_t));
 
 	VkPipelineLayoutCreateInfo layout_info = {};
 	layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	layout_info.setLayoutCount = 4u;
 	layout_info.pSetLayouts = set_layouts;
 
-	if (data->has_push_constants) {
+	if (pipeline_data->has_push_constants) {
 		layout_info.pushConstantRangeCount = 1u;
 		layout_info.pPushConstantRanges = &push_constant_range;
 	}
 
-	vk_expect<vkCreatePipelineLayout>(device_data->device, &layout_info, nullptr, &data->layout);
+	vk_expect<vkCreatePipelineLayout>(device_data->device, &layout_info, nullptr, &pipeline_data->layout);
 
 	std::vector<VkVertexInputBindingDescription> binding_descriptions;
 	binding_descriptions.reserve(_setup.bindings.size());
@@ -278,17 +282,17 @@ pipeline vk_pipeline_impl::vk_pipeline_create(const device& _device, const rende
 	pipeline_info.pDepthStencilState = &depth_stencil;
 	pipeline_info.pColorBlendState = &color_blend_state;
 	pipeline_info.pDynamicState = &dynamic_state;
-	pipeline_info.layout = data->layout;
-	vk_expect<vkCreateGraphicsPipelines>(device_data->device, VK_NULL_HANDLE, 1u, &pipeline_info, nullptr, &data->pipeline);
+	pipeline_info.layout = pipeline_data->layout;
+	vk_expect<vkCreateGraphicsPipelines>(device_data->device, VK_NULL_HANDLE, 1u, &pipeline_info, nullptr, &pipeline_data->pipeline);
 
-	if (data->pipeline != VK_NULL_HANDLE) {
+	if (pipeline_data->pipeline != VK_NULL_HANDLE) {
 		const std::string pipeline_name = "gfx|" + shader_data->vertex.path + "|" + shader_data->fragment.path + "|depth=" + std::to_string(static_cast<int>(depth_format));
-		set_object_name(device_data, reinterpret_cast<uint64_t>(data->pipeline), VK_OBJECT_TYPE_PIPELINE, pipeline_name);
+		set_object_name(device_data, reinterpret_cast<uint64_t>(pipeline_data->pipeline), VK_OBJECT_TYPE_PIPELINE, pipeline_name);
 	}
 
 	pipeline result;
 	result.engine = _device.engine;
-	result.data.store(data);
+	result.data.store(pipeline_data);
 	return result;
 }
 
@@ -319,20 +323,20 @@ void vk_pipeline_impl::vk_pipeline_bind(const pipeline& _pipeline, const command
 
 void vk_pipeline_impl::vk_pipeline_destroy(pipeline& _pipeline, const device& _device) {
 	auto* device_data = _device.data.expect<vk_device_data>();
-	auto* data = _pipeline.data.expect<vk_pipeline_data>();
+	auto* pipeline_data = _pipeline.data.expect<vk_pipeline_data>();
 
-	if (data->sampler_set != VK_NULL_HANDLE)
-		vk_expect<vkFreeDescriptorSets>(device_data->device, device_data->sampler_descriptor_pool, 1u, &data->sampler_set);
-	if (data->sampler_set_layout != VK_NULL_HANDLE)
-		vkDestroyDescriptorSetLayout(device_data->device, data->sampler_set_layout, nullptr);
-	if (data->explicit_set_layout != VK_NULL_HANDLE)
-		vkDestroyDescriptorSetLayout(device_data->device, data->explicit_set_layout, nullptr);
-	if (data->pipeline != VK_NULL_HANDLE)
-		vkDestroyPipeline(device_data->device, data->pipeline, nullptr);
-	if (data->layout != VK_NULL_HANDLE)
-		vkDestroyPipelineLayout(device_data->device, data->layout, nullptr);
+	if (pipeline_data->sampler_set != VK_NULL_HANDLE)
+		vk_expect<vkFreeDescriptorSets>(device_data->device, device_data->sampler_descriptor_pool, 1u, &pipeline_data->sampler_set);
+	if (pipeline_data->sampler_set_layout != VK_NULL_HANDLE)
+		vkDestroyDescriptorSetLayout(device_data->device, pipeline_data->sampler_set_layout, nullptr);
+	if (pipeline_data->explicit_set_layout != VK_NULL_HANDLE)
+		vkDestroyDescriptorSetLayout(device_data->device, pipeline_data->explicit_set_layout, nullptr);
+	if (pipeline_data->pipeline != VK_NULL_HANDLE)
+		vkDestroyPipeline(device_data->device, pipeline_data->pipeline, nullptr);
+	if (pipeline_data->layout != VK_NULL_HANDLE)
+		vkDestroyPipelineLayout(device_data->device, pipeline_data->layout, nullptr);
 
-	delete data;
+	delete pipeline_data;
 	_pipeline = {};
 }
 } // namespace mars::graphics::vk

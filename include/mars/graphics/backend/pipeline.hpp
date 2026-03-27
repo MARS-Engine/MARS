@@ -56,7 +56,7 @@ struct render_pass;
 struct command_buffer;
 
 struct pipeline {
-	graphics_backend_functions* engine;
+	graphics_backend_functions* engine = nullptr;
 	meta::type_erased_ptr data;
 };
 
@@ -83,6 +83,7 @@ struct pipeline_descriptior_layout {
 	mars_pipeline_stage stage;
 	mars_pipeline_descriptor_type descriptor_type;
 	size_t binding;
+	size_t register_space = 0;
 };
 
 struct pipeline_setup {

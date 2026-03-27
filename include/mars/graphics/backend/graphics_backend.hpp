@@ -1,5 +1,6 @@
 #pragma once
 
+#include "acceleration_structure.hpp"
 #include "append_buffer.hpp"
 #include "buffer.hpp"
 #include "command_pool.hpp"
@@ -11,6 +12,7 @@
 #include "framebuffer.hpp"
 #include "indirect_executor.hpp"
 #include "pipeline.hpp"
+#include "ray_tracing_pipeline.hpp"
 #include "readback_buffer.hpp"
 #include "render_pass.hpp"
 #include "shader.hpp"
@@ -47,6 +49,8 @@ struct graphics_backend_functions {
 	readback_buffer_impl readback_buffer;
 	indirect_executor_impl indirect_executor;
 	append_buffer_impl append_buffer;
+	acceleration_structure_impl acceleration_structure;
+	ray_tracing_pipeline_impl ray_tracing_pipeline;
 
 	template <typename T>
 	T& get_impl() {
@@ -58,4 +62,4 @@ struct graphics_backend_functions {
 		std::unreachable();
 	}
 };
-}; // namespace mars
+} // namespace mars

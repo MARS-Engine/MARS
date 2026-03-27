@@ -5,32 +5,40 @@
 
 namespace mars::graphics {
 
-inline mars::descriptor descriptor_create(const mars::device& device, const mars::descriptor_create_params& params, size_t frames_in_flight) {
-	return device.engine->get_impl<descriptor_impl>().descriptor_create(device, params, frames_in_flight);
+inline mars::descriptor descriptor_create(const mars::device& _device, const mars::descriptor_create_params& _params, size_t _frames_in_flight) {
+	return _device.engine->get_impl<descriptor_impl>().descriptor_create(_device, _params, _frames_in_flight);
 }
 
-inline mars::descriptor_set descriptor_set_create(const mars::descriptor& descriptor, const mars::device& device, const mars::pipeline& pipeline, const std::vector<mars::descriptor_set_create_params>& params) {
-	return descriptor.engine->get_impl<descriptor_impl>().descriptor_set_create(descriptor, device, pipeline, params);
+inline mars::descriptor_set descriptor_set_create(const mars::descriptor& _descriptor, const mars::device& _device, const mars::pipeline& _pipeline, const std::vector<mars::descriptor_set_create_params>& _params) {
+	return _descriptor.engine->get_impl<descriptor_impl>().descriptor_set_create(_descriptor, _device, _pipeline, _params);
 }
 
-inline mars::descriptor_set descriptor_set_create_compute(const mars::descriptor& descriptor, const mars::device& device, const mars::compute_pipeline& pipeline, const std::vector<mars::descriptor_set_create_params>& params) {
-	return descriptor.engine->get_impl<descriptor_impl>().descriptor_set_create_compute(descriptor, device, pipeline, params);
+inline mars::descriptor_set descriptor_set_create_compute(const mars::descriptor& _descriptor, const mars::device& _device, const mars::compute_pipeline& _pipeline, const std::vector<mars::descriptor_set_create_params>& _params) {
+	return _descriptor.engine->get_impl<descriptor_impl>().descriptor_set_create_compute(_descriptor, _device, _pipeline, _params);
 }
 
-inline void descriptor_set_bind(const mars::descriptor_set& descriptor_set, const mars::command_buffer& command_buffer, const mars::pipeline& pipeline, size_t current_frame) {
-	return descriptor_set.engine->get_impl<descriptor_impl>().descriptor_set_bind(descriptor_set, command_buffer, pipeline, current_frame);
+inline mars::descriptor_set descriptor_set_create_rt(const mars::descriptor& _descriptor, const mars::device& _device, const mars::ray_tracing_pipeline& _pipeline, const std::vector<mars::descriptor_set_create_params>& _params) {
+	return _descriptor.engine->get_impl<descriptor_impl>().descriptor_set_create_rt(_descriptor, _device, _pipeline, _params);
 }
 
-inline void descriptor_set_bind_compute(const mars::descriptor_set& descriptor_set, const mars::command_buffer& command_buffer, const mars::compute_pipeline& pipeline, size_t current_frame) {
-	return descriptor_set.engine->get_impl<descriptor_impl>().descriptor_set_bind_compute(descriptor_set, command_buffer, pipeline, current_frame);
+inline void descriptor_set_bind(const mars::descriptor_set& _descriptor_set, const mars::command_buffer& _command_buffer, const mars::pipeline& _pipeline, size_t _current_frame) {
+	return _descriptor_set.engine->get_impl<descriptor_impl>().descriptor_set_bind(_descriptor_set, _command_buffer, _pipeline, _current_frame);
 }
 
-inline void descriptor_set_update_cbv(mars::descriptor_set& descriptor_set, size_t binding, const mars::buffer& buffer) {
-	return descriptor_set.engine->get_impl<descriptor_impl>().descriptor_set_update_cbv(descriptor_set, binding, buffer);
+inline void descriptor_set_bind_compute(const mars::descriptor_set& _descriptor_set, const mars::command_buffer& _command_buffer, const mars::compute_pipeline& _pipeline, size_t _current_frame) {
+	return _descriptor_set.engine->get_impl<descriptor_impl>().descriptor_set_bind_compute(_descriptor_set, _command_buffer, _pipeline, _current_frame);
 }
 
-inline void descriptor_destroy(mars::descriptor& descriptor, const mars::device& device) {
-	return descriptor.engine->get_impl<descriptor_impl>().descriptor_destroy(descriptor, device);
+inline void descriptor_set_bind_rt(const mars::descriptor_set& _descriptor_set, const mars::command_buffer& _command_buffer, const mars::ray_tracing_pipeline& _pipeline, size_t _current_frame) {
+	return _descriptor_set.engine->get_impl<descriptor_impl>().descriptor_set_bind_rt(_descriptor_set, _command_buffer, _pipeline, _current_frame);
+}
+
+inline void descriptor_set_update_cbv(mars::descriptor_set& _descriptor_set, size_t _binding, const mars::buffer& _buffer) {
+	return _descriptor_set.engine->get_impl<descriptor_impl>().descriptor_set_update_cbv(_descriptor_set, _binding, _buffer);
+}
+
+inline void descriptor_destroy(mars::descriptor& _descriptor, const mars::device& _device) {
+	return _descriptor.engine->get_impl<descriptor_impl>().descriptor_destroy(_descriptor, _device);
 }
 
 } // namespace mars::graphics

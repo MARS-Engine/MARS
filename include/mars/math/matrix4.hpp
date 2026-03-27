@@ -191,53 +191,45 @@ matrix4<T> rotate(const matrix4<T>& _mat, T _angle, const vector3<T>& _v) {
 }
 
 template <typename T>
+matrix4<T> transpose(const matrix4<T>& _mat) {
+	matrix4<T> result(static_cast<T>(0));
+	for (size_t col = 0; col < 4; ++col)
+		for (size_t row = 0; row < 4; ++row)
+			result[col, row] = _mat[row, col];
+	return result;
+}
+
+template <typename T>
 matrix4<T> inverse(const matrix4<T>& _mat) {
-	T const SubFactor00 = _mat[2, 2] * _mat[3, 3] - _mat[2, 3] * _mat[3, 2];
-	T const SubFactor01 = _mat[2, 1] * _mat[3, 3] - _mat[2, 3] * _mat[3, 1];
-	T const SubFactor02 = _mat[2, 1] * _mat[3, 2] - _mat[2, 2] * _mat[3, 1];
-	T const SubFactor03 = _mat[2, 0] * _mat[3, 3] - _mat[2, 3] * _mat[3, 0];
-	T const SubFactor04 = _mat[2, 0] * _mat[3, 2] - _mat[2, 2] * _mat[3, 0];
-	T const SubFactor05 = _mat[2, 0] * _mat[3, 1] - _mat[2, 1] * _mat[3, 0];
-	T const SubFactor06 = _mat[1, 2] * _mat[3, 3] - _mat[1, 3] * _mat[3, 2];
-	T const SubFactor07 = _mat[1, 1] * _mat[3, 3] - _mat[1, 3] * _mat[3, 1];
-	T const SubFactor08 = _mat[1, 1] * _mat[3, 2] - _mat[1, 2] * _mat[3, 1];
-	T const SubFactor09 = _mat[1, 0] * _mat[3, 3] - _mat[1, 3] * _mat[3, 0];
-	T const SubFactor10 = _mat[1, 0] * _mat[3, 2] - _mat[1, 2] * _mat[3, 0];
-	T const SubFactor11 = _mat[1, 0] * _mat[3, 1] - _mat[1, 1] * _mat[3, 0];
-	T const SubFactor12 = _mat[1, 2] * _mat[2, 3] - _mat[1, 3] * _mat[2, 2];
-	T const SubFactor13 = _mat[1, 1] * _mat[2, 3] - _mat[1, 3] * _mat[2, 1];
-	T const SubFactor14 = _mat[1, 1] * _mat[2, 2] - _mat[1, 2] * _mat[2, 1];
-	T const SubFactor15 = _mat[1, 0] * _mat[2, 3] - _mat[1, 3] * _mat[2, 0];
-	T const SubFactor16 = _mat[1, 0] * _mat[2, 2] - _mat[1, 2] * _mat[2, 0];
-	T const SubFactor17 = _mat[1, 0] * _mat[2, 1] - _mat[1, 1] * _mat[2, 0];
+	T inverse_values[16] = {};
+	inverse_values[0] = _mat[1, 1] * _mat[2, 2] * _mat[3, 3] - _mat[1, 1] * _mat[2, 3] * _mat[3, 2] - _mat[2, 1] * _mat[1, 2] * _mat[3, 3] + _mat[2, 1] * _mat[1, 3] * _mat[3, 2] + _mat[3, 1] * _mat[1, 2] * _mat[2, 3] - _mat[3, 1] * _mat[1, 3] * _mat[2, 2];
+	inverse_values[4] = -_mat[1, 0] * _mat[2, 2] * _mat[3, 3] + _mat[1, 0] * _mat[2, 3] * _mat[3, 2] + _mat[2, 0] * _mat[1, 2] * _mat[3, 3] - _mat[2, 0] * _mat[1, 3] * _mat[3, 2] - _mat[3, 0] * _mat[1, 2] * _mat[2, 3] + _mat[3, 0] * _mat[1, 3] * _mat[2, 2];
+	inverse_values[8] = _mat[1, 0] * _mat[2, 1] * _mat[3, 3] - _mat[1, 0] * _mat[2, 3] * _mat[3, 1] - _mat[2, 0] * _mat[1, 1] * _mat[3, 3] + _mat[2, 0] * _mat[1, 3] * _mat[3, 1] + _mat[3, 0] * _mat[1, 1] * _mat[2, 3] - _mat[3, 0] * _mat[1, 3] * _mat[2, 1];
+	inverse_values[12] = -_mat[1, 0] * _mat[2, 1] * _mat[3, 2] + _mat[1, 0] * _mat[2, 2] * _mat[3, 1] + _mat[2, 0] * _mat[1, 1] * _mat[3, 2] - _mat[2, 0] * _mat[1, 2] * _mat[3, 1] - _mat[3, 0] * _mat[1, 1] * _mat[2, 2] + _mat[3, 0] * _mat[1, 2] * _mat[2, 1];
+	inverse_values[1] = -_mat[0, 1] * _mat[2, 2] * _mat[3, 3] + _mat[0, 1] * _mat[2, 3] * _mat[3, 2] + _mat[2, 1] * _mat[0, 2] * _mat[3, 3] - _mat[2, 1] * _mat[0, 3] * _mat[3, 2] - _mat[3, 1] * _mat[0, 2] * _mat[2, 3] + _mat[3, 1] * _mat[0, 3] * _mat[2, 2];
+	inverse_values[5] = _mat[0, 0] * _mat[2, 2] * _mat[3, 3] - _mat[0, 0] * _mat[2, 3] * _mat[3, 2] - _mat[2, 0] * _mat[0, 2] * _mat[3, 3] + _mat[2, 0] * _mat[0, 3] * _mat[3, 2] + _mat[3, 0] * _mat[0, 2] * _mat[2, 3] - _mat[3, 0] * _mat[0, 3] * _mat[2, 2];
+	inverse_values[9] = -_mat[0, 0] * _mat[2, 1] * _mat[3, 3] + _mat[0, 0] * _mat[2, 3] * _mat[3, 1] + _mat[2, 0] * _mat[0, 1] * _mat[3, 3] - _mat[2, 0] * _mat[0, 3] * _mat[3, 1] - _mat[3, 0] * _mat[0, 1] * _mat[2, 3] + _mat[3, 0] * _mat[0, 3] * _mat[2, 1];
+	inverse_values[13] = _mat[0, 0] * _mat[2, 1] * _mat[3, 2] - _mat[0, 0] * _mat[2, 2] * _mat[3, 1] - _mat[2, 0] * _mat[0, 1] * _mat[3, 2] + _mat[2, 0] * _mat[0, 2] * _mat[3, 1] + _mat[3, 0] * _mat[0, 1] * _mat[2, 2] - _mat[3, 0] * _mat[0, 2] * _mat[2, 1];
+	inverse_values[2] = _mat[0, 1] * _mat[1, 2] * _mat[3, 3] - _mat[0, 1] * _mat[1, 3] * _mat[3, 2] - _mat[1, 1] * _mat[0, 2] * _mat[3, 3] + _mat[1, 1] * _mat[0, 3] * _mat[3, 2] + _mat[3, 1] * _mat[0, 2] * _mat[1, 3] - _mat[3, 1] * _mat[0, 3] * _mat[1, 2];
+	inverse_values[6] = -_mat[0, 0] * _mat[1, 2] * _mat[3, 3] + _mat[0, 0] * _mat[1, 3] * _mat[3, 2] + _mat[1, 0] * _mat[0, 2] * _mat[3, 3] - _mat[1, 0] * _mat[0, 3] * _mat[3, 2] - _mat[3, 0] * _mat[0, 2] * _mat[1, 3] + _mat[3, 0] * _mat[0, 3] * _mat[1, 2];
+	inverse_values[10] = _mat[0, 0] * _mat[1, 1] * _mat[3, 3] - _mat[0, 0] * _mat[1, 3] * _mat[3, 1] - _mat[1, 0] * _mat[0, 1] * _mat[3, 3] + _mat[1, 0] * _mat[0, 3] * _mat[3, 1] + _mat[3, 0] * _mat[0, 1] * _mat[1, 3] - _mat[3, 0] * _mat[0, 3] * _mat[1, 1];
+	inverse_values[14] = -_mat[0, 0] * _mat[1, 1] * _mat[3, 2] + _mat[0, 0] * _mat[1, 2] * _mat[3, 1] + _mat[1, 0] * _mat[0, 1] * _mat[3, 2] - _mat[1, 0] * _mat[0, 2] * _mat[3, 1] - _mat[3, 0] * _mat[0, 1] * _mat[1, 2] + _mat[3, 0] * _mat[0, 2] * _mat[1, 1];
+	inverse_values[3] = -_mat[0, 1] * _mat[1, 2] * _mat[2, 3] + _mat[0, 1] * _mat[1, 3] * _mat[2, 2] + _mat[1, 1] * _mat[0, 2] * _mat[2, 3] - _mat[1, 1] * _mat[0, 3] * _mat[2, 2] - _mat[2, 1] * _mat[0, 2] * _mat[1, 3] + _mat[2, 1] * _mat[0, 3] * _mat[1, 2];
+	inverse_values[7] = _mat[0, 0] * _mat[1, 2] * _mat[2, 3] - _mat[0, 0] * _mat[1, 3] * _mat[2, 2] - _mat[1, 0] * _mat[0, 2] * _mat[2, 3] + _mat[1, 0] * _mat[0, 3] * _mat[2, 2] + _mat[2, 0] * _mat[0, 2] * _mat[1, 3] - _mat[2, 0] * _mat[0, 3] * _mat[1, 2];
+	inverse_values[11] = -_mat[0, 0] * _mat[1, 1] * _mat[2, 3] + _mat[0, 0] * _mat[1, 3] * _mat[2, 1] + _mat[1, 0] * _mat[0, 1] * _mat[2, 3] - _mat[1, 0] * _mat[0, 3] * _mat[2, 1] - _mat[2, 0] * _mat[0, 1] * _mat[1, 3] + _mat[2, 0] * _mat[0, 3] * _mat[1, 1];
+	inverse_values[15] = _mat[0, 0] * _mat[1, 1] * _mat[2, 2] - _mat[0, 0] * _mat[1, 2] * _mat[2, 1] - _mat[1, 0] * _mat[0, 1] * _mat[2, 2] + _mat[1, 0] * _mat[0, 2] * _mat[2, 1] + _mat[2, 0] * _mat[0, 1] * _mat[1, 2] - _mat[2, 0] * _mat[0, 2] * _mat[1, 1];
 
-	T const Det = +_mat[0, 0] * SubFactor00 - _mat[0, 1] * SubFactor01 + _mat[0, 2] * SubFactor02 - _mat[0, 3] * SubFactor03;
+	T determinant = _mat[0, 0] * inverse_values[0] + _mat[0, 1] * inverse_values[4] + _mat[0, 2] * inverse_values[8] + _mat[0, 3] * inverse_values[12];
+	if (std::abs(determinant) <= static_cast<T>(1e-8))
+		return matrix4<T>(static_cast<T>(1));
 
-	matrix4<T> Inverse;
+	determinant = static_cast<T>(1) / determinant;
+	matrix4<T> inverse_matrix(static_cast<T>(0));
+	for (size_t row = 0; row < 4; ++row)
+		for (size_t col = 0; col < 4; ++col)
+			inverse_matrix[row, col] = inverse_values[row * 4 + col] * determinant;
 
-	Inverse[0, 0] = +(_mat[1, 1] * SubFactor00 - _mat[1, 2] * SubFactor01 + _mat[1, 3] * SubFactor02);
-	Inverse[0, 1] = -(_mat[0, 1] * SubFactor00 - _mat[0, 2] * SubFactor01 + _mat[0, 3] * SubFactor02);
-	Inverse[0, 2] = +(_mat[0, 2] * SubFactor06 - _mat[0, 3] * SubFactor07 + _mat[0, 1] * SubFactor08);
-	Inverse[0, 3] = -(_mat[0, 3] * SubFactor12 - _mat[0, 2] * SubFactor13 + _mat[0, 1] * SubFactor14);
-
-	Inverse[1, 0] = -(_mat[1, 0] * SubFactor00 - _mat[1, 2] * SubFactor03 + _mat[1, 3] * SubFactor04);
-	Inverse[1, 1] = +(_mat[0, 0] * SubFactor00 - _mat[0, 2] * SubFactor03 + _mat[0, 3] * SubFactor04);
-	Inverse[1, 2] = -(_mat[0, 0] * SubFactor06 - _mat[0, 3] * SubFactor09 + _mat[0, 1] * SubFactor10);
-	Inverse[1, 3] = +(_mat[0, 0] * SubFactor12 - _mat[0, 2] * SubFactor15 + _mat[0, 1] * SubFactor16);
-
-	Inverse[2, 0] = +(_mat[1, 0] * SubFactor01 - _mat[1, 1] * SubFactor03 + _mat[1, 3] * SubFactor05);
-	Inverse[2, 1] = -(_mat[0, 0] * SubFactor01 - _mat[0, 1] * SubFactor03 + _mat[0, 3] * SubFactor05);
-	Inverse[2, 2] = +(_mat[0, 0] * SubFactor07 - _mat[0, 1] * SubFactor09 + _mat[0, 3] * SubFactor11);
-	Inverse[2, 3] = -(_mat[0, 0] * SubFactor13 - _mat[0, 1] * SubFactor15 + _mat[0, 2] * SubFactor17);
-
-	Inverse[3, 0] = -(_mat[1, 0] * SubFactor02 - _mat[1, 1] * SubFactor04 + _mat[1, 2] * SubFactor05);
-	Inverse[3, 1] = +(_mat[0, 0] * SubFactor02 - _mat[0, 1] * SubFactor04 + _mat[0, 2] * SubFactor05);
-	Inverse[3, 2] = -(_mat[0, 0] * SubFactor08 - _mat[0, 1] * SubFactor10 + _mat[0, 2] * SubFactor11);
-	Inverse[3, 3] = +(_mat[0, 0] * SubFactor14 - _mat[0, 1] * SubFactor16 + _mat[0, 2] * SubFactor17);
-
-	Inverse /= Det;
-
-	return Inverse;
+	return inverse_matrix;
 }
 } // namespace math
 } // namespace mars

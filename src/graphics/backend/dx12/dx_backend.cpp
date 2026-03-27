@@ -1,6 +1,7 @@
 #include <mars/graphics/backend/dx12/dx_backend.hpp>
 #include <mars/graphics/backend/graphics_backend.hpp>
 
+#include <mars/graphics/backend/dx12/dx_acceleration_structure.hpp>
 #include <mars/graphics/backend/dx12/dx_append_buffer.hpp>
 #include <mars/graphics/backend/dx12/dx_buffer.hpp>
 #include <mars/graphics/backend/dx12/dx_command_pool.hpp>
@@ -12,6 +13,7 @@
 #include <mars/graphics/backend/dx12/dx_framebuffer.hpp>
 #include <mars/graphics/backend/dx12/dx_indirect_executor.hpp>
 #include <mars/graphics/backend/dx12/dx_pipeline.hpp>
+#include <mars/graphics/backend/dx12/dx_ray_tracing_pipeline.hpp>
 #include <mars/graphics/backend/dx12/dx_readback_buffer.hpp>
 #include <mars/graphics/backend/dx12/dx_render_pass.hpp>
 #include <mars/graphics/backend/dx12/dx_shader.hpp>
@@ -35,6 +37,7 @@ graphics_backend_functions* directx12_t::get_functions() {
 			.device_flush = &dx::dx_device_impl::dx_device_flush,
 			.device_supports_feature = &dx::dx_device_impl::dx_device_supports_feature,
 			.device_destroy = &dx::dx_device_impl::dx_device_destroy,
+			.device_submit_compute = &dx::dx_device_impl::dx_device_submit_compute,
 		},
 		.command_queue = {
 			.command_queue_create = &dx::dx_command_queue_impl::dx_command_queue_create,
@@ -76,6 +79,8 @@ graphics_backend_functions* directx12_t::get_functions() {
 			.command_pool_destroy = &dx::dx_command_pool_impl::dx_command_pool_destroy,
 			.command_buffer_begin_event = &dx::dx_command_pool_impl::dx_command_buffer_begin_event,
 			.command_buffer_end_event = &dx::dx_command_pool_impl::dx_command_buffer_end_event,
+			.command_buffer_trace_rays = &dx::dx_command_pool_impl::dx_command_buffer_trace_rays,
+			.compute_command_pool_create = &dx::dx_command_pool_impl::dx_compute_command_pool_create,
 		},
 		.buffer = {
 			.buffer_create = &dx::dx_buffer_impl::dx_buffer_create,
@@ -88,6 +93,7 @@ graphics_backend_functions* directx12_t::get_functions() {
 			.buffer_destroy = &dx::dx_buffer_impl::dx_buffer_destroy,
 			.buffer_get_uav_index = &dx::dx_buffer_impl::dx_buffer_get_uav_index,
 			.buffer_get_srv_index = &dx::dx_buffer_impl::dx_buffer_get_srv_index,
+			.buffer_get_device_address = &dx::dx_buffer_impl::dx_buffer_get_device_address,
 		},
 		.texture = {
 			.texture_create = &dx::dx_texture_impl::dx_texture_create,
@@ -121,8 +127,10 @@ graphics_backend_functions* directx12_t::get_functions() {
 			.descriptor_create = &dx::dx_descriptor_impl::dx_descriptor_create,
 			.descriptor_set_create = &dx::dx_descriptor_impl::dx_descriptor_set_create,
 			.descriptor_set_create_compute = &dx::dx_descriptor_impl::dx_descriptor_set_create_compute,
+			.descriptor_set_create_rt = &dx::dx_descriptor_impl::dx_descriptor_set_create_rt,
 			.descriptor_set_bind = &dx::dx_descriptor_impl::dx_descriptor_set_bind,
 			.descriptor_set_bind_compute = &dx::dx_descriptor_impl::dx_descriptor_set_bind_compute,
+			.descriptor_set_bind_rt = &dx::dx_descriptor_impl::dx_descriptor_set_bind_rt,
 			.descriptor_set_update_cbv = &dx::dx_descriptor_impl::dx_descriptor_set_update_cbv,
 			.descriptor_destroy = &dx::dx_descriptor_impl::dx_descriptor_destroy,
 		},
@@ -164,6 +172,21 @@ graphics_backend_functions* directx12_t::get_functions() {
 			.append_buffer_get_counter_buffer = &dx::dx_append_buffer_impl::get_counter_buffer,
 			.append_buffer_get_data_buffer = &dx::dx_append_buffer_impl::get_data_buffer,
 			.append_buffer_destroy = &dx::dx_append_buffer_impl::destroy,
+		},
+		.acceleration_structure = {
+			.blas_create = &dx::dx_acceleration_structure_impl::dx_blas_create,
+			.blas_update = &dx::dx_acceleration_structure_impl::dx_blas_update,
+			.blas_destroy = &dx::dx_acceleration_structure_impl::dx_blas_destroy,
+			.tlas_create = &dx::dx_acceleration_structure_impl::dx_tlas_create,
+			.tlas_build = &dx::dx_acceleration_structure_impl::dx_tlas_build,
+			.tlas_get_srv_index = &dx::dx_acceleration_structure_impl::dx_tlas_get_srv_index,
+			.tlas_destroy = &dx::dx_acceleration_structure_impl::dx_tlas_destroy,
+		},
+		.ray_tracing_pipeline = {
+			.ray_tracing_pipeline_create = &dx::dx_ray_tracing_pipeline_impl::dx_ray_tracing_pipeline_create,
+			.ray_tracing_pipeline_bind = &dx::dx_ray_tracing_pipeline_impl::dx_ray_tracing_pipeline_bind,
+			.ray_tracing_pipeline_destroy = &dx::dx_ray_tracing_pipeline_impl::dx_ray_tracing_pipeline_destroy,
+			.rt_pipeline_write_shader_identifiers = &dx::dx_ray_tracing_pipeline_impl::dx_rt_pipeline_write_shader_identifiers,
 		},
 	};
 

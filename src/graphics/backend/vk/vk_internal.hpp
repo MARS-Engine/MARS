@@ -209,6 +209,20 @@ struct vk_device_data {
 	VkPhysicalDeviceDeviceGeneratedCommandsPropertiesEXT device_generated_commands_properties = {
 		VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_EXT
 	};
+
+	bool supports_ray_tracing = false;
+	VkPhysicalDeviceRayTracingPipelinePropertiesKHR rt_pipeline_properties = {
+		VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR
+	};
+	// Extension function pointers loaded at device creation (nullptr when RT is unsupported)
+	PFN_vkCreateAccelerationStructureKHR create_acceleration_structure = nullptr;
+	PFN_vkDestroyAccelerationStructureKHR destroy_acceleration_structure = nullptr;
+	PFN_vkCmdBuildAccelerationStructuresKHR cmd_build_acceleration_structures = nullptr;
+	PFN_vkGetAccelerationStructureBuildSizesKHR get_acceleration_structure_build_sizes = nullptr;
+	PFN_vkGetAccelerationStructureDeviceAddressKHR get_acceleration_structure_device_address = nullptr;
+	PFN_vkCmdTraceRaysKHR cmd_trace_rays = nullptr;
+	PFN_vkCreateRayTracingPipelinesKHR create_ray_tracing_pipelines = nullptr;
+	PFN_vkGetRayTracingShaderGroupHandlesKHR get_ray_tracing_shader_group_handles = nullptr;
 };
 
 struct vk_shader_stage_data {
@@ -225,6 +239,7 @@ struct vk_shader_data {
 
 struct vk_pipeline_binding_info {
 	uint32_t binding = 0u;
+	uint32_t register_space = 0u;
 	VkDescriptorType type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
 };
 
@@ -255,6 +270,42 @@ struct vk_compute_pipeline_data {
 	VkShaderStageFlags push_constant_stage_flags = 0u;
 	bool uses_sampler = false;
 	vk_sampler_kind sampler_kind = vk_sampler_kind::none;
+};
+
+struct vk_blas_data {
+	VkAccelerationStructureKHR acceleration_structure = VK_NULL_HANDLE;
+	mars::buffer result_buffer = {};
+	// Kept alive for the full BLAS lifetime so ALLOW_UPDATE rebuilds can reuse it safely.
+	mars::buffer scratch_buffer = {};
+	VkDeviceAddress device_address = 0u;
+	size_t size = 0u;
+};
+
+struct vk_tlas_data {
+	VkAccelerationStructureKHR acceleration_structure = VK_NULL_HANDLE;
+	mars::buffer result_buffer = {};
+	// Kept alive for the full TLAS lifetime so repeated builds/updates can reuse it safely.
+	mars::buffer scratch_buffer = {};
+	mars::buffer instance_buffer = {};
+	void* instance_mapped = nullptr;
+	uint32_t max_instance_count = 0u;
+	uint32_t srv_bindless_idx = std::numeric_limits<uint32_t>::max();
+	size_t size = 0u;
+	bool allow_update = false;
+	bool has_been_built = false;
+};
+
+struct vk_rt_pipeline_data {
+	VkPipelineLayout layout = VK_NULL_HANDLE;
+	VkPipeline pipeline = VK_NULL_HANDLE;
+	VkDescriptorSetLayout explicit_set_layout = VK_NULL_HANDLE;
+	std::vector<vk_pipeline_binding_info> explicit_bindings;
+	bool has_push_constants = false;
+	size_t push_constant_count = 0u;
+	VkShaderStageFlags push_constant_stage_flags = 0u;
+	uint32_t raygen_group_count = 0u;
+	uint32_t miss_group_count = 0u;
+	uint32_t hit_group_count = 0u;
 };
 
 struct vk_command_pool_data {

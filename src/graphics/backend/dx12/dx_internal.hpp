@@ -27,23 +27,23 @@ inline mars::log_channel& dx12_log_channel() {
 }
 
 template <auto Function, typename... Args>
-inline HRESULT dx_expect(Args&&... args) {
-	return mars::logger::log_expect<Function>(dx12_log_channel(), [](HRESULT result) { return SUCCEEDED(result); }, std::forward<Args>(args)...);
+inline bool dx_expect(Args&&... args) {
+	return SUCCEEDED(mars::logger::log_expect<Function>(dx12_log_channel(), [](HRESULT result) { return SUCCEEDED(result); }, std::forward<Args>(args)...));
 }
 
 template <auto FunctionMember, typename Object, typename... Args>
 	requires(std::is_member_function_pointer_v<decltype(FunctionMember)>)
-inline HRESULT dx_expect(Object&& object, Args&&... args) {
-	return mars::logger::log_expect<FunctionMember>(dx12_log_channel(), std::forward<Object>(object), [](HRESULT result) { return SUCCEEDED(result); }, std::forward<Args>(args)...);
+inline bool dx_expect(Object&& object, Args&&... args) {
+	return SUCCEEDED(mars::logger::log_expect<FunctionMember>(dx12_log_channel(), std::forward<Object>(object), [](HRESULT result) { return SUCCEEDED(result); }, std::forward<Args>(args)...));
 }
 
 template <typename Function, typename... Args>
-inline HRESULT dx_expect(Function&& function, Args&&... args) {
-	return mars::logger::log_expect(dx12_log_channel(), std::forward<Function>(function), [](HRESULT result) { return SUCCEEDED(result); }, std::forward<Args>(args)...);
+inline bool dx_expect(Function&& function, Args&&... args) {
+	return SUCCEEDED(mars::logger::log_expect(dx12_log_channel(), std::forward<Function>(function), [](HRESULT result) { return SUCCEEDED(result); }, std::forward<Args>(args)...));
 }
 
-inline DXGI_FORMAT dx_format_from_mars(mars_format_type format) {
-	switch (format) {
+inline DXGI_FORMAT dx_format_from_mars(mars_format_type _format) {
+	switch (_format) {
 	case MARS_FORMAT_R8_UNORM:
 		return DXGI_FORMAT_R8_UNORM;
 	case MARS_FORMAT_RG8_UNORM:
@@ -80,8 +80,8 @@ inline DXGI_FORMAT dx_format_from_mars(mars_format_type format) {
 	}
 }
 
-inline mars_format_type dx_resource_format_from_depth(mars_depth_format format) {
-	switch (format) {
+inline mars_format_type dx_resource_format_from_depth(mars_depth_format _format) {
+	switch (_format) {
 	case MARS_DEPTH_FORMAT_D32_SFLOAT:
 		return MARS_FORMAT_R32_TYPELESS;
 	case MARS_DEPTH_FORMAT_UNDEFINED:
@@ -90,8 +90,8 @@ inline mars_format_type dx_resource_format_from_depth(mars_depth_format format) 
 	}
 }
 
-inline DXGI_FORMAT dx_depth_format_from_mars(mars_depth_format format) {
-	switch (format) {
+inline DXGI_FORMAT dx_depth_format_from_mars(mars_depth_format _format) {
+	switch (_format) {
 	case MARS_DEPTH_FORMAT_D32_SFLOAT:
 		return DXGI_FORMAT_D32_FLOAT;
 	case MARS_DEPTH_FORMAT_UNDEFINED:
@@ -100,8 +100,8 @@ inline DXGI_FORMAT dx_depth_format_from_mars(mars_depth_format format) {
 	}
 }
 
-inline DXGI_FORMAT dx_srv_format_from_depth(mars_depth_format format) {
-	switch (format) {
+inline DXGI_FORMAT dx_srv_format_from_depth(mars_depth_format _format) {
+	switch (_format) {
 	case MARS_DEPTH_FORMAT_D32_SFLOAT:
 	default:
 		return DXGI_FORMAT_R32_FLOAT;
@@ -113,6 +113,7 @@ struct dx_framebuffer_data;
 struct dx_device_data {
 	Microsoft::WRL::ComPtr<IDXGIFactory4> factory;
 	Microsoft::WRL::ComPtr<ID3D12Device> device;
+	Microsoft::WRL::ComPtr<ID3D12Device5> device5; // non-null when supports_ray_tracing is true
 
 	meta::type_erased_ptr command_queue_data;
 	meta::type_erased_ptr compute_queue_data;
@@ -130,6 +131,8 @@ struct dx_device_data {
 	UINT next_bindless_uav_idx = BINDLESS_UAV_BASE;
 	std::vector<std::pair<UINT, UINT>> free_bindless_srv_ranges;
 	std::vector<std::pair<UINT, UINT>> free_bindless_uav_ranges;
+
+	bool supports_ray_tracing = false;
 };
 
 enum class dx_upload_ring_state {
@@ -204,14 +207,53 @@ struct dx_readback_buffer_data {
 	std::deque<PendingBatch> in_flight;
 };
 
-inline dx_command_queue_data* dx_get_queue(dx_device_data* dev, mars_command_queue_type type) {
-	switch (type) {
+struct dx_blas_data {
+	Microsoft::WRL::ComPtr<ID3D12Resource> result_buffer;
+	// Kept alive for the full BLAS lifetime so ALLOW_UPDATE rebuilds can reuse it safely.
+	Microsoft::WRL::ComPtr<ID3D12Resource> scratch_buffer;
+	D3D12_GPU_VIRTUAL_ADDRESS gpu_va = 0;
+	size_t size = 0;
+};
+
+struct dx_tlas_data {
+	Microsoft::WRL::ComPtr<ID3D12Resource> result_buffer;
+	// Kept alive for the full TLAS lifetime so repeated builds/updates can reuse it safely.
+	Microsoft::WRL::ComPtr<ID3D12Resource> scratch_buffer;
+	Microsoft::WRL::ComPtr<ID3D12Resource> instance_buffer;
+	void* instance_mapped = nullptr;
+	uint32_t max_instance_count = 0;
+	D3D12_GPU_VIRTUAL_ADDRESS gpu_va = 0;
+	UINT srv_bindless_idx = UINT_MAX;
+	size_t size = 0;
+	bool allow_update = false;
+	bool has_been_built = false;
+};
+
+struct dx_root_param_entry {
+	size_t root_index;
+	mars_pipeline_descriptor_type type;
+	size_t binding;
+};
+
+struct dx_rt_pipeline_data {
+	Microsoft::WRL::ComPtr<ID3D12StateObject> state_object;
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> global_root_signature;
+	std::vector<dx_root_param_entry> root_layout;
+	bool has_push_constants = false;
+	size_t push_constant_count = 0;
+	uint32_t push_constants_root_index = 0;
+	uint32_t miss_group_count = 0;
+	uint32_t hit_group_count = 0;
+};
+
+inline dx_command_queue_data* dx_get_queue(dx_device_data* _device_data, mars_command_queue_type _type) {
+	switch (_type) {
 	case MARS_COMMAND_QUEUE_DIRECT:
-		return dev->command_queue_data.expect<dx_command_queue_data>();
+		return _device_data->command_queue_data.expect<dx_command_queue_data>();
 	case MARS_COMMAND_QUEUE_COMPUTE:
-		return dev->compute_queue_data.expect<dx_command_queue_data>();
+		return _device_data->compute_queue_data.expect<dx_command_queue_data>();
 	case MARS_COMMAND_QUEUE_COPY:
-		return dev->copy_queue_data.expect<dx_command_queue_data>();
+		return _device_data->copy_queue_data.expect<dx_command_queue_data>();
 	}
 	return nullptr;
 }
@@ -230,12 +272,6 @@ struct dx_shader_data {
 	std::string vertex_shader_path;
 	std::string pixel_shader_path;
 	std::string compute_shader_path;
-};
-
-struct dx_root_param_entry {
-	size_t root_index;
-	mars_pipeline_descriptor_type type;
-	size_t binding;
 };
 
 struct dx_pipeline_data {
@@ -262,11 +298,14 @@ struct dx_command_pool_data {
 	dx_command_queue_data* queue = nullptr;
 	bool submitted = false;
 	UINT64 last_submitted_fence_value = 0;
+	D3D12_COMMAND_LIST_TYPE cmd_list_type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 };
 
 struct dx_command_buffer_data {
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> cmd_list;
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> cmd_list4; // non-null when device supports RT
 	dx_command_pool_data* pool = nullptr;
+	dx_device_data* device_data = nullptr;
 	dx_framebuffer_data* last_bound_framebuffer = nullptr;
 	struct dx_depth_buffer_data* last_bound_depth_buffer = nullptr;
 	ID3D12DescriptorHeap* bindless_heap_raw = nullptr;

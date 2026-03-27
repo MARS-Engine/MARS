@@ -14,12 +14,13 @@ struct window;
 
 namespace mars::imgui {
 
-bool backend_supported(const mars::device& device);
-void initialize_backend(const mars::window& window, const mars::device& device, const mars::swapchain& swapchain, size_t frames_in_flight = 2);
-void process_sdl_event(const SDL_Event& event);
+bool backend_supported(const mars::device& _device);
+void initialize_backend(const mars::window& _window, const mars::device& _device, const mars::swapchain& _swapchain, size_t _frames_in_flight = 2);
+void process_sdl_event(const SDL_Event& _event);
 void new_frame();
-ImTextureRef texture_ref(const mars::texture& texture);
-void render_draw_data(const mars::command_buffer& command_buffer);
+ImTextureRef texture_ref(const mars::texture& _texture);
+void release_texture_ref(const mars::texture& _texture);
+void render_draw_data(const mars::command_buffer& _command_buffer);
 void shutdown_backend();
 
 } // namespace mars::imgui

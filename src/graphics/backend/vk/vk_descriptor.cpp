@@ -1,27 +1,27 @@
-#include "vk_internal.hpp"
-
 #include <mars/graphics/backend/vk/vk_descriptor.hpp>
+
+#include "vk_internal.hpp"
 
 #include <algorithm>
 
 namespace mars::graphics::vk {
 namespace {
-uint32_t texture_layer_count(const vk_texture_data* texture_data) {
-	return texture_data->texture_type == MARS_TEXTURE_TYPE_CUBE
-		? static_cast<uint32_t>(texture_data->array_size * 6u)
-		: static_cast<uint32_t>(texture_data->array_size);
+uint32_t texture_layer_count(const vk_texture_data* _texture_data) {
+	return _texture_data->texture_type == MARS_TEXTURE_TYPE_CUBE
+		? static_cast<uint32_t>(_texture_data->array_size * 6u)
+		: static_cast<uint32_t>(_texture_data->array_size);
 }
 
-uint32_t texture_uav_view_index(const vk_texture_data* texture_data, size_t mip_level, size_t array_slice) {
-	const uint32_t total_slices = texture_layer_count(texture_data);
-	if (mip_level >= texture_data->mip_levels || array_slice >= total_slices)
+uint32_t texture_uav_view_index(const vk_texture_data* _texture_data, size_t _mip_level, size_t _array_slice) {
+	const uint32_t total_slices = texture_layer_count(_texture_data);
+	if (_mip_level >= _texture_data->mip_levels || _array_slice >= total_slices)
 		return std::numeric_limits<uint32_t>::max();
 
-	return static_cast<uint32_t>(mip_level) * total_slices + static_cast<uint32_t>(array_slice);
+	return static_cast<uint32_t>(_mip_level) * total_slices + static_cast<uint32_t>(_array_slice);
 }
 
-VkDescriptorType descriptor_pool_type_from_mars(mars_descriptor_type descriptor_type) {
-	switch (descriptor_type) {
+VkDescriptorType descriptor_pool_type_from_mars(mars_descriptor_type _descriptor_type) {
+	switch (_descriptor_type) {
 	case MARS_DESCRIPTOR_TYPE_SAMPLER:
 		return VK_DESCRIPTOR_TYPE_SAMPLER;
 	case MARS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
@@ -49,29 +49,24 @@ VkDescriptorType descriptor_pool_type_from_mars(mars_descriptor_type descriptor_
 }
 
 template <typename PipelineDataT>
-descriptor_set create_set_impl(
-	const descriptor& _descriptor,
-	const device& _device,
-	PipelineDataT* pipeline_data,
-	const std::vector<descriptor_set_create_params>& _params
-) {
+descriptor_set create_set_impl(const descriptor& _descriptor, const device& _device, PipelineDataT* _pipeline_data, const std::vector<descriptor_set_create_params>& _params) {
 	auto* descriptor_data = _descriptor.data.expect<vk_descriptor_data>();
 	auto* device_data = _device.data.expect<vk_device_data>();
 	auto* set_data = new vk_descriptor_set_data();
 	set_data->device_data = device_data;
-	set_data->bindings = pipeline_data ? pipeline_data->explicit_bindings : std::vector<vk_pipeline_binding_info>{};
+	set_data->bindings = _pipeline_data ? _pipeline_data->explicit_bindings : std::vector<vk_pipeline_binding_info>{};
 
 	descriptor_set result;
 	result.engine = _device.engine;
 	result.data.store(set_data);
 
-	if (!pipeline_data || pipeline_data->explicit_set_layout == VK_NULL_HANDLE || set_data->bindings.empty())
+	if (!_pipeline_data || _pipeline_data->explicit_set_layout == VK_NULL_HANDLE || set_data->bindings.empty())
 		return result;
 
 	const size_t set_count = _params.empty() ? descriptor_data->frames_in_flight : _params.size();
 	set_data->sets.resize(set_count);
 
-	std::vector<VkDescriptorSetLayout> layouts(set_count, pipeline_data->explicit_set_layout);
+	std::vector<VkDescriptorSetLayout> layouts(set_count, _pipeline_data->explicit_set_layout);
 	VkDescriptorSetAllocateInfo alloc_info = {};
 	alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	alloc_info.descriptorPool = descriptor_data->pool;
@@ -80,18 +75,18 @@ descriptor_set create_set_impl(
 	vk_expect<vkAllocateDescriptorSets>(device_data->device, &alloc_info, set_data->sets.data());
 
 	for (size_t set_index = 0u; set_index < set_count; ++set_index) {
-		const auto& params = _params.empty() ? descriptor_set_create_params{} : _params[set_index];
+		const auto& set_params = _params.empty() ? descriptor_set_create_params{} : _params[set_index];
 		std::vector<VkDescriptorBufferInfo> buffer_infos;
 		std::vector<VkDescriptorImageInfo> image_infos;
 		std::vector<std::pair<uint32_t, VkDescriptorType>> buffer_writes;
 		std::vector<std::pair<uint32_t, VkDescriptorType>> image_writes;
 
-		buffer_infos.reserve(params.buffers.size());
-		image_infos.reserve(params.textures.size());
-		buffer_writes.reserve(params.buffers.size());
-		image_writes.reserve(params.textures.size());
+		buffer_infos.reserve(set_params.buffers.size());
+		image_infos.reserve(set_params.textures.size());
+		buffer_writes.reserve(set_params.buffers.size());
+		image_writes.reserve(set_params.textures.size());
 
-		for (const auto& [buffer_handle, binding] : params.buffers) {
+		for (const auto& [buffer_handle, binding] : set_params.buffers) {
 			const auto binding_info = vk_find_binding_info(set_data->bindings, static_cast<uint32_t>(binding));
 			if (!binding_info.has_value() || binding_info->type != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
 				continue;
@@ -105,7 +100,7 @@ descriptor_set create_set_impl(
 			buffer_writes.push_back({static_cast<uint32_t>(binding), binding_info->type});
 		}
 
-		for (const auto& texture_binding : params.textures) {
+		for (const auto& texture_binding : set_params.textures) {
 			const auto binding_info = vk_find_binding_info(set_data->bindings, static_cast<uint32_t>(texture_binding.binding));
 			if (!binding_info.has_value())
 				continue;
@@ -208,6 +203,10 @@ descriptor_set vk_descriptor_impl::vk_descriptor_set_create_compute(const descri
 	return create_set_impl(_descriptor, _device, _pipeline.data.expect<vk_compute_pipeline_data>(), _params);
 }
 
+descriptor_set vk_descriptor_impl::vk_descriptor_set_create_rt(const descriptor& _descriptor, const device& _device, const ray_tracing_pipeline& _pipeline, const std::vector<descriptor_set_create_params>& _params) {
+	return create_set_impl(_descriptor, _device, _pipeline.data.expect<vk_rt_pipeline_data>(), _params);
+}
+
 void vk_descriptor_impl::vk_descriptor_set_bind(const descriptor_set& _descriptor_set, const command_buffer& _command_buffer, const pipeline& _pipeline, size_t _current_frame) {
 	auto* set_data = _descriptor_set.data.expect<vk_descriptor_set_data>();
 	auto* command_buffer_data = _command_buffer.data.expect<vk_command_buffer_data>();
@@ -228,6 +227,17 @@ void vk_descriptor_impl::vk_descriptor_set_bind_compute(const descriptor_set& _d
 
 	const VkDescriptorSet set = set_data->sets[_current_frame % set_data->sets.size()];
 	vkCmdBindDescriptorSets(command_buffer_data->command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_data->layout, 1u, 1u, &set, 0u, nullptr);
+}
+
+void vk_descriptor_impl::vk_descriptor_set_bind_rt(const descriptor_set& _descriptor_set, const command_buffer& _command_buffer, const ray_tracing_pipeline& _pipeline, size_t _current_frame) {
+	auto* set_data = _descriptor_set.data.expect<vk_descriptor_set_data>();
+	auto* command_buffer_data = _command_buffer.data.expect<vk_command_buffer_data>();
+	auto* pipeline_data = _pipeline.data.expect<vk_rt_pipeline_data>();
+	if (set_data->sets.empty() || pipeline_data->explicit_set_layout == VK_NULL_HANDLE)
+		return;
+
+	const VkDescriptorSet set = set_data->sets[_current_frame % set_data->sets.size()];
+	vkCmdBindDescriptorSets(command_buffer_data->command_buffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, pipeline_data->layout, 1u, 1u, &set, 0u, nullptr);
 }
 
 void vk_descriptor_impl::vk_descriptor_set_update_cbv(descriptor_set& _descriptor_set, size_t _binding, const buffer& _buffer) {

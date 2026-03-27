@@ -47,5 +47,9 @@ inline void buffer_destroy(buffer& _buffer, const device& _device) {
 	return _buffer.engine->get_impl<buffer_impl>().buffer_destroy(_buffer, _device);
 }
 
+inline uint64_t buffer_get_device_address(const buffer& _buffer) {
+	return _buffer.engine->get_impl<buffer_impl>().buffer_get_device_address(_buffer);
+}
+
 } // namespace graphics
 } // namespace mars

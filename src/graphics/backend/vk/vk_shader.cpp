@@ -1,6 +1,6 @@
-#include "vk_internal.hpp"
-
 #include <mars/graphics/backend/vk/vk_shader.hpp>
+
+#include "vk_internal.hpp"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -18,7 +18,6 @@ using dxc_module_t = void*;
 
 #include <dxcapi.h>
 
-#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -26,7 +25,7 @@ using dxc_module_t = void*;
 
 namespace mars::graphics::vk {
 namespace {
-constexpr uint32_t kUniformBindingCount = 15u;
+constexpr uint32_t kUniformBindingCount = 16u;
 constexpr uint32_t kSampledImageBindingCount = 32u;
 constexpr uint32_t kSamplerBindingCount = 4u;
 constexpr uint32_t kDescriptorSetIndex = 1u;
@@ -39,53 +38,53 @@ using dxc_create_instance_proc = HRESULT(WINAPI*)(REFCLSID, REFIID, LPVOID*);
 using dxc_create_instance_proc = HRESULT(*)(REFCLSID, REFIID, LPVOID*);
 template<typename T>
 struct dxc_ptr {
-    T* p = nullptr;
-    ~dxc_ptr() { if (p) p->Release(); }
-    T** operator&() { return &p; }
-    T* Get() const { return p; }
-    T* operator->() const { return p; }
-    explicit operator bool() const { return p != nullptr; }
-    T* Detach() { T* t = p; p = nullptr; return t; }
-    dxc_ptr() = default;
-    dxc_ptr(const dxc_ptr&) = delete;
-    dxc_ptr& operator=(const dxc_ptr&) = delete;
+	T* p = nullptr;
+	~dxc_ptr() { if (p) p->Release(); }
+	T** operator&() { return &p; }
+	T* Get() const { return p; }
+	T* operator->() const { return p; }
+	explicit operator bool() const { return p != nullptr; }
+	T* Detach() { T* t = p; p = nullptr; return t; }
+	dxc_ptr() = default;
+	dxc_ptr(const dxc_ptr&) = delete;
+	dxc_ptr& operator=(const dxc_ptr&) = delete;
 };
 #define DXC_PTR(T) dxc_ptr<T>
 #endif
 
-std::string read_file_binary(const std::filesystem::path& path) {
-	std::ifstream file(path, std::ios::binary);
+std::string read_file_binary(const std::filesystem::path& _path) {
+	std::ifstream file(_path, std::ios::binary);
 	if (!file.is_open())
 		return {};
 	return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 }
 
-std::string load_shader_source(const shader_module& module) {
-	if (!module.source.empty())
-		return std::string(module.source);
-	if (!module.path.empty())
-		return read_file_binary(std::filesystem::path(module.path));
+std::string load_shader_source(const shader_module& _module) {
+	if (!_module.source.empty())
+		return std::string(_module.source);
+	if (!_module.path.empty())
+		return read_file_binary(std::filesystem::path(_module.path));
 	return {};
 }
 
-std::string shader_debug_name(const shader_module& module) {
-	if (!module.name.empty())
-		return std::string(module.name);
-	if (!module.path.empty())
-		return std::string(module.path);
+std::string shader_debug_name(const shader_module& _module) {
+	if (!_module.name.empty())
+		return std::string(_module.name);
+	if (!_module.path.empty())
+		return std::string(_module.path);
 	return "<inline>";
 }
 
-vk_sampler_kind detect_sampler_kind(const std::string& source) {
-	if (source.find("point_sampler") != std::string::npos || source.find("pointClamp") != std::string::npos)
+vk_sampler_kind detect_sampler_kind(const std::string& _source) {
+	if (_source.find("point_sampler") != std::string::npos || _source.find("pointClamp") != std::string::npos)
 		return vk_sampler_kind::point_clamp;
-	if (source.find("SamplerState") != std::string::npos)
+	if (_source.find("SamplerState") != std::string::npos)
 		return vk_sampler_kind::linear_clamp;
 	return vk_sampler_kind::none;
 }
 
-std::wstring to_wstring(const std::filesystem::path& path) {
-	return path.wstring();
+std::wstring to_wstring(const std::filesystem::path& _path) {
+	return _path.wstring();
 }
 
 std::filesystem::path find_vulkan_sdk_dxc() {
@@ -115,12 +114,12 @@ std::filesystem::path find_vulkan_sdk_dxc() {
 
 dxc_module_t load_dxc_module() {
 	static dxc_module_t module = []() -> dxc_module_t {
-		if (const std::filesystem::path preferred = find_vulkan_sdk_dxc(); !preferred.empty()) {
+		if (const std::filesystem::path preferred_path = find_vulkan_sdk_dxc(); !preferred_path.empty()) {
 #ifdef _WIN32
-			if (HMODULE handle = LoadLibraryW(preferred.c_str()))
+			if (HMODULE handle = LoadLibraryW(preferred_path.c_str()))
 				return handle;
 #else
-			if (void* handle = dlopen(preferred.c_str(), RTLD_LAZY))
+			if (void* handle = dlopen(preferred_path.c_str(), RTLD_LAZY))
 				return handle;
 #endif
 		}
@@ -135,7 +134,7 @@ dxc_module_t load_dxc_module() {
 	return module;
 }
 
-HRESULT vk_dxc_create_instance(REFCLSID clsid, REFIID iid, void** out_object) {
+HRESULT vk_dxc_create_instance(REFCLSID _clsid, REFIID _iid, void** _out_object) {
 	if (dxc_module_t module = load_dxc_module()) {
 		const auto proc = reinterpret_cast<dxc_create_instance_proc>(
 #ifdef _WIN32
@@ -145,455 +144,63 @@ HRESULT vk_dxc_create_instance(REFCLSID clsid, REFIID iid, void** out_object) {
 #endif
 		);
 		if (proc)
-			return proc(clsid, iid, out_object);
+			return proc(_clsid, _iid, _out_object);
 	}
 	return E_FAIL;
 }
 
-std::string trim_copy(std::string_view value) {
-	size_t begin = 0u;
-	size_t end = value.size();
-	while (begin < end && std::isspace(static_cast<unsigned char>(value[begin])) != 0)
-		++begin;
-	while (end > begin && std::isspace(static_cast<unsigned char>(value[end - 1u])) != 0)
-		--end;
-	return std::string(value.substr(begin, end - begin));
-}
-
-std::string remove_comments(std::string_view source) {
-	std::string result;
-	result.reserve(source.size());
-
-	bool in_line_comment = false;
-	bool in_block_comment = false;
-	for (size_t index = 0u; index < source.size(); ++index) {
-		const char current = source[index];
-		const char next = index + 1u < source.size() ? source[index + 1u] : '\0';
-
-		if (in_line_comment) {
-			if (current == '\n') {
-				in_line_comment = false;
-				result.push_back(current);
-			}
-			continue;
-		}
-
-		if (in_block_comment) {
-			if (current == '*' && next == '/') {
-				in_block_comment = false;
-				++index;
-			}
-			continue;
-		}
-
-		if (current == '/' && next == '/') {
-			in_line_comment = true;
-			++index;
-			continue;
-		}
-		if (current == '/' && next == '*') {
-			in_block_comment = true;
-			++index;
-			continue;
-		}
-
-		result.push_back(current);
-	}
-
-	return result;
-}
-
-std::vector<std::string> extract_push_constant_members(const std::string& body) {
-	const std::string cleaned_body = remove_comments(body);
-
-	std::vector<std::string> members;
-	size_t segment_begin = 0u;
-	while (segment_begin < cleaned_body.size()) {
-		const size_t segment_end = cleaned_body.find(';', segment_begin);
-		if (segment_end == std::string::npos)
-			break;
-
-		const std::string segment = trim_copy(std::string_view(cleaned_body).substr(segment_begin, segment_end - segment_begin));
-		segment_begin = segment_end + 1u;
-		if (segment.empty())
-			continue;
-
-		size_t cursor = segment.find_last_not_of(" \t\r\n");
-		if (cursor == std::string::npos)
-			continue;
-		if (segment[cursor] == ']') {
-			const size_t array_begin = segment.find_last_of('[', cursor);
-			if (array_begin == std::string::npos)
-				continue;
-			cursor = array_begin == 0u ? std::string::npos : array_begin - 1u;
-			while (cursor != std::string::npos && std::isspace(static_cast<unsigned char>(segment[cursor])) != 0)
-				cursor = cursor == 0u ? std::string::npos : cursor - 1u;
-			if (cursor == std::string::npos)
-				continue;
-		}
-
-		size_t name_end = cursor + 1u;
-		size_t name_begin = cursor;
-		while (name_begin > 0u) {
-			const char ch = segment[name_begin - 1u];
-			if (std::isalnum(static_cast<unsigned char>(ch)) == 0 && ch != '_')
-				break;
-			--name_begin;
-		}
-		if (name_begin == name_end)
-			continue;
-		members.push_back(segment.substr(name_begin, name_end - name_begin));
-	}
-
-	return members;
-}
-
-bool is_identifier_char(char ch) {
-	return std::isalnum(static_cast<unsigned char>(ch)) != 0 || ch == '_';
-}
-
-size_t skip_whitespace(std::string_view source, size_t offset) {
-	while (offset < source.size() && std::isspace(static_cast<unsigned char>(source[offset])) != 0)
-		++offset;
-	return offset;
-}
-
-bool match_keyword(std::string_view source, size_t offset, std::string_view keyword) {
-	if (offset + keyword.size() > source.size())
-		return false;
-	if (source.substr(offset, keyword.size()) != keyword)
-		return false;
-	if (offset > 0u && is_identifier_char(source[offset - 1u]))
-		return false;
-	if (offset + keyword.size() < source.size() && is_identifier_char(source[offset + keyword.size()]))
-		return false;
-	return true;
-}
-
-bool parse_identifier(std::string_view source, size_t& offset, std::string& out_identifier) {
-	if (offset >= source.size())
-		return false;
-	if (std::isalpha(static_cast<unsigned char>(source[offset])) == 0 && source[offset] != '_')
-		return false;
-
-	const size_t begin = offset;
-	++offset;
-	while (offset < source.size() && is_identifier_char(source[offset]))
-		++offset;
-
-	out_identifier.assign(source.substr(begin, offset - begin));
-	return true;
-}
-
-size_t find_matching_brace(std::string_view source, size_t open_brace_offset) {
-	bool in_line_comment = false;
-	bool in_block_comment = false;
-	bool in_string = false;
-
-	for (size_t offset = open_brace_offset + 1u; offset < source.size(); ++offset) {
-		const char current = source[offset];
-		const char next = offset + 1u < source.size() ? source[offset + 1u] : '\0';
-
-		if (in_line_comment) {
-			if (current == '\n')
-				in_line_comment = false;
-			continue;
-		}
-
-		if (in_block_comment) {
-			if (current == '*' && next == '/') {
-				in_block_comment = false;
-				++offset;
-			}
-			continue;
-		}
-
-		if (in_string) {
-			if (current == '\\') {
-				++offset;
-				continue;
-			}
-			if (current == '"')
-				in_string = false;
-			continue;
-		}
-
-		if (current == '/' && next == '/') {
-			in_line_comment = true;
-			++offset;
-			continue;
-		}
-		if (current == '/' && next == '*') {
-			in_block_comment = true;
-			++offset;
-			continue;
-		}
-		if (current == '"') {
-			in_string = true;
-			continue;
-		}
-		if (current == '}')
-			return offset;
-	}
-
-	return std::string_view::npos;
-}
-
-std::string transform_push_constant_cbuffers(const std::string& source) {
-	std::string transformed;
-	transformed.reserve(source.size() + 512u);
-
-	size_t scan_offset = 0u;
-	size_t copy_offset = 0u;
-	while (scan_offset < source.size()) {
-		const size_t cbuffer_offset = source.find("cbuffer", scan_offset);
-		if (cbuffer_offset == std::string::npos)
-			break;
-		if (!match_keyword(source, cbuffer_offset, "cbuffer")) {
-			scan_offset = cbuffer_offset + 1u;
-			continue;
-		}
-
-		size_t parse_offset = cbuffer_offset + 7u;
-		parse_offset = skip_whitespace(source, parse_offset);
-
-		std::string block_name;
-		if (!parse_identifier(source, parse_offset, block_name)) {
-			scan_offset = cbuffer_offset + 7u;
-			continue;
-		}
-
-		parse_offset = skip_whitespace(source, parse_offset);
-		if (parse_offset >= source.size() || source[parse_offset] != ':') {
-			scan_offset = cbuffer_offset + 7u;
-			continue;
-		}
-		++parse_offset;
-		parse_offset = skip_whitespace(source, parse_offset);
-
-		if (!match_keyword(source, parse_offset, "register")) {
-			scan_offset = cbuffer_offset + 7u;
-			continue;
-		}
-		parse_offset += 8u;
-		parse_offset = skip_whitespace(source, parse_offset);
-
-		if (parse_offset >= source.size() || source[parse_offset] != '(') {
-			scan_offset = cbuffer_offset + 7u;
-			continue;
-		}
-		++parse_offset;
-		parse_offset = skip_whitespace(source, parse_offset);
-
-		if (parse_offset + 3u > source.size() || source.substr(parse_offset, 3u) != "b15") {
-			scan_offset = cbuffer_offset + 7u;
-			continue;
-		}
-		parse_offset += 3u;
-		parse_offset = skip_whitespace(source, parse_offset);
-
-		if (parse_offset >= source.size() || source[parse_offset] != ')') {
-			scan_offset = cbuffer_offset + 7u;
-			continue;
-		}
-		++parse_offset;
-		parse_offset = skip_whitespace(source, parse_offset);
-
-		if (parse_offset >= source.size() || source[parse_offset] != '{') {
-			scan_offset = cbuffer_offset + 7u;
-			continue;
-		}
-
-		const size_t body_begin = parse_offset + 1u;
-		const size_t body_end = find_matching_brace(source, parse_offset);
-		if (body_end == std::string::npos) {
-			scan_offset = cbuffer_offset + 7u;
-			continue;
-		}
-
-		size_t end_offset = body_end + 1u;
-		end_offset = skip_whitespace(source, end_offset);
-		if (end_offset >= source.size() || source[end_offset] != ';') {
-			scan_offset = cbuffer_offset + 7u;
-			continue;
-		}
-		++end_offset;
-
-		transformed.append(source, copy_offset, cbuffer_offset - copy_offset);
-
-		const std::string body = source.substr(body_begin, body_end - body_begin);
-		const std::vector<std::string> members = extract_push_constant_members(body);
-		const std::string type_name = block_name + "_vk_push_constant_type";
-		const std::string variable_name = block_name + "_vk_push_constant";
-
-		transformed += "struct " + type_name + " {";
-		transformed += body;
-		transformed += "};\n";
-		transformed += "[[vk::push_constant]] ConstantBuffer<" + type_name + "> " + variable_name + ";\n";
-		for (const auto& member : members)
-			transformed += "#define " + member + " (" + variable_name + "." + member + ")\n";
-
-		copy_offset = end_offset;
-		scan_offset = end_offset;
-	}
-
-	transformed.append(source, copy_offset, std::string::npos);
-	return transformed;
-}
-
-void append_bindings(std::vector<std::wstring>& storage) {
+void append_bindings(std::vector<std::wstring>& _storage) {
 	for (uint32_t binding = 0u; binding < kUniformBindingCount; ++binding) {
-		storage.push_back(L"-fvk-bind-register");
-		storage.push_back(std::wstring(L"b") + std::to_wstring(binding));
-		storage.push_back(L"0");
-		storage.push_back(std::to_wstring(binding));
-		storage.push_back(std::to_wstring(kDescriptorSetIndex));
+		_storage.push_back(L"-fvk-bind-register");
+		_storage.push_back(std::wstring(L"b") + std::to_wstring(binding));
+		_storage.push_back(L"0");
+		_storage.push_back(std::to_wstring(binding));
+		_storage.push_back(std::to_wstring(kDescriptorSetIndex));
 	}
+
+	_storage.push_back(L"-fvk-bind-register");
+	_storage.push_back(L"b0");
+	_storage.push_back(L"1");
+	_storage.push_back(L"0");
+	_storage.push_back(std::to_wstring(kDescriptorSetIndex));
 
 	for (uint32_t binding = 0u; binding < kSampledImageBindingCount; ++binding) {
-		storage.push_back(L"-fvk-bind-register");
-		storage.push_back(std::wstring(L"t") + std::to_wstring(binding));
-		storage.push_back(L"0");
-		storage.push_back(std::to_wstring(binding));
-		storage.push_back(std::to_wstring(kDescriptorSetIndex));
+		_storage.push_back(L"-fvk-bind-register");
+		_storage.push_back(std::wstring(L"t") + std::to_wstring(binding));
+		_storage.push_back(L"0");
+		_storage.push_back(std::to_wstring(binding));
+		_storage.push_back(std::to_wstring(kDescriptorSetIndex));
 	}
 
 	for (uint32_t binding = 0u; binding < kSamplerBindingCount; ++binding) {
-		storage.push_back(L"-fvk-bind-register");
-		storage.push_back(std::wstring(L"s") + std::to_wstring(binding));
-		storage.push_back(L"0");
-		storage.push_back(std::to_wstring(binding));
-		storage.push_back(std::to_wstring(kSamplerSetIndex));
+		_storage.push_back(L"-fvk-bind-register");
+		_storage.push_back(std::wstring(L"s") + std::to_wstring(binding));
+		_storage.push_back(L"0");
+		_storage.push_back(std::to_wstring(binding));
+		_storage.push_back(std::to_wstring(kSamplerSetIndex));
 	}
 }
 
-#ifdef _WIN32
-class transformed_include_handler final : public Microsoft::WRL::RuntimeClass<
-											  Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
-											  IDxcIncludeHandler> {
-  public:
-	HRESULT RuntimeClassInitialize(IDxcUtils* utils, IDxcIncludeHandler* fallback) {
-		m_utils = utils;
-		m_fallback = fallback;
-		return (m_utils && m_fallback) ? S_OK : E_INVALIDARG;
-	}
+bool is_rt_shader(mars_shader_type _shader_type) {
+	return _shader_type == MARS_SHADER_TYPE_RAY_GEN || _shader_type == MARS_SHADER_TYPE_MISS || _shader_type == MARS_SHADER_TYPE_CLOSEST_HIT;
+}
 
-	HRESULT STDMETHODCALLTYPE LoadSource(LPCWSTR filename, IDxcBlob** include_source) override {
-		if (!include_source)
-			return E_POINTER;
-
-		DXC_PTR(IDxcBlob) blob;
-		const HRESULT load_hr = m_fallback->LoadSource(filename, &blob);
-		if (FAILED(load_hr) || !blob)
-			return load_hr;
-
-		const auto* blob_bytes = static_cast<const char*>(blob->GetBufferPointer());
-		const std::string source(blob_bytes, blob->GetBufferSize());
-		const std::string transformed = transform_push_constant_cbuffers(source);
-
-		DXC_PTR(IDxcBlobEncoding) encoding_blob;
-		const HRESULT create_hr = m_utils->CreateBlob(
-			transformed.data(),
-			static_cast<UINT32>(transformed.size()),
-			DXC_CP_UTF8,
-			&encoding_blob
-		);
-		if (FAILED(create_hr))
-			return create_hr;
-
-		*include_source = encoding_blob.Detach();
-		return S_OK;
-	}
-
-  private:
-	DXC_PTR(IDxcUtils) m_utils;
-	DXC_PTR(IDxcIncludeHandler) m_fallback;
-};
-#else
-class transformed_include_handler final : public IDxcIncludeHandler {
-  public:
-	transformed_include_handler(IDxcUtils* utils, IDxcIncludeHandler* fallback)
-		: m_utils(utils), m_fallback(fallback), m_refs(1) {
-		if (m_utils) m_utils->AddRef();
-		if (m_fallback) m_fallback->AddRef();
-	}
-	~transformed_include_handler() {
-		if (m_utils) m_utils->Release();
-		if (m_fallback) m_fallback->Release();
-	}
-
-	ULONG STDMETHODCALLTYPE AddRef() override { return ++m_refs; }
-	ULONG STDMETHODCALLTYPE Release() override {
-		const ULONG r = --m_refs;
-		if (r == 0) delete this;
-		return r;
-	}
-	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, void** p) override {
-		if (p) *p = nullptr;
-		return E_NOINTERFACE;
-	}
-
-	HRESULT STDMETHODCALLTYPE LoadSource(LPCWSTR filename, IDxcBlob** include_source) override {
-		if (!include_source)
-			return E_POINTER;
-
-		IDxcBlob* blob_raw = nullptr;
-		const HRESULT load_hr = m_fallback->LoadSource(filename, &blob_raw);
-		if (FAILED(load_hr) || !blob_raw)
-			return load_hr;
-
-		const auto* blob_bytes = static_cast<const char*>(blob_raw->GetBufferPointer());
-		const std::string source(blob_bytes, blob_raw->GetBufferSize());
-		blob_raw->Release();
-		const std::string transformed = transform_push_constant_cbuffers(source);
-
-		IDxcBlobEncoding* encoding_blob = nullptr;
-		const HRESULT create_hr = m_utils->CreateBlob(
-			transformed.data(),
-			static_cast<UINT32>(transformed.size()),
-			DXC_CP_UTF8,
-			&encoding_blob
-		);
-		if (FAILED(create_hr))
-			return create_hr;
-
-		*include_source = encoding_blob;
-		return S_OK;
-	}
-
-  private:
-	IDxcUtils* m_utils;
-	IDxcIncludeHandler* m_fallback;
-	std::atomic<ULONG> m_refs;
-};
-#endif
-
-bool compile_module(
-	vk_device_data* device_data,
-	IDxcUtils* dxc_utils,
-	IDxcCompiler3* compiler,
-	IDxcIncludeHandler* include_handler,
-	const shader_module& module,
-	const wchar_t* entry_point,
-	const wchar_t* profile,
-	vk_shader_stage_data* out_stage
-) {
-	const std::string source = load_shader_source(module);
+bool compile_module(vk_device_data* _device_data, IDxcUtils*, IDxcCompiler3* _compiler, IDxcIncludeHandler* _include_handler, const shader_module& _module, const wchar_t* _entry_point, const wchar_t* _profile, mars_shader_type _shader_type, vk_shader_stage_data* _out_stage) {
+	const std::string source = load_shader_source(_module);
 	if (source.empty()) {
-		mars::logger::error(vk_log_channel(), "Unable to load shader source {}", shader_debug_name(module));
+		mars::logger::error(vk_log_channel(), "Unable to load shader source {}", shader_debug_name(_module));
 		return false;
 	}
 
-	const std::string transformed_source = transform_push_constant_cbuffers(source);
-	const std::filesystem::path absolute_path = module.path.empty()
+	const std::filesystem::path absolute_path = _module.path.empty()
 		? std::filesystem::current_path()
-		: std::filesystem::absolute(std::filesystem::path(module.path));
+		: std::filesystem::absolute(std::filesystem::path(_module.path));
 	std::vector<std::wstring> arg_storage = {
 		L"-spirv",
 		L"-E",
-		entry_point,
+		_entry_point,
 		L"-T",
-		profile,
+		_profile,
 		L"-fspv-target-env=vulkan1.3",
 		L"-fvk-use-dx-layout",
 		L"-fspv-extension=SPV_EXT_descriptor_indexing",
@@ -603,6 +210,8 @@ bool compile_module(
 		L"-I",
 		to_wstring(absolute_path.parent_path()),
 	};
+	if (is_rt_shader(_shader_type))
+		arg_storage.push_back(L"-fspv-extension=SPV_KHR_ray_tracing");
 	append_bindings(arg_storage);
 
 	std::vector<LPCWSTR> args;
@@ -611,14 +220,14 @@ bool compile_module(
 		args.push_back(arg.c_str());
 
 	DxcBuffer buffer = {};
-	buffer.Ptr = transformed_source.data();
-	buffer.Size = transformed_source.size();
+	buffer.Ptr = source.data();
+	buffer.Size = source.size();
 	buffer.Encoding = DXC_CP_UTF8;
 
 	DXC_PTR(IDxcResult) result;
-	const HRESULT compile_hr = compiler->Compile(&buffer, args.data(), static_cast<UINT32>(args.size()), include_handler, IID_PPV_ARGS(&result));
+	const HRESULT compile_hr = _compiler->Compile(&buffer, args.data(), static_cast<UINT32>(args.size()), _include_handler, IID_PPV_ARGS(&result));
 	if (FAILED(compile_hr)) {
-		mars::logger::error(vk_log_channel(), "DXC compile failed for {}", shader_debug_name(module));
+		mars::logger::error(vk_log_channel(), "DXC compile failed for {}", shader_debug_name(_module));
 		return false;
 	}
 
@@ -643,23 +252,23 @@ bool compile_module(
 	module_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	module_info.codeSize = blob->GetBufferSize();
 	module_info.pCode = static_cast<const uint32_t*>(blob->GetBufferPointer());
-	vk_expect<vkCreateShaderModule>(device_data->device, &module_info, nullptr, &out_stage->module);
+	vk_expect<vkCreateShaderModule>(_device_data->device, &module_info, nullptr, &_out_stage->module);
 
-	out_stage->path = shader_debug_name(module);
-	out_stage->sampler_kind = detect_sampler_kind(source);
-	return out_stage->module != VK_NULL_HANDLE;
+	_out_stage->path = shader_debug_name(_module);
+	_out_stage->sampler_kind = detect_sampler_kind(source);
+	return _out_stage->module != VK_NULL_HANDLE;
 }
 
-std::filesystem::path resolve_vulkan_shader_path(const std::filesystem::path& original_path) {
-	if (original_path.empty())
-		return original_path;
+std::filesystem::path resolve_vulkan_shader_path(const std::filesystem::path& _original_path) {
+	if (_original_path.empty())
+		return _original_path;
 
-	const std::string normalized = original_path.lexically_normal().generic_string();
+	const std::string normalized = _original_path.lexically_normal().generic_string();
 	if (normalized.empty())
-		return original_path;
+		return _original_path;
 
 	if (normalized.rfind("fx/vk/", 0u) == 0u || normalized.find("/fx/vk/") != std::string::npos)
-		return original_path;
+		return _original_path;
 
 	std::string vk_variant = normalized;
 	const size_t rooted_fx_offset = vk_variant.find("/fx/");
@@ -668,13 +277,13 @@ std::filesystem::path resolve_vulkan_shader_path(const std::filesystem::path& or
 	else if (vk_variant.rfind("fx/", 0u) == 0u)
 		vk_variant.insert(3u, "vk/");
 	else
-		return original_path;
+		return _original_path;
 
 	const std::filesystem::path variant_path(vk_variant);
 	if (std::filesystem::exists(variant_path))
 		return variant_path;
 
-	return original_path;
+	return _original_path;
 }
 } // namespace
 
@@ -698,21 +307,6 @@ shader vk_shader_impl::vk_shader_create(const device& _device, const std::vector
 		return result;
 	}
 
-#ifdef _WIN32
-	DXC_PTR(IDxcIncludeHandler) transformed_handler;
-	if (FAILED(Microsoft::WRL::MakeAndInitialize<transformed_include_handler>(
-			&transformed_handler, dxc_utils.Get(), default_include_handler.Get()))) {
-		mars::logger::error(vk_log_channel(), "Failed to initialize DXC include handler");
-		shader result;
-		result.engine = _device.engine;
-		result.data.store(data);
-		return result;
-	}
-#else
-	DXC_PTR(IDxcIncludeHandler) transformed_handler;
-	*(&transformed_handler) = new transformed_include_handler(dxc_utils.Get(), default_include_handler.Get());
-#endif
-
 	for (const auto& module : _shaders) {
 		shader_module resolved_module = module;
 		std::string resolved_path_storage;
@@ -724,13 +318,22 @@ shader vk_shader_impl::vk_shader_create(const device& _device, const std::vector
 		}
 		switch (module.type) {
 		case MARS_SHADER_TYPE_VERTEX:
-			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), transformed_handler.Get(), resolved_module, L"VSMain", L"vs_6_8", &data->vertex);
+			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), default_include_handler.Get(), resolved_module, L"VSMain", L"vs_6_8", module.type, &data->vertex);
 			break;
 		case MARS_SHADER_TYPE_FRAGMENT:
-			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), transformed_handler.Get(), resolved_module, L"PSMain", L"ps_6_6", &data->fragment);
+			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), default_include_handler.Get(), resolved_module, L"PSMain", L"ps_6_6", module.type, &data->fragment);
 			break;
 		case MARS_SHADER_TYPE_COMPUTE:
-			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), transformed_handler.Get(), resolved_module, L"CSMain", L"cs_6_6", &data->compute);
+			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), default_include_handler.Get(), resolved_module, L"CSMain", L"cs_6_6", module.type, &data->compute);
+			break;
+		case MARS_SHADER_TYPE_RAY_GEN:
+			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), default_include_handler.Get(), resolved_module, L"RayGen", L"lib_6_6", module.type, &data->compute);
+			break;
+		case MARS_SHADER_TYPE_MISS:
+			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), default_include_handler.Get(), resolved_module, L"Miss", L"lib_6_6", module.type, &data->compute);
+			break;
+		case MARS_SHADER_TYPE_CLOSEST_HIT:
+			compile_module(device_data, dxc_utils.Get(), dxc_compiler.Get(), default_include_handler.Get(), resolved_module, L"ClosestHit", L"lib_6_6", module.type, &data->compute);
 			break;
 		}
 	}

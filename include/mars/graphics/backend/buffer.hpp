@@ -10,9 +10,9 @@ struct command_buffer;
 struct graphics_backend_functions;
 
 struct buffer {
-	graphics_backend_functions* engine;
+	graphics_backend_functions* engine = nullptr;
 	meta::type_erased_ptr data;
-	size_t allocated_size;
+	size_t allocated_size = 0;
 };
 
 struct buffer_create_params {
@@ -41,5 +41,6 @@ struct buffer_impl {
 	void (*buffer_destroy)(buffer& _buffer, const device& _device) = nullptr;
 	uint32_t (*buffer_get_uav_index)(const buffer& _buffer) = nullptr;
 	uint32_t (*buffer_get_srv_index)(const buffer& _buffer) = nullptr;
+	uint64_t (*buffer_get_device_address)(const buffer& _buffer) = nullptr;
 };
 } // namespace mars

@@ -18,5 +18,7 @@ struct dx_command_pool_impl {
 	static void dx_command_pool_destroy(command_pool& _command_pool, const device& _device);
 	static void dx_command_buffer_begin_event(const command_buffer& _command_buffer, std::string_view _name);
 	static void dx_command_buffer_end_event(const command_buffer& _command_buffer);
+	static void dx_command_buffer_trace_rays(const command_buffer& _command_buffer, const mars::ray_tracing_pipeline& _pipeline, const mars::rt_dispatch_regions& _regions, uint32_t _width, uint32_t _height, uint32_t _depth);
+	static command_pool dx_compute_command_pool_create(const device& _device);
 };
 } // namespace mars::graphics::dx

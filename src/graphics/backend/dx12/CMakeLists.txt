@@ -1,6 +1,7 @@
 target_sources(
     mars
     PRIVATE
+        dx_acceleration_structure.cpp
         dx_append_buffer.cpp
         dx_backend.cpp
         dx_buffer.cpp
@@ -13,6 +14,7 @@ target_sources(
         dx_framebuffer.cpp
         dx_indirect_executor.cpp
         dx_pipeline.cpp
+        dx_ray_tracing_pipeline.cpp
         dx_readback_buffer.cpp
         dx_render_pass.cpp
         dx_shader.cpp

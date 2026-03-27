@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mars/meta/type_erased.hpp>
+#include <mars/graphics/backend/ray_tracing_types.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -13,6 +14,7 @@ struct graphics_backend_functions;
 struct texture;
 struct pipeline;
 struct compute_pipeline;
+struct ray_tracing_pipeline;
 
 struct command_pool {
 	graphics_backend_functions* engine = nullptr;
@@ -62,5 +64,9 @@ struct command_pool_impl {
 
 	void (*command_buffer_begin_event)(const command_buffer& _command_buffer, std::string_view _name) = nullptr;
 	void (*command_buffer_end_event)(const command_buffer& _command_buffer) = nullptr;
+
+	void (*command_buffer_trace_rays)(const command_buffer& _command_buffer, const ray_tracing_pipeline& _pipeline, const rt_dispatch_regions& _regions, uint32_t _width, uint32_t _height, uint32_t _depth) = nullptr;
+
+	command_pool (*compute_command_pool_create)(const device& _device) = nullptr;
 };
 } // namespace mars

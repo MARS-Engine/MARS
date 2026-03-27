@@ -1,69 +1,63 @@
-#include "vk_internal.hpp"
-
 #include <mars/graphics/backend/vk/vk_buffer.hpp>
+
+#include "vk_internal.hpp"
 
 namespace mars::graphics::vk {
 namespace {
-void transition_for_input_binding(
-	vk_command_buffer_data* command_buffer_data,
-	vk_buffer_data* buffer_data,
-	VkPipelineStageFlags target_stage,
-	VkAccessFlags target_access
-) {
-	if (buffer_data->current_stage == target_stage && buffer_data->current_access == target_access)
+void transition_for_input_binding(vk_command_buffer_data* _command_buffer_data, vk_buffer_data* _buffer_data, VkPipelineStageFlags _target_stage, VkAccessFlags _target_access) {
+	if (_buffer_data->current_stage == _target_stage && _buffer_data->current_access == _target_access)
 		return;
 
-	vk_cmd_pipeline_buffer_barrier2(
-		command_buffer_data->command_buffer,
-		buffer_data->current_stage,
-		buffer_data->current_access,
-		target_stage,
-		target_access,
-		buffer_data->buffer,
-		0u,
-		buffer_data->size
-	);
-	buffer_data->current_stage = target_stage;
-	buffer_data->current_access = target_access;
+	vk_cmd_pipeline_buffer_barrier2(_command_buffer_data->command_buffer, _buffer_data->current_stage, _buffer_data->current_access, _target_stage, _target_access, _buffer_data->buffer, 0u, _buffer_data->size);
+	_buffer_data->current_stage = _target_stage;
+	_buffer_data->current_access = _target_access;
 }
 
-VkBufferUsageFlags buffer_usage_flags_from_params(const buffer_create_params& params) {
+VkBufferUsageFlags buffer_usage_flags_from_params(const buffer_create_params& _params) {
 	VkBufferUsageFlags usage =
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
 		VK_BUFFER_USAGE_TRANSFER_DST_BIT |
 		VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT |
 		VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-	if ((params.buffer_type & MARS_BUFFER_TYPE_VERTEX) != 0u)
+	if ((_params.buffer_type & MARS_BUFFER_TYPE_VERTEX) != 0u)
 		usage |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	if ((params.buffer_type & MARS_BUFFER_TYPE_INDEX) != 0u)
+	if ((_params.buffer_type & MARS_BUFFER_TYPE_INDEX) != 0u)
 		usage |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-	if ((params.buffer_type & MARS_BUFFER_TYPE_UNIFORM) != 0u)
+	if ((_params.buffer_type & (MARS_BUFFER_TYPE_VERTEX | MARS_BUFFER_TYPE_INDEX)) != 0u)
+		usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+	if ((_params.buffer_type & MARS_BUFFER_TYPE_ACCELERATION_STRUCTURE_STORAGE) != 0u)
+		usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
+	if ((_params.buffer_type & MARS_BUFFER_TYPE_ACCELERATION_STRUCTURE_BUILD_INPUT) != 0u)
+		usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+	if ((_params.buffer_type & MARS_BUFFER_TYPE_UNIFORM) != 0u)
 		usage |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-	if ((params.buffer_type & MARS_BUFFER_TYPE_UNIFORM_TEXEL_BUFFER) != 0u)
+	if ((_params.buffer_type & MARS_BUFFER_TYPE_UNIFORM_TEXEL_BUFFER) != 0u)
 		usage |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
-	if ((params.buffer_type & MARS_BUFFER_TYPE_UNORDERED_ACCESS) != 0u)
+	if ((_params.buffer_type & MARS_BUFFER_TYPE_UNORDERED_ACCESS) != 0u)
 		usage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-	if ((params.buffer_type & MARS_BUFFER_TYPE_SHADER_RESOURCE) != 0u)
+	if ((_params.buffer_type & MARS_BUFFER_TYPE_SHADER_RESOURCE) != 0u)
 		usage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-	if ((params.buffer_type & MARS_BUFFER_TYPE_STRUCTURED) != 0u)
+	if ((_params.buffer_type & MARS_BUFFER_TYPE_SHADER_BINDING_TABLE) != 0u)
+		usage |= VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR;
+	if ((_params.buffer_type & MARS_BUFFER_TYPE_STRUCTURED) != 0u)
 		usage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-	if (params.stride != 0u)
+	if (_params.stride != 0u)
 		usage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 	return usage;
 }
 
-void create_buffer_resource(vk_device_data* device_data, vk_buffer_data* data, const buffer_create_params& params) {
+void create_buffer_resource(vk_device_data* _device_data, vk_buffer_data* _data, const buffer_create_params& _params) {
 	VkBufferCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	create_info.size = params.allocated_size;
-	create_info.usage = data->usage;
+	create_info.size = _params.allocated_size;
+	create_info.usage = _data->usage;
 	create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	vk_expect<vkCreateBuffer>(device_data->device, &create_info, nullptr, &data->buffer);
+	vk_expect<vkCreateBuffer>(_device_data->device, &create_info, nullptr, &_data->buffer);
 
 	VkMemoryRequirements memory_requirements = {};
-	vkGetBufferMemoryRequirements(device_data->device, data->buffer, &memory_requirements);
+	vkGetBufferMemoryRequirements(_device_data->device, _data->buffer, &memory_requirements);
 
-	const VkMemoryPropertyFlags properties = data->host_visible
+	const VkMemoryPropertyFlags properties = _data->host_visible
 												 ? (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
 												 : VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
@@ -75,31 +69,31 @@ void create_buffer_resource(vk_device_data* device_data, vk_buffer_data* data, c
 	allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocate_info.pNext = &allocate_flags;
 	allocate_info.allocationSize = memory_requirements.size;
-	allocate_info.memoryTypeIndex = vk_find_memory_type(device_data, memory_requirements.memoryTypeBits, properties);
-	vk_expect<vkAllocateMemory>(device_data->device, &allocate_info, nullptr, &data->memory);
-	vk_expect<vkBindBufferMemory>(device_data->device, data->buffer, data->memory, 0u);
+	allocate_info.memoryTypeIndex = vk_find_memory_type(_device_data, memory_requirements.memoryTypeBits, properties);
+	vk_expect<vkAllocateMemory>(_device_data->device, &allocate_info, nullptr, &_data->memory);
+	vk_expect<vkBindBufferMemory>(_device_data->device, _data->buffer, _data->memory, 0u);
 
 	VkBufferDeviceAddressInfo address_info = {};
 	address_info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-	address_info.buffer = data->buffer;
-	data->device_address = vkGetBufferDeviceAddress(device_data->device, &address_info);
+	address_info.buffer = _data->buffer;
+	_data->device_address = vkGetBufferDeviceAddress(_device_data->device, &address_info);
 }
 
-void update_bindless_buffer_descriptor(vk_device_data* device_data, uint32_t binding_index, VkDescriptorType descriptor_type, VkBuffer buffer_handle, VkDeviceSize size) {
+void update_bindless_buffer_descriptor(vk_device_data* _device_data, uint32_t _binding_index, VkDescriptorType _descriptor_type, VkBuffer _buffer_handle, VkDeviceSize _size) {
 	VkDescriptorBufferInfo buffer_info = {};
-	buffer_info.buffer = buffer_handle;
+	buffer_info.buffer = _buffer_handle;
 	buffer_info.offset = 0u;
-	buffer_info.range = size;
+	buffer_info.range = _size;
 
 	VkWriteDescriptorSet write = {};
 	write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	write.dstSet = device_data->bindless_set;
+	write.dstSet = _device_data->bindless_set;
 	write.dstBinding = 0u;
-	write.dstArrayElement = binding_index;
+	write.dstArrayElement = _binding_index;
 	write.descriptorCount = 1u;
-	write.descriptorType = descriptor_type;
+	write.descriptorType = _descriptor_type;
 	write.pBufferInfo = &buffer_info;
-	vkUpdateDescriptorSets(device_data->device, 1u, &write, 0u, nullptr);
+	vkUpdateDescriptorSets(_device_data->device, 1u, &write, 0u, nullptr);
 }
 
 } // namespace
@@ -238,5 +232,9 @@ uint32_t vk_buffer_impl::vk_buffer_get_uav_index(const buffer& _buffer) {
 uint32_t vk_buffer_impl::vk_buffer_get_srv_index(const buffer& _buffer) {
 	auto* data = _buffer.data.expect<vk_buffer_data>();
 	return data->srv_bindless_idx;
+}
+
+uint64_t vk_buffer_impl::vk_buffer_get_device_address(const buffer& _buffer) {
+	return _buffer.data.expect<vk_buffer_data>()->device_address;
 }
 } // namespace mars::graphics::vk

@@ -1,5 +1,6 @@
 #include <mars/graphics/backend/vk/vk_backend.hpp>
 
+#include <mars/graphics/backend/vk/vk_acceleration_structure.hpp>
 #include <mars/graphics/backend/vk/vk_append_buffer.hpp>
 #include <mars/graphics/backend/vk/vk_buffer.hpp>
 #include <mars/graphics/backend/vk/vk_command_pool.hpp>
@@ -11,6 +12,7 @@
 #include <mars/graphics/backend/vk/vk_framebuffer.hpp>
 #include <mars/graphics/backend/vk/vk_indirect_executor.hpp>
 #include <mars/graphics/backend/vk/vk_pipeline.hpp>
+#include <mars/graphics/backend/vk/vk_ray_tracing_pipeline.hpp>
 #include <mars/graphics/backend/vk/vk_readback_buffer.hpp>
 #include <mars/graphics/backend/vk/vk_render_pass.hpp>
 #include <mars/graphics/backend/vk/vk_shader.hpp>
@@ -33,6 +35,7 @@ graphics_backend_functions* vulkan_t::get_functions() {
 			.device_flush = &vk::vk_device_impl::vk_device_flush,
 			.device_supports_feature = &vk::vk_device_impl::vk_device_supports_feature,
 			.device_destroy = &vk::vk_device_impl::vk_device_destroy,
+			.device_submit_compute = &vk::vk_device_impl::vk_device_submit_compute,
 		},
 		.command_queue = {
 			.command_queue_create = &vk::vk_command_queue_impl::vk_command_queue_create,
@@ -74,6 +77,8 @@ graphics_backend_functions* vulkan_t::get_functions() {
 			.command_pool_destroy = &vk::vk_command_pool_impl::vk_command_pool_destroy,
 			.command_buffer_begin_event = &vk::vk_command_pool_impl::vk_command_buffer_begin_event,
 			.command_buffer_end_event = &vk::vk_command_pool_impl::vk_command_buffer_end_event,
+			.command_buffer_trace_rays = &vk::vk_command_pool_impl::vk_command_buffer_trace_rays,
+			.compute_command_pool_create = &vk::vk_command_pool_impl::vk_compute_command_pool_create,
 		},
 		.buffer = {
 			.buffer_create = &vk::vk_buffer_impl::vk_buffer_create,
@@ -86,6 +91,7 @@ graphics_backend_functions* vulkan_t::get_functions() {
 			.buffer_destroy = &vk::vk_buffer_impl::vk_buffer_destroy,
 			.buffer_get_uav_index = &vk::vk_buffer_impl::vk_buffer_get_uav_index,
 			.buffer_get_srv_index = &vk::vk_buffer_impl::vk_buffer_get_srv_index,
+			.buffer_get_device_address = &vk::vk_buffer_impl::vk_buffer_get_device_address,
 		},
 		.texture = {
 			.texture_create = &vk::vk_texture_impl::vk_texture_create,
@@ -119,8 +125,10 @@ graphics_backend_functions* vulkan_t::get_functions() {
 			.descriptor_create = &vk::vk_descriptor_impl::vk_descriptor_create,
 			.descriptor_set_create = &vk::vk_descriptor_impl::vk_descriptor_set_create,
 			.descriptor_set_create_compute = &vk::vk_descriptor_impl::vk_descriptor_set_create_compute,
+			.descriptor_set_create_rt = &vk::vk_descriptor_impl::vk_descriptor_set_create_rt,
 			.descriptor_set_bind = &vk::vk_descriptor_impl::vk_descriptor_set_bind,
 			.descriptor_set_bind_compute = &vk::vk_descriptor_impl::vk_descriptor_set_bind_compute,
+			.descriptor_set_bind_rt = &vk::vk_descriptor_impl::vk_descriptor_set_bind_rt,
 			.descriptor_set_update_cbv = &vk::vk_descriptor_impl::vk_descriptor_set_update_cbv,
 			.descriptor_destroy = &vk::vk_descriptor_impl::vk_descriptor_destroy,
 		},
@@ -162,6 +170,21 @@ graphics_backend_functions* vulkan_t::get_functions() {
 			.append_buffer_get_counter_buffer = &vk::vk_append_buffer_impl::get_counter_buffer,
 			.append_buffer_get_data_buffer = &vk::vk_append_buffer_impl::get_data_buffer,
 			.append_buffer_destroy = &vk::vk_append_buffer_impl::destroy,
+		},
+		.acceleration_structure = {
+			.blas_create = &vk::vk_acceleration_structure_impl::vk_blas_create,
+			.blas_update = &vk::vk_acceleration_structure_impl::vk_blas_update,
+			.blas_destroy = &vk::vk_acceleration_structure_impl::vk_blas_destroy,
+			.tlas_create = &vk::vk_acceleration_structure_impl::vk_tlas_create,
+			.tlas_build = &vk::vk_acceleration_structure_impl::vk_tlas_build,
+			.tlas_get_srv_index = &vk::vk_acceleration_structure_impl::vk_tlas_get_srv_index,
+			.tlas_destroy = &vk::vk_acceleration_structure_impl::vk_tlas_destroy,
+		},
+		.ray_tracing_pipeline = {
+			.ray_tracing_pipeline_create = &vk::vk_ray_tracing_pipeline_impl::vk_ray_tracing_pipeline_create,
+			.ray_tracing_pipeline_bind = &vk::vk_ray_tracing_pipeline_impl::vk_ray_tracing_pipeline_bind,
+			.ray_tracing_pipeline_destroy = &vk::vk_ray_tracing_pipeline_impl::vk_ray_tracing_pipeline_destroy,
+			.rt_pipeline_write_shader_identifiers = &vk::vk_ray_tracing_pipeline_impl::vk_rt_pipeline_write_shader_identifiers,
 		},
 	};
 

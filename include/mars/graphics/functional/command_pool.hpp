@@ -13,8 +13,8 @@ inline command_pool command_pool_create(const device& _device) {
 	return _device.engine->get_impl<command_pool_impl>().command_pool_create(_device);
 }
 
-inline std::vector<command_buffer> command_buffer_create(const command_pool& _command_pool, const device& _device, size_t _size) {
-	return _device.engine->get_impl<command_pool_impl>().command_buffer_create(_command_pool, _device, _size);
+inline std::vector<command_buffer> command_buffer_create(const command_pool& _command_pool, const device& _device, size_t _n_command_buffers) {
+	return _device.engine->get_impl<command_pool_impl>().command_buffer_create(_command_pool, _device, _n_command_buffers);
 }
 
 inline void command_buffer_record(const command_buffer& _command_buffer) {
@@ -50,11 +50,7 @@ inline void command_buffer_set_compute_push_constants(const command_buffer& _com
 }
 
 template <typename T>
-inline void command_buffer_set_push_constants(
-	const command_buffer& _command_buffer,
-	const pipeline& _pipeline,
-	const T& _data
-) {
+inline void command_buffer_set_push_constants(const command_buffer& _command_buffer, const pipeline& _pipeline, const T& _data) {
 	static_assert(std::is_trivially_copyable_v<T>);
 	static_assert(sizeof(T) % sizeof(uint32_t) == 0, "Push-constant struct size must be a multiple of 4 bytes");
 	mars::graphics::command_buffer_set_push_constants(
@@ -66,11 +62,7 @@ inline void command_buffer_set_push_constants(
 }
 
 template <typename T>
-inline void command_buffer_set_compute_push_constants(
-	const command_buffer& _command_buffer,
-	const compute_pipeline& _pipeline,
-	const T& _data
-) {
+inline void command_buffer_set_compute_push_constants(const command_buffer& _command_buffer, const compute_pipeline& _pipeline, const T& _data) {
 	static_assert(std::is_trivially_copyable_v<T>);
 	static_assert(sizeof(T) % sizeof(uint32_t) == 0, "Push-constant struct size must be a multiple of 4 bytes");
 	mars::graphics::command_buffer_set_compute_push_constants(
@@ -96,5 +88,14 @@ inline void command_buffer_begin_event(const command_buffer& _cmd, std::string_v
 inline void command_buffer_end_event(const command_buffer& _cmd) {
 	return _cmd.engine->get_impl<command_pool_impl>().command_buffer_end_event(_cmd);
 }
+
+inline command_pool compute_command_pool_create(const device& _device) {
+	return _device.engine->get_impl<command_pool_impl>().compute_command_pool_create(_device);
+}
+
+inline void command_buffer_trace_rays(const command_buffer& _cmd, const ray_tracing_pipeline& _pipeline, const rt_dispatch_regions& _regions, uint32_t _width, uint32_t _height, uint32_t _depth) {
+	return _cmd.engine->get_impl<command_pool_impl>().command_buffer_trace_rays(_cmd, _pipeline, _regions, _width, _height, _depth);
+}
+
 } // namespace graphics
 } // namespace mars
