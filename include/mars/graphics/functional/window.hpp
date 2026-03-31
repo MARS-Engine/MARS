@@ -19,12 +19,27 @@ struct graphics_engine;
 struct window;
 
 struct window_event_buttons {
-	bool left_button;
-	bool right_button;
+	bool left_button_down = false;
+	bool right_button_down = false;
+	bool middle_button_down = false;
+};
+
+struct window_mouse_state {
+	mars::vector2<size_t> position = {};
+	mars::vector2<size_t> previous_position = {};
+	window_event_buttons buttons = {};
+	window_event_buttons previous_buttons = {};
+};
+
+struct window_mouse_wheel_state {
+	float delta = 0.0f;
+	mars::vector2<size_t> position = {};
 };
 
 struct window_event {
-	void on_mouse_change(window&, const mars::vector2<size_t>& _position, const window_event_buttons& _click);
+	void on_mouse_change(window&, const window_mouse_state& _mouse_state);
+	void on_mouse_motion(window&, const window_mouse_state& _mouse_state);
+	void on_mouse_wheel(window&, const window_mouse_wheel_state& _mouse_wheel_state);
 	void on_resize(window&, const mars::vector2<size_t>& _size);
 	void on_key_down(window&, const SDL_Scancode& _key);
 	void on_focus_changed(window&, const bool& _focused);
@@ -42,14 +57,31 @@ struct window : event<window_event> {
 	SDL_WindowFlags flags = 0;
 
 	float wheel_change = 0.0f;
+	window_mouse_state mouse_state = {};
 
 	inline void resize(const mars::vector2<size_t>& _size) {
 		size = _size;
 		broadcast<&window_event::on_resize>(*this, _size);
 	}
 
-	inline void mouse_change(const mars::vector2<size_t>& _position, const window_event_buttons& _click) {
-		broadcast<&window_event::on_mouse_change>(*this, _position, _click);
+	inline void mouse_change(const mars::vector2<size_t>& _position, const window_event_buttons& _buttons) {
+		mouse_state.previous_position = mouse_state.position;
+		mouse_state.previous_buttons = mouse_state.buttons;
+		mouse_state.position = _position;
+		mouse_state.buttons = _buttons;
+		broadcast<&window_event::on_mouse_change>(*this, mouse_state);
+	}
+
+	inline void mouse_motion(const mars::vector2<size_t>& _position) {
+		mouse_state.previous_position = mouse_state.position;
+		mouse_state.previous_buttons = mouse_state.buttons;
+		mouse_state.position = _position;
+		broadcast<&window_event::on_mouse_motion>(*this, mouse_state);
+	}
+
+	inline void mouse_wheel(const window_mouse_wheel_state& _mouse_wheel_state) {
+		wheel_change = _mouse_wheel_state.delta;
+		broadcast<&window_event::on_mouse_wheel>(*this, _mouse_wheel_state);
 	}
 
 	inline void close() {
@@ -108,18 +140,39 @@ inline void window_process_events(std::span<window*> _windows, EventHook&& _even
 			SDL_GetWindowSizeInPixels(target_window->sdl_window, &pixel_width, &pixel_height);
 			if (pixel_width > 0 && pixel_height > 0)
 				target_window->resize({static_cast<size_t>(pixel_width), static_cast<size_t>(pixel_height)});
-		} else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+		} 
+		else if (event.type == SDL_EVENT_MOUSE_MOTION) {
+			window* target_window = find_window(event.motion.windowID);
+			if (target_window == nullptr)
+				continue;
+			target_window->mouse_motion({static_cast<size_t>(event.motion.x), static_cast<size_t>(event.motion.y)});
+		}
+		else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN || event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
 			window* target_window = find_window(event.button.windowID);
 			if (target_window == nullptr)
 				continue;
+			window_event_buttons button_state = target_window->mouse_state.buttons;
+			if (event.button.button == SDL_BUTTON_LEFT)
+				button_state.left_button_down = event.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
+			else if (event.button.button == SDL_BUTTON_RIGHT)
+				button_state.right_button_down = event.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
+			else if (event.button.button == SDL_BUTTON_MIDDLE)
+				button_state.middle_button_down = event.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
 			target_window->mouse_change(
 				{static_cast<size_t>(event.button.x), static_cast<size_t>(event.button.y)},
-				{event.button.button == SDL_BUTTON_LEFT, event.button.button == SDL_BUTTON_RIGHT}
+				button_state
 			);
-		} else if (event.type == SDL_EVENT_MOUSE_WHEEL) {
+		} 
+		else if (event.type == SDL_EVENT_MOUSE_WHEEL) {
 			window* target_window = find_window(event.wheel.windowID);
 			if (target_window != nullptr)
-				target_window->wheel_change = event.wheel.y - event.wheel.x;
+				target_window->mouse_wheel({
+					.delta = event.wheel.y,
+					.position = {
+						static_cast<size_t>(event.wheel.mouse_x < 0.0f ? 0.0f : event.wheel.mouse_x),
+						static_cast<size_t>(event.wheel.mouse_y < 0.0f ? 0.0f : event.wheel.mouse_y)
+					}
+				});
 		} else if (event.type == SDL_EVENT_KEY_DOWN) {
 			window* target_window = find_window(event.key.windowID);
 			if (target_window != nullptr)

@@ -15,8 +15,8 @@ struct vector3 {
 	T x, y, z;
 
 	vector3() = default;
-	vector3(const vector2<T>& _xy, T _z) : x(_xy.x), y(_xy.y), z(_z) {}
-	vector3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) {}
+	constexpr vector3(const vector2<T>& _xy, T _z) : x(_xy.x), y(_xy.y), z(_z) {}
+	constexpr vector3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) {}
 	template <typename U, typename = std::enable_if_t<!std::is_same_v<T, U>>>
 	vector3(const vector3<U>& _other) : x(static_cast<T>(_other.x)), y(static_cast<T>(_other.y)), z(static_cast<T>(_other.z)) {}
 	template <typename U>

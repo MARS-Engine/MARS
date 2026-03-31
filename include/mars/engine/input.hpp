@@ -24,12 +24,12 @@ struct input : event<input_events> {
 };
 
 namespace detail {
-void input_on_mouse_change(window& _window, const mars::vector2<size_t>& _position, const window_event_buttons& _click, input& _input) {
+void input_on_mouse_change(window& _window, const window_mouse_state& _mouse_state, input& _input) {
 	(void)_window;
-	_input.mouse_position = _position;
-	if (_click.left_button)
+	_input.mouse_position = _mouse_state.position;
+	if (_mouse_state.buttons.left_button_down && !_mouse_state.previous_buttons.left_button_down)
 		_input.on_left_mouse_click();
-	else if (_click.right_button)
+	else if (_mouse_state.buttons.right_button_down && !_mouse_state.previous_buttons.right_button_down)
 		_input.on_right_mouse_click();
 }
 
