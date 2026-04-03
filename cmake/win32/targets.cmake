@@ -7,12 +7,16 @@ function(mars_require_reflection_flags)
 endfunction()
 
 function(mars_win32_apply_libcxx target)
-    target_include_directories("${target}" PRIVATE "${CUSTOM_CLANG_PATH}/include/c++/v1")
+    if(CUSTOM_CLANG_PATH)
+        target_include_directories("${target}" PRIVATE "${CUSTOM_CLANG_PATH}/include/c++/v1")
+    endif()
 endfunction()
 
 function(mars_win32_configure_target target)
     mars_require_reflection_flags()
-    target_include_directories("${target}" PUBLIC "${CUSTOM_CLANG_PATH}/include/c++/v1")
+    if(CUSTOM_CLANG_PATH)
+        target_include_directories("${target}" PUBLIC "${CUSTOM_CLANG_PATH}/include/c++/v1")
+    endif()
 
     target_compile_options(
         "${target}"
@@ -20,11 +24,13 @@ function(mars_win32_configure_target target)
             ${MARS_REFLECTION_FLAGS}
     )
 
-    target_link_options(
-        "${target}"
-        PRIVATE
-            -L"${CUSTOM_CLANG_PATH}/lib"
-    )
+    if(CUSTOM_CLANG_PATH)
+        target_link_options(
+            "${target}"
+            PRIVATE
+                -L"${CUSTOM_CLANG_PATH}/lib"
+        )
+    endif()
 
     target_link_libraries(
         "${target}"

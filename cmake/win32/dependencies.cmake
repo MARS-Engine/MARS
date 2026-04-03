@@ -7,11 +7,6 @@ function(mars_win32_prepare_dependencies)
         message(FATAL_ERROR "mars: Win32 dependencies were requested on a non-Windows platform.")
     endif()
 
-    if(NOT FINAL_SDK_PATH)
-        message(FATAL_ERROR "mars: FINAL_SDK_PATH is not set. "
-            "Ensure root CMakeLists.txt ran Windows SDK detection before project().")
-    endif()
-
     if(NOT TARGET DXC::dxcompiler)
         FetchContent_Declare(
             DXC
@@ -29,15 +24,17 @@ function(mars_win32_prepare_dependencies)
         set(MARS_DXCOMPILER_BIN "${dxc_SOURCE_DIR}/bin/x64/dxcompiler.dll" CACHE PATH "" FORCE)
         set(MARS_DXIL_BIN       "${dxc_SOURCE_DIR}/bin/x64/dxil.dll"       CACHE PATH "" FORCE)
     endif()
-    
-    find_file(
-        MARS_LIBCXX_DLL
-        NAMES c++.dll libc++.dll
-        PATHS
-            "${CUSTOM_CLANG_PATH}/bin"
-            "${CUSTOM_CLANG_PATH}/lib"
-        NO_DEFAULT_PATH
-    )
+
+    if(CUSTOM_CLANG_PATH)
+        find_file(
+            MARS_LIBCXX_DLL
+            NAMES c++.dll libc++.dll
+            PATHS
+                "${CUSTOM_CLANG_PATH}/bin"
+                "${CUSTOM_CLANG_PATH}/lib"
+            NO_DEFAULT_PATH
+        )
+    endif()
 
     if(NOT TARGET SDL3::SDL3-shared)
         FetchContent_Declare(

@@ -172,7 +172,8 @@ struct struct_editor : public struct_editor_base<T> {
 		constexpr auto ctx = std::meta::access_context::current();
 		template for (constexpr auto mem : std::define_static_array(std::meta::nonstatic_data_members_of(^^T, ctx))) {
 			constexpr auto skip = mars::meta::get_annotation<struct_editor_annotation>(mem);
-			if constexpr (skip.has_value() && skip->skip) {
+			
+			if constexpr ((skip.has_value() && skip->skip) || std::meta::is_pointer_type(std::meta::type_of(mem))) {
 				continue;
 			} else {
 				using member_t = typename[:std::meta::type_of(mem):];
@@ -235,7 +236,7 @@ struct struct_editor : public struct_editor_base<T> {
 			const bool changed = render_contents();
 			ImGui::Unindent(10.0f);
 			return changed;
-		} else if (this->ref) {
+		} else if (this->ref && !std::is_pointer_v<T>) {
 			return detail::render_leaf(text.c_str(), *this->ref, false);
 		}
 		return false;
