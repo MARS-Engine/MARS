@@ -11,12 +11,12 @@
 #include <wrl.h>
 #include <wrl/implements.h>
 using dxc_module_t = HMODULE;
+#include <dxcapi.h>
 #else
 #include <dlfcn.h>
+#include <dxc/dxcapi.h>
 using dxc_module_t = void*;
 #endif
-
-#include <dxcapi.h>
 
 #include <filesystem>
 #include <fstream>

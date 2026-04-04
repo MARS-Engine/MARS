@@ -14,24 +14,60 @@ endfunction()
 
 function(mars_linux_configure_target target)
     mars_require_reflection_flags()
+
     if(CUSTOM_CLANG_PATH)
-        #  makes Clang automatically add its own libc++ include
-        # paths — no need to add them manually (doing so causes double-inclusion
-        # and cxxabi.h conflicts).
-        target_compile_options("${target}" PUBLIC )
-        target_link_options("${target}" PRIVATE
-            
-            -L"${CUSTOM_CLANG_PATH}/lib"
+        target_compile_options("${target}" PUBLIC "-nostdinc++")
+        target_include_directories("${target}" PUBLIC "${CUSTOM_CLANG_PATH}/include/c++/v1")
+        
+        target_link_options("${target}" PRIVATE 
+            "-L${CUSTOM_CLANG_PATH}/lib"
+            "-stdlib=libc++"
+        )
+
+        target_link_options("${target}" PUBLIC "-stdlib=libc++")
+    endif()
+
+    target_compile_options("${target}" PRIVATE ${MARS_REFLECTION_FLAGS})
+
+    target_link_libraries("${target}" PUBLIC 
+        SDL3::SDL3-shared
+        DXC::dxcompiler
+        pthread
+        dl
+    )
+
+    if(MARS_DXCOMPILER_BIN AND MARS_DXIL_BIN)
+        add_custom_command(TARGET "${target}" POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${MARS_DXCOMPILER_BIN}" "$<TARGET_FILE_DIR:${target}>"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${MARS_DXIL_BIN}" "$<TARGET_FILE_DIR:${target}>"
+        )
+    elseif(MARS_DXCOMPILER_BIN)
+        add_custom_command(TARGET "${target}" POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${MARS_DXCOMPILER_BIN}" "$<TARGET_FILE_DIR:${target}>"
         )
     endif()
 
-    target_compile_options(
-        "${target}"
-        PRIVATE
-            ${MARS_REFLECTION_FLAGS}
-    )
+    if(MARS_LIBCXX_DLL)
+        add_custom_command(TARGET "${target}" POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${MARS_LIBCXX_DLL}" "$<TARGET_FILE_DIR:${target}>"
+        )
+    endif()
 
-    target_link_libraries("${target}" PUBLIC SDL3::SDL3-shared DXC::dxcompiler)
+    set(_combined_rpath "$ORIGIN")
+    if(CUSTOM_CLANG_PATH)
+        list(APPEND _combined_rpath "${CUSTOM_CLANG_PATH}/lib")
+        list(APPEND _combined_rpath "${CUSTOM_CLANG_PATH}/lib/x86_64-unknown-linux-gnu")
+    endif()
+
+    set_target_properties("${target}" PROPERTIES 
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "${_combined_rpath}"
+        LINK_FLAGS "-Wl,--disable-new-dtags"
+    )
 endfunction()
 
 function(mars_linux_configure target)
@@ -62,16 +98,17 @@ function(mars_linux_configure target)
         )
     endif()
 
-    if(CUSTOM_CLANG_PATH)
-        set(_mars_rpath "\$ORIGIN:${CUSTOM_CLANG_PATH}/lib:${CUSTOM_CLANG_PATH}/lib/x86_64-unknown-linux-gnu")
+        if(CUSTOM_CLANG_PATH)
+        set(_mars_rpath "$ORIGIN;${CUSTOM_CLANG_PATH}/lib;${CUSTOM_CLANG_PATH}/lib/x86_64-unknown-linux-gnu")
     else()
-        set(_mars_rpath "\$ORIGIN")
+        set(_mars_rpath "$ORIGIN")
     endif()
 
     set_target_properties("${target}"  PROPERTIES
         BUILD_RPATH "${_mars_rpath}"                        # look in executable dir and toolchain lib
         INSTALL_RPATH "${_mars_rpath}"                      # installed rpath
         BUILD_WITH_INSTALL_RPATH TRUE
+        LINK_FLAGS "-Wl,--disable-new-dtags" 
     )
     # linker rpath is provided via the BUILD_RPATH/INSTALL_RPATH properties above
 endfunction()

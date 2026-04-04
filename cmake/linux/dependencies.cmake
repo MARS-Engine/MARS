@@ -27,11 +27,18 @@ function(mars_linux_prepare_dependencies)
         add_library(DXC::dxcompiler SHARED IMPORTED GLOBAL)
         set_target_properties(DXC::dxcompiler PROPERTIES
             IMPORTED_LOCATION             "${dxc_SOURCE_DIR}/lib/libdxcompiler.so"
-            # include/dxc/ is the root so that #include <dxcapi.h> resolves and
-            # relative includes inside dxcapi.h (e.g. "WinAdapter.h") stay valid.
-            INTERFACE_INCLUDE_DIRECTORIES "${dxc_SOURCE_DIR}/include/dxc"
+            INTERFACE_INCLUDE_DIRECTORIES "${dxc_SOURCE_DIR}/include;${dxc_SOURCE_DIR}/include/dxc"
         )
+        
+        set(MARS_DXCOMPILER_BIN "${dxc_SOURCE_DIR}/lib/libdxcompiler.so" CACHE PATH "" FORCE)
+        set(MARS_DXIL_BIN       "${dxc_SOURCE_DIR}/lib/libdxil.so"       CACHE PATH "" FORCE)
     endif()
 
-    find_file(MARS_LIBCXX_DLL    NAMES c++.so libc++.so.1 libc++abi.so.1 PATHS "${CUSTOM_CLANG_PATH}/lib/x86_64-unknown-linux-gnu" NO_DEFAULT_PATH)
+    if(CUSTOM_CLANG_PATH)
+        find_file(MARS_LIBCXX_DLL 
+            NAMES libc++.so.1 libc++.so
+            PATHS "${CUSTOM_CLANG_PATH}/lib" "${CUSTOM_CLANG_PATH}/lib/x86_64-unknown-linux-gnu" 
+            NO_DEFAULT_PATH
+        )
+    endif()
 endfunction()
