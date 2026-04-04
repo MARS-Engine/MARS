@@ -2,6 +2,7 @@
 
 #include <format>
 #include <functional>
+#include <mars/debug/env.hpp>
 #include <mars/meta.hpp>
 #include <mars/utility/stringify.hpp>
 #include <stdexcept>
@@ -61,11 +62,15 @@ static_assert(is_shipping != is_debug, "IS_SHIPPING or IS_DEBUG incorrectly set"
 namespace logger {
 
 void write_formatted_line(const std::string& line);
+void write_json_entry(const std::string& level, const std::string& channel, const std::string& message);
 
 template <typename... Args>
 void mars_print(const std::string& _level, const log_channel& _channel, const std::string& _message, Args... args) {
-	const std::string line = std::format("[{}] | {} | {}", _level, _channel.name(), std::vformat(_message, std::make_format_args(args...)));
-	write_formatted_line(line);
+	const std::string formatted_msg = std::vformat(_message, std::make_format_args(args...));
+	if constexpr (mars::env::formatted_output)
+		write_json_entry(_level, _channel.name(), formatted_msg);
+	else
+		write_formatted_line(std::format("[{}] | {} | {}", _level, _channel.name(), formatted_msg));
 }
 
 template <typename... Args>

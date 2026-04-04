@@ -114,6 +114,8 @@ struct dx_device_data {
 	Microsoft::WRL::ComPtr<IDXGIFactory4> factory;
 	Microsoft::WRL::ComPtr<ID3D12Device> device;
 	Microsoft::WRL::ComPtr<ID3D12Device5> device5; // non-null when supports_ray_tracing is true
+	Microsoft::WRL::ComPtr<ID3D12InfoQueue1> info_queue1;
+	DWORD info_queue_cookie = 0;
 
 	meta::type_erased_ptr command_queue_data;
 	meta::type_erased_ptr compute_queue_data;

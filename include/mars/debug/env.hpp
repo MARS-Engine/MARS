@@ -14,4 +14,10 @@ static constexpr bool platform_linux = true;
 static constexpr bool platform_linux = false;
 #endif
 
+#ifdef MARS_FORMATTED_OUTPUT
+static constexpr bool formatted_output = true;
+#else
+static constexpr bool formatted_output = false;
+#endif
+
 }

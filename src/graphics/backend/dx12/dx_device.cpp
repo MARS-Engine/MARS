@@ -72,6 +72,26 @@ device dx_device_impl::dx_device_create(graphics_engine& _engine) {
 		logger::log(g_dx12_channel, "info queue configured (no break on error/corruption)");
 	}
 
+	if (SUCCEEDED(device_data->device.As(&device_data->info_queue1))) {
+		device_data->info_queue1->RegisterMessageCallback(
+			[](D3D12_MESSAGE_CATEGORY, D3D12_MESSAGE_SEVERITY _severity, D3D12_MESSAGE_ID, LPCSTR _description, void*) {
+				switch (_severity) {
+				case D3D12_MESSAGE_SEVERITY_CORRUPTION:
+				case D3D12_MESSAGE_SEVERITY_ERROR:
+					logger::error(g_dx12_channel, "{}", _description);
+					break;
+				default:
+					logger::warning(g_dx12_channel, "{}", _description);
+					break;
+				}
+			},
+			D3D12_MESSAGE_CALLBACK_FLAG_NONE,
+			nullptr,
+			&device_data->info_queue_cookie
+		);
+		logger::log(g_dx12_channel, "D3D12 message callback registered");
+	}
+
 	device result = {};
 	result.engine = _engine.allocator;
 	result.data.store(device_data);
@@ -149,6 +169,8 @@ bool dx_device_impl::dx_device_supports_feature(const device& _device, device_fe
 
 void dx_device_impl::dx_device_destroy(device& _device) {
 	auto* device_data = _device.data.expect<dx_device_data>();
+	if (device_data->info_queue1 && device_data->info_queue_cookie != 0)
+		device_data->info_queue1->UnregisterMessageCallback(device_data->info_queue_cookie);
 	if (device_data->copy_queue_data.get<void>() != nullptr)
 		dx_command_queue_impl::dx_copy_queue_destroy(_device);
 	if (device_data->compute_queue_data.get<void>() != nullptr)
