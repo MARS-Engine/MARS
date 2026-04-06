@@ -56,6 +56,56 @@ predict_value(unsigned char _value) {
 	return JSON_VALUE_TYPES_INVALID;
 }
 
+inline std::string_view::iterator skip_value(std::string_view::iterator _current, std::string_view::iterator _end) {
+	if (_current == _end)
+		return _end;
+
+	switch (predict_value(static_cast<unsigned char>(*_current))) {
+	case JSON_VALUE_TYPES_STRING: {
+		std::string parsed;
+		return parse::parse_quoted_string(_current, _end, parsed);
+	}
+	case JSON_VALUE_TYPES_OBJECT:
+	case JSON_VALUE_TYPES_ARRAY: {
+		const char open_char = *_current;
+		const char close_char = open_char == '{' ? '}' : ']';
+		int depth = 0;
+		bool inside_string = false;
+
+		for (auto it = _current; it != _end; ++it) {
+			if (*it == '"' && (it == _current || *(it - 1) != '\\'))
+				inside_string = !inside_string;
+			if (inside_string)
+				continue;
+			if (*it == open_char)
+				++depth;
+			else if (*it == close_char) {
+				--depth;
+				if (depth == 0)
+					return it + 1;
+			}
+		}
+		return _end;
+	}
+	case JSON_VALUE_TYPES_NUMBER: {
+		auto it = _current;
+		while (it != _end && *it != ',' && *it != '}' && *it != ']' && !std::isspace(static_cast<unsigned char>(*it)))
+			++it;
+		return it;
+	}
+	case JSON_VALUE_TYPES_BOOL:
+		if ((_current + 4) <= _end && std::string_view(_current, _current + 4) == "true")
+			return _current + 4;
+		if ((_current + 5) <= _end && std::string_view(_current, _current + 5) == "false")
+			return _current + 5;
+		return _end;
+	default:
+		if ((_current + 4) <= _end && std::string_view(_current, _current + 4) == "null")
+			return _current + 4;
+		return _end;
+	}
+}
+
 template <typename T>
 struct json_type_parser;
 
@@ -83,11 +133,12 @@ struct json_type_parser_base {
 		return false;
 	}
 
-	inline static std::string_view::iterator default_parse(const std::string_view& _json, T& _value) {
+	template <typename... Args>
+	inline static std::string_view::iterator default_parse(const std::string_view& _json, T& _value, Args&&... _args) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
 
 		if (*start != '{')
-			return _json.end();
+			return start;
 
 		std::string_view::iterator current = start + 1;
 
@@ -98,30 +149,31 @@ struct json_type_parser_base {
 				return current;
 
 			else if (current == _json.end())
-				return _json.end();
+				return current;
 
 			if (*current != '"')
-				return _json.end();
+				return current;
 
 			std::string name;
-			current = parse::parse_quoted_string(current, _json.end(), name);
-			if (current == _json.end())
-				return _json.end();
+			auto next_current = parse::parse_quoted_string(current, _json.end(), name);
+			if (next_current == current)
+				return current;
+			current = next_current;
 
 			current = parse::first_space<false>(current, _json.end());
 
 			if (*current != ':')
-				return _json.end();
+				return current;
 
 			current = parse::first_space<false>(current + 1, _json.end());
 
 			if (current == _json.end())
-				return _json.end();
+				return current;
 
 			json_value_types predicted_type = predict_value(*current);
 
 			if (predicted_type == JSON_VALUE_TYPES_INVALID)
-				return _json.end();
+				return current;
 
 			constexpr auto ctx = std::meta::access_context::current();
 
@@ -151,13 +203,13 @@ struct json_type_parser_base {
 						valid = json_type_parser<C>::bool_support;
 						break;
 					default:
-						return _json.end();
+						return current;
 					}
 
 					std::string_view str{current, _json.end()};
 					if (valid) {
 						found = true;
-						current = json_type_parser<C>::parse(str, _value.[:mem:]);
+						current = json_type_parser<C>::parse(str, _value.[:mem:], std::forward<Args>(_args)...);
 					}
 				}
 			}
@@ -190,10 +242,12 @@ struct json_type_parser_base {
 				current = parse::first_space<false>(current, _json.end());
 			}
 
+			if (current == _json.end())
+				return current;
 			if (*current == ',')
 				current++;
 			else if (*current != '}')
-				return _json.end();
+				return current;
 		} while (*current != '}');
 
 		return current + 1;
@@ -229,8 +283,9 @@ struct json_type_parser_base {
 
 template <typename T>
 struct json_type_parser : public json_type_parser_base<T> {
-	inline static std::string_view::iterator parse(const std::string_view& _json, T& _value) {
-		return json_type_parser_base<T>::default_parse(_json, _value);
+	template <typename... Args>
+	inline static std::string_view::iterator parse(const std::string_view& _json, T& _value, Args&&... _args) {
+		return json_type_parser_base<T>::default_parse(_json, _value, std::forward<Args>(_args)...);
 	}
 
 	inline static void stringify(T& _value, std::string& _out) {
@@ -242,11 +297,12 @@ struct json_type_parser : public json_type_parser_base<T> {
 
 template <typename T>
 struct json_type_parser<std::vector<T>> : public json_type_parser_base<std::vector<T>> {
-	inline static std::string_view::iterator parse(const std::string_view& _json, std::vector<T>& _value) {
+	template <typename... Args>
+	inline static std::string_view::iterator parse(const std::string_view& _json, std::vector<T>& _value, Args&&... _args) {
 		std::string_view::iterator current = parse::first_space<false>(_json.begin(), _json.end());
 
-		if (*current != '[')
-			return _json.end();
+		if (current == _json.end() || *current != '[')
+			return current;
 
 		current++;
 		_value.clear();
@@ -254,23 +310,27 @@ struct json_type_parser<std::vector<T>> : public json_type_parser_base<std::vect
 		while (current != _json.end() && *current != ']') {
 			current = parse::first_space<false>(current, _json.end());
 
-			if (*current != '{')
-				return _json.end();
+			if (current == _json.end() || (*current != '{' && *current != '"' && *current != '[' && !std::isalnum(static_cast<unsigned char>(*current)) && *current != '-'))
+				return current;
 
 			std::string_view str{current, _json.end()};
 
-			if (json_type_parser<T>::struct_support)
-				current = json_type_parser<T>::parse(str, _value.emplace_back());
+			auto next_current = json_type_parser<T>::parse(str, _value.emplace_back(), std::forward<Args>(_args)...);
+			if (next_current == current)
+				return current;
+			current = next_current;
 
 			if (current == _json.end())
-				return _json.end();
+				return current;
 
 			current = parse::first_space<false>(current, _json.end());
 
+			if (current == _json.end())
+				return current;
 			if (*current == ',')
 				current++;
 			else if (*current != ']')
-				return _json.end();
+				return current;
 		}
 
 		return current + 1;
@@ -297,7 +357,8 @@ struct json_type_parser<std::vector<T>> : public json_type_parser_base<std::vect
 
 template <typename T, size_t N>
 struct json_type_parser<std::array<T, N>> : public json_type_parser_base<std::array<T, N>> {
-	inline static std::string_view::iterator parse(const std::string_view& _json, std::array<T, N>& _value) {
+	template <typename... Args>
+	inline static std::string_view::iterator parse(const std::string_view& _json, std::array<T, N>& _value, Args&&... _args) {
 		std::string_view::iterator current = parse::first_space<false>(_json.begin(), _json.end());
 
 		if (current == _json.end() || *current != '[')
@@ -308,28 +369,27 @@ struct json_type_parser<std::array<T, N>> : public json_type_parser_base<std::ar
 
 		while (current != _json.end() && *current != ']') {
 			current = parse::first_space<false>(current, _json.end());
-			if (current == _json.end())
-				return _json.end();
-			if (index >= N)
-				return _json.end();
+			if (current == _json.end() || index >= N)
+				return current;
 
 			std::string_view value_json{current, _json.end()};
-			current = json_type_parser<T>::parse(value_json, _value[index]);
-			if (current == _json.end())
-				return _json.end();
+			auto next_current = json_type_parser<T>::parse(value_json, _value[index], std::forward<Args>(_args)...);
+			if (next_current == current)
+				return current;
+			current = next_current;
 			index++;
 
 			current = parse::first_space<false>(current, _json.end());
 			if (current == _json.end())
-				return _json.end();
+				return current;
 			if (*current == ',')
 				current++;
 			else if (*current != ']')
-				return _json.end();
+				return current;
 		}
 
 		if (current == _json.end() || *current != ']' || index != N)
-			return _json.end();
+			return current;
 
 		return current + 1;
 	}
@@ -359,7 +419,8 @@ struct json_type_parser<std::unordered_map<K, V>> : public json_type_parser_base
 	using map_type = std::unordered_map<K, V>;
 	using entry_type = json_map_entry<K, V>;
 
-	inline static std::string_view::iterator parse(const std::string_view& _json, map_type& _value) {
+	template <typename... Args>
+	inline static std::string_view::iterator parse(const std::string_view& _json, map_type& _value, Args&&... _args) {
 		std::string_view::iterator current = parse::first_space<false>(_json.begin(), _json.end());
 
 		if constexpr (std::is_same_v<K, std::string>) {
@@ -370,47 +431,50 @@ struct json_type_parser<std::unordered_map<K, V>> : public json_type_parser_base
 				while (current != _json.end() && *current != '}') {
 					current = parse::first_space<false>(current, _json.end());
 					if (current == _json.end())
-						return _json.end();
+						return current;
 
 					std::string key;
-					current = parse::parse_quoted_string(current, _json.end(), key);
-					if (current == _json.end())
-						return _json.end();
+					auto key_next = parse::parse_quoted_string(current, _json.end(), key);
+					if (key_next == current)
+						return current;
+					current = key_next;
 
 					current = parse::first_space<false>(current, _json.end());
 					if (current == _json.end() || *current != ':')
-						return _json.end();
+						return current;
 
 					current = parse::first_space<false>(current + 1, _json.end());
 					if (current == _json.end())
-						return _json.end();
+						return current;
 
 					std::string_view value_json{current, _json.end()};
 					V value {};
-					current = json_type_parser<V>::parse(value_json, value);
-					if (current == _json.end())
-						return _json.end();
+					auto next_current = json_type_parser<V>::parse(value_json, value, std::forward<Args>(_args)...);
+					if (next_current == current)
+						return current;
+					current = next_current;
+					
 					if (!_value.emplace(std::move(key), std::move(value)).second)
-						return _json.end();
+						return current;
 
 					current = parse::first_space<false>(current, _json.end());
 					if (current == _json.end())
-						return _json.end();
+						return current;
 					if (*current == ',')
 						current++;
 					else if (*current != '}')
-						return _json.end();
+						return current;
 				}
 
 				if (current == _json.end() || *current != '}')
-					return _json.end();
+					return current;
 
 				return current + 1;
 			}
 		}
 
 		if (current == _json.end() || *current != '[')
-			return _json.end();
+			return current;
 
 		current++;
 		_value.clear();
@@ -418,27 +482,29 @@ struct json_type_parser<std::unordered_map<K, V>> : public json_type_parser_base
 		while (current != _json.end() && *current != ']') {
 			current = parse::first_space<false>(current, _json.end());
 			if (current == _json.end())
-				return _json.end();
+				return current;
 
 			std::string_view entry_json{current, _json.end()};
 			entry_type entry {};
-			current = json_type_parser<entry_type>::parse(entry_json, entry);
-			if (current == _json.end())
-				return _json.end();
+			auto next_current = json_type_parser<entry_type>::parse(entry_json, entry, std::forward<Args>(_args)...);
+			if (next_current == current)
+				return current;
+			current = next_current;
+
 			if (!_value.emplace(std::move(entry.key), std::move(entry.value)).second)
-				return _json.end();
+				return current;
 
 			current = parse::first_space<false>(current, _json.end());
 			if (current == _json.end())
-				return _json.end();
+				return current;
 			if (*current == ',')
 				current++;
 			else if (*current != ']')
-				return _json.end();
+				return current;
 		}
 
 		if (current == _json.end() || *current != ']')
-			return _json.end();
+			return current;
 
 		return current + 1;
 	}
@@ -481,17 +547,19 @@ struct json_type_parser<std::unordered_map<K, V>> : public json_type_parser_base
 
 template <>
 struct json_type_parser<unsigned int> : public json_type_parser_base<unsigned int> {
-	inline static std::string_view::iterator parse(const std::string_view& _json, unsigned int& _value) {
+	template <typename... Args>
+	inline static std::string_view::iterator parse(const std::string_view& _json, unsigned int& _value, Args&&... /*_args*/) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
 		std::string_view::iterator end = parse::first_special(start, _json.end());
 
-		if (end != _json.end() && *end != ',' && *end != '}')
-			return _json.end();
+		if (end != _json.end() && *end != ',' && *end != '}' && *end != ']')
+			return start;
 
 		std::string str(start, end);
+		if (str.empty()) return start;
 		for (char& c : str)
 			if (!std::isdigit(c))
-				return _json.end();
+				return start;
 		_value = std::stoul(str);
 		return end;
 	}
@@ -505,17 +573,19 @@ struct json_type_parser<unsigned int> : public json_type_parser_base<unsigned in
 
 template <>
 struct json_type_parser<size_t> : public json_type_parser_base<size_t> {
-	inline static std::string_view::iterator parse(const std::string_view& _json, size_t& _value) {
+	template <typename... Args>
+	inline static std::string_view::iterator parse(const std::string_view& _json, size_t& _value, Args&&... /*_args*/) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
 		std::string_view::iterator end = parse::first_special(start, _json.end());
 
-		if (end != _json.end() && *end != ',' && *end != '}')
-			return _json.end();
+		if (end != _json.end() && *end != ',' && *end != '}' && *end != ']')
+			return start;
 
 		std::string str(start, end);
+		if (str.empty()) return start;
 		for (char& c : str)
 			if (!std::isdigit(c))
-				return _json.end();
+				return start;
 		_value = std::stoull(str);
 		return end;
 	}
@@ -529,20 +599,22 @@ struct json_type_parser<size_t> : public json_type_parser_base<size_t> {
 
 template <>
 struct json_type_parser<float> : public json_type_parser_base<float> {
-	inline static std::string_view::iterator parse(const std::string_view& _json, float& _value) {
+	template <typename... Args>
+	inline static std::string_view::iterator parse(const std::string_view& _json, float& _value, Args&&... /*_args*/) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
 		std::string_view::iterator end = parse::first_special(start, _json.end());
 
 		while (end != _json.end() && (*end == '.' || *end == '-' || *end == '+'))
 			end = parse::first_special(end + 1, _json.end());
 
-		if (end != _json.end() && *end != ',' && *end != '}')
-			return _json.end();
+		if (end != _json.end() && *end != ',' && *end != '}' && *end != ']')
+			return start;
 
 		std::string str(start, end);
+		if (str.empty()) return start;
 		for (char& c : str)
 			if (!std::isdigit(c) && c != '.' && c != '-' && c != '+' && c != 'e' && c != 'E')
-				return _json.end();
+				return start;
 		_value = std::stof(str);
 		return end;
 	}
@@ -556,12 +628,13 @@ struct json_type_parser<float> : public json_type_parser_base<float> {
 
 template <>
 struct json_type_parser<std::string> : public json_type_parser_base<std::string> {
-	inline static std::string_view::iterator parse(const std::string_view& _json, std::string& _value) {
+	template <typename... Args>
+	inline static std::string_view::iterator parse(const std::string_view& _json, std::string& _value, Args&&... /*_args*/) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
 		std::string str;
 		std::string_view::iterator end = parse::parse_quoted_string(start, _json.end(), str);
-		if (end == _json.end())
-			return _json.end();
+		if (end == start)
+			return start;
 		_value = std::move(str);
 		return end;
 	}
@@ -604,14 +677,15 @@ struct json_type_parser<std::string> : public json_type_parser_base<std::string>
 
 template <>
 struct json_type_parser<vector3<unsigned char>> : public json_type_parser_base<vector3<unsigned char>> {
-	inline static std::string_view::iterator parse(const std::string_view& _json, vector3<unsigned char>& _value) {
+	template <typename... Args>
+	inline static std::string_view::iterator parse(const std::string_view& _json, vector3<unsigned char>& _value, Args&&... /*_args*/) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
 		std::string str;
 		std::string_view::iterator end = parse::parse_quoted_string(start, _json.end(), str);
-		if (end == _json.end())
-			return _json.end();
+		if (end == start)
+			return start;
 		if (str.size() != 8 || !str.starts_with("0x"))
-			return _json.end();
+			return start;
 
 		_value.x = utils::hex_byte_to_char({str.begin() + 2, str.begin() + 4});
 		_value.y = utils::hex_byte_to_char({str.begin() + 4, str.begin() + 6});
@@ -629,11 +703,12 @@ struct json_type_parser<vector3<unsigned char>> : public json_type_parser_base<v
 
 template <>
 struct json_type_parser<bool> : public json_type_parser_base<bool> {
-	inline static std::string_view::iterator parse(const std::string_view& _json, bool& _value) {
+	template <typename... Args>
+	inline static std::string_view::iterator parse(const std::string_view& _json, bool& _value, Args&&... /*_args*/) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
 
 		if (start == _json.end())
-			return _json.end();
+			return start;
 
 		if ((start + sizeof("true") - 1) <= _json.end() && std::string_view(start, start + sizeof("true") - 1) == "true") {
 			_value = true;
@@ -643,7 +718,7 @@ struct json_type_parser<bool> : public json_type_parser_base<bool> {
 			return start + sizeof("false") - 1;
 		}
 
-		return _json.end();
+		return start;
 	}
 
 	inline static void stringify(bool& _value, std::string& _out) {
@@ -656,15 +731,16 @@ struct json_type_parser<bool> : public json_type_parser_base<bool> {
 template <typename T>
 	requires std::is_enum_v<T>
 struct json_type_parser<T> : public json_type_parser_base<T> {
-	inline static std::string_view::iterator parse(const std::string_view& _json, T& _value) {
+	template <typename... Args>
+	inline static std::string_view::iterator parse(const std::string_view& _json, T& _value, Args&&... /*_args*/) {
 		std::string_view::iterator start = parse::first_space<false>(_json.begin(), _json.end());
 		std::string str;
 		std::string_view::iterator end = parse::parse_quoted_string(start, _json.end(), str);
-		if (end == _json.end())
-			return _json.end();
+		if (end == start)
+			return start;
 		const std::optional<T> parsed = meta::try_string_to_enum<T>(str);
 		if (!parsed.has_value())
-			return _json.end();
+			return start;
 		_value = *parsed;
 		return end;
 	}

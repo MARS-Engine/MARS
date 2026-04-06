@@ -24,7 +24,7 @@ inline auto first_space(const std::string_view::iterator& begin, const std::stri
 
 inline std::string_view::iterator parse_quoted_string(const std::string_view::iterator& begin, const std::string_view::iterator& end, std::string& out) {
 	if (begin == end || *begin != '"')
-		return end;
+		return begin;
 
 	out.clear();
 	bool escaping = false;
@@ -78,7 +78,7 @@ inline std::string_view::iterator parse_quoted_string(const std::string_view::it
 	}
 
 	out.clear();
-	return end;
+	return begin;
 }
 } // namespace parse
 } // namespace mars
