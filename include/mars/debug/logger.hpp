@@ -178,5 +178,19 @@ decltype(auto) log_expect(const log_channel& _channel, Object&& _object, Expecte
 		std::forward<Args>(args)...
 	);
 }
+class scoped_log {
+public:
+    scoped_log(scoped_log&& _other) noexcept;
+    ~scoped_log();
+    scoped_log(const scoped_log&) = delete;
+    scoped_log& operator=(const scoped_log&) = delete;
+private:
+    bool m_active = false;
+    scoped_log() = default;
+    friend scoped_log begin_sublog(const log_channel& _channel, std::string_view _name);
+};
+
+scoped_log begin_sublog(const log_channel& _channel, std::string_view _name);
+
 } // namespace logger
 } // namespace mars
